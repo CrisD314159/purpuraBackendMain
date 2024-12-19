@@ -1,0 +1,73 @@
+@purpuraMain_HostAddress = http://localhost:5188
+
+
+
+/// USER TESTS
+POST  {{purpuraMain_HostAddress}}/user/sendRecoveryMail?email=mario@gmail.com
+Accept: application/json
+
+
+
+###
+GET {{purpuraMain_HostAddress}}/user/15f10770-1beb-4476-8e8e-303a78a73266
+Accept: application/json
+
+
+###
+GET {{purpuraMain_HostAddress}}/user/getByEmail/mario@gmail.com
+Accept: application/json
+
+
+###
+POST {{purpuraMain_HostAddress}}/user
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "maria@gmail.com",
+  "password": "Password@432",
+  "name": "Mario García",
+  "phone": "311243124",
+  "country": 1
+}
+
+###
+PUT {{purpuraMain_HostAddress}}/user
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": "6f4c8c96-b10f-4a12-80cd-668d70c5d573",
+  "email": "maria@gmail.com",
+  "password": "password456",
+  "name": "Mario Angel García",
+  "phone": "3003893442",
+  "country": 2
+}
+
+###
+PUT {{purpuraMain_HostAddress}}/user/verifyAccount
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "mario@gmail.com",
+  "code": "1704"
+}
+
+
+###
+PUT {{purpuraMain_HostAddress}}/user/changePassword
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "mario@gmail.com",
+  "code": "4067",
+  "password": "Password-4567@"
+}
+
+
+###
+DELETE {{purpuraMain_HostAddress}}/user/ieopskd2p12k2
+Accept: application/json
