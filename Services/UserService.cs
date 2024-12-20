@@ -199,6 +199,7 @@ public static class UserService
                 Description= "Esta es tu Purple Day List, aquí encontrarás recomendaciones diarias de la música que más te gusta",
                 UserId = id,
                 IsPublic = false,
+                ImageUrl = "https://res.cloudinary.com/dw43hgf5p/image/upload/v1734735036/pskgqakw7ojmfkn7x076.jpg",
                 CreatedAt = DateTime.UtcNow
             };
 

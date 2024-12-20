@@ -71,3 +71,20 @@ Content-Type: application/json
 ###
 DELETE {{purpuraMain_HostAddress}}/user/ieopskd2p12k2
 Accept: application/json
+
+
+
+
+// PLAYLIST TESTS
+###
+GET {{purpuraMain_HostAddress}}/playlist/1
+Accept: application/json
+###
+PUT {{purpuraMain_HostAddress}}/playlist/addSong
+Accept: application/json
+Content-Type: application/json
+
+{
+  "playlistId": "1",
+  "songId": "1"
+}

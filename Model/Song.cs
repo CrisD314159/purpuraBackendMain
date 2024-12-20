@@ -16,6 +16,7 @@ public class Song
 
   public string? Lyrics { get; set; }
   public required string AudioUrl { get; set; }
+  public required string ImageUrl { get; set; }
 
   public ICollection<Playlist>? Playlists { get; set; }
 

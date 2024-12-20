@@ -13,6 +13,8 @@ public class Playlist
   public string? UserId { get; set; }
   public User? User { get; set; }
 
+  public required string ImageUrl { get; set; }
+
   public required bool IsPublic { get; set; }
   public DateTime CreatedAt { get; set; }
   public ICollection<Song>? Songs { get; set; } 
