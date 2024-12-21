@@ -8,6 +8,8 @@ public class GetSongDTO
   public required string AlbumId { get; set; }
   public required string AlbumName { get; set; }
   public  required double Duration { get; set; }
+  public required string? ImageUrl { get; set; }
+  public required string? AudioUrl { get; set; }
   public required List<GetGenreDTO> Genres { get; set; }
   public string? Lyrics { get; set; }
 }

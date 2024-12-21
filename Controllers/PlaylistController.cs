@@ -30,9 +30,9 @@ public class PlaylistController : ControllerBase
       GetPlayListDTO playList = await PlaylistServices.GetPlaylist(id, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
       return playList;
     }
-    catch(NullFieldException arg)
+    catch(ValidationException ex)
     {
-      return BadRequest(new {Title = "There was an error with the input", Detail = arg.Message});
+      return BadRequest(ex.Message);
     }
     catch(EntityNotFoundException ex)
     {
@@ -44,16 +44,16 @@ public class PlaylistController : ControllerBase
     }
   }
   [HttpPut("addSong")]
-  public async Task<ActionResult> AddSong(AddSongDTO addSongDTO)
+  public async Task<ActionResult> AddSong(AddRemoveSongDTO addSongDTO)
   {
     try
     {
       var playList = await PlaylistServices.AddSong(addSongDTO, _dbContext);
       return Ok("Song added to playlist");
     }
-    catch(NullFieldException arg)
+     catch(ValidationException ex)
     {
-      return BadRequest(new {Title = "There was an error with the input", Detail = arg.Message});
+      return BadRequest(ex.Message);
     }
     catch(EntityNotFoundException ex)
     {
@@ -65,16 +65,16 @@ public class PlaylistController : ControllerBase
     }
   }
   [HttpPut("removeSong")]
-  public async Task<ActionResult> Remove(AddSongDTO addSongDTO)
+  public async Task<ActionResult> Remove(AddRemoveSongDTO addSongDTO)
   {
     try
     {
       var playList = await PlaylistServices.RemoveSong(addSongDTO, _dbContext);
       return Ok("Song Removed from playlist");
     }
-    catch(NullFieldException arg)
+     catch(ValidationException ex)
     {
-      return BadRequest(new {Title = "There was an error with the input", Detail = arg.Message});
+      return BadRequest(ex.Message);
     }
     catch(EntityNotFoundException ex)
     {
@@ -86,17 +86,17 @@ public class PlaylistController : ControllerBase
     }
   }
 
-   [HttpPut("changePrivacy/{id}")]
-  public async Task<ActionResult> ChangePlaylistPrivacy(string id)
+   [HttpPut("changePrivacy")]
+  public async Task<ActionResult> ChangePlaylistPrivacy(ChangePrivacyPlaylistDto changePrivacy)
   {
     try
     {
-      var playList = await PlaylistServices.ChangePlayListState(id, _dbContext);
+      var playList = await PlaylistServices.ChangePlayListState(changePrivacy, _dbContext);
       return Ok("Playlist privacy changed");
     }
-    catch(NullFieldException arg)
+     catch(ValidationException ex)
     {
-      return BadRequest(new {Title = "There was an error with the input", Detail = arg.Message});
+      return BadRequest(ex.Message);
     }
     catch(EntityNotFoundException ex)
     {
@@ -119,6 +119,10 @@ public class PlaylistController : ControllerBase
     {
       return NotFound(ex.Message);
     }
+     catch(ValidationException ex)
+    {
+      return BadRequest(ex.Message);
+    }
     catch (System.Exception e)
     {
       return BadRequest(e.Message);
@@ -130,7 +134,7 @@ public class PlaylistController : ControllerBase
     try
     {
       var playList = await PlaylistServices.CreatePlayList(createPlayListDTO, _dbContext);
-      return Created("Playlist created", playList);
+      return Created("Playlist created", new {message = $"Playlist {createPlayListDTO.Name} created",});
     }
     catch(EntityNotFoundException ex)
     {
@@ -167,17 +171,21 @@ public class PlaylistController : ControllerBase
       return BadRequest(e.Message);
     }
   }
-   [HttpDelete("{id}")]
-  public async Task<ActionResult> DeletePlayList(string id)
+   [HttpDelete]
+  public async Task<ActionResult> DeletePlayList(DeletePlayListDTO deletePlayList)
   {
     try
     {
-      var playList = await PlaylistServices.DeletePlayList(id, _dbContext);
+      var playList = await PlaylistServices.DeletePlayList(deletePlayList, _dbContext);
       return Ok("Playlist deleted");
     }
     catch(EntityNotFoundException ex)
     {
       return NotFound(ex.Message);
+    }
+     catch(ValidationException ex)
+    {
+      return BadRequest(ex.Message);
     }
     catch (System.Exception e)
     {

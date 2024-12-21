@@ -1,43 +1,90 @@
 namespace purpuraMain.Services;
 using purpuraMain.Model;
 using purpuraMain.DbContext;
+using purpuraMain.Dto.OutputDto;
+using Microsoft.EntityFrameworkCore;
+using purpuraMain.Exceptions;
 
 public static class SongService
 {
-    public static async void GetSongById(string id, PurpuraDbContext dbContext)
+    public static async Task<GetSongDTO> GetSongById(string id, PurpuraDbContext dbContext)
     {
+        try
+        {
+            var song = await dbContext.Songs!.Where(s => s.Id == id).Select(s => new GetSongDTO{
+                Id = s.Id,
+                Name = s.Name,
+                Artists = s.Artists!.Select(a=> new GetPlaylistArtistDTO{
+                    Id = a.Id,
+                    Name = a.Name,
+
+                }).ToList(),
+                AlbumId = s.AlbumId!,
+                AlbumName = s.Album!.Name!,
+                AudioUrl = s.AudioUrl!,
+                Duration = s.Duration,
+                Genres = s.Genres!.Select(g => new GetGenreDTO{
+                    Id = g.Id,
+                    Name = g.Name
+                }).ToList(),
+                ImageUrl = s.ImageUrl!,
+                Lyrics = s.Lyrics ?? ""
+
+            }).FirstAsync() ?? throw new EntityNotFoundException("Song not found");
+
+            return song;
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new EntityNotFoundException(ex.Message);
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
         
     }
 
-    public static async void GetSongByTitle(string title, PurpuraDbContext dbContext)
+    public static async Task<List<GetSongDTO>> GetSongByInput(string input, PurpuraDbContext dbContext)
     {
+        try
+        {
+            var songs = await dbContext.Songs!.Where(s => s.Name.Contains(input) || s.Artists!.Any(a=>a.Name.Contains(input)) || s.Album!.Name.Contains(input)).Select(s => new GetSongDTO{
+                Id = s.Id,
+                Name = s.Name,
+                Artists = s.Artists!.Select(a=> new GetPlaylistArtistDTO{
+                    Id = a.Id,
+                    Name = a.Name,
+
+                }).ToList(),
+                AlbumId = s.AlbumId!,
+                AlbumName = s.Album!.Name!,
+                AudioUrl = s.AudioUrl!,
+                Duration = s.Duration,
+                Genres = s.Genres!.Select(g => new GetGenreDTO{
+                    Id = g.Id,
+                    Name = g.Name
+                }).ToList(),
+                ImageUrl = s.ImageUrl!,
+                Lyrics = s.Lyrics ?? ""
+
+            }).ToListAsync() ?? throw new EntityNotFoundException("There are no songs that match the search");
+
+            return songs;
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new EntityNotFoundException(ex.Message);
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
         
     }
 
-    public static async void GetSongByArtist(string artist, PurpuraDbContext dbContext)
-    {
-        
-    }
-
-    public static async void GetSongByAlbum(string album, PurpuraDbContext dbContext)
-    {
-        
-    }
-
-
-// Nota: No se si poner los metodos crud en los servicios de nodejs
-    public static async void CreateSong(Song song, PurpuraDbContext dbContext)
-    {
-        
-    }
-
-    public static async void UpdateSong(Song song, PurpuraDbContext dbContext)
-    {
-        
-    }
-
-    public static async void DeleteSong(string id, PurpuraDbContext dbContext)
-    {
-        
-    }
+// Nota: Los metodos de crud de las canciones van en un servicio de canciones hecho en node.js
+ 
 }

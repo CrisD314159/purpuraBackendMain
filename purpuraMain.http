@@ -3,22 +3,24 @@
 
 
 /// USER TESTS
+
+### Enviar un correo elecrónico para recuperar la contraseña
 POST  {{purpuraMain_HostAddress}}/user/sendRecoveryMail?email=mario@gmail.com
 Accept: application/json
 
 
 
-###
+### Obtener un usuario por su id
 GET {{purpuraMain_HostAddress}}/user/15f10770-1beb-4476-8e8e-303a78a73266
 Accept: application/json
 
 
-###
+### Obtener un usuario por su email
 GET {{purpuraMain_HostAddress}}/user/getByEmail/mario@gmail.com
 Accept: application/json
 
 
-###
+### Crear Un Usuario
 POST {{purpuraMain_HostAddress}}/user
 Accept: application/json
 Content-Type: application/json
@@ -31,7 +33,7 @@ Content-Type: application/json
   "country": 1
 }
 
-###
+### Actualizar Un Usuario
 PUT {{purpuraMain_HostAddress}}/user
 Accept: application/json
 Content-Type: application/json
@@ -45,7 +47,7 @@ Content-Type: application/json
   "country": 2
 }
 
-###
+### Verificar la cuenta de un usuario
 PUT {{purpuraMain_HostAddress}}/user/verifyAccount
 Accept: application/json
 Content-Type: application/json
@@ -56,7 +58,7 @@ Content-Type: application/json
 }
 
 
-###
+### Cambiar la contraseña de un usuario
 PUT {{purpuraMain_HostAddress}}/user/changePassword
 Accept: application/json
 Content-Type: application/json
@@ -68,7 +70,7 @@ Content-Type: application/json
 }
 
 
-###
+### Eliminar un usuario
 DELETE {{purpuraMain_HostAddress}}/user/ieopskd2p12k2
 Accept: application/json
 
@@ -76,10 +78,12 @@ Accept: application/json
 
 
 // PLAYLIST TESTS
-###
-GET {{purpuraMain_HostAddress}}/playlist/1
+
+### Obtener una playlist con sus canciones
+GET {{purpuraMain_HostAddress}}/playlist/be4f4676-4297-4f2a-bdaa-57227306c87c
 Accept: application/json
-###
+
+### Añadir una canción a una playlist (Debe ser del usuario que la creó)
 PUT {{purpuraMain_HostAddress}}/playlist/addSong
 Accept: application/json
 Content-Type: application/json
@@ -88,3 +92,63 @@ Content-Type: application/json
   "playlistId": "1",
   "songId": "1"
 }
+
+### Eliminar una canción de una playlist (Debe ser del usuario que la creó)
+PUT {{purpuraMain_HostAddress}}/playlist/removeSong
+Accept: application/json
+Content-Type: application/json
+
+{
+  "playlistId": "1",
+  "songId": "1"
+}
+
+### Cambiar la visibilidad de una playlist (Debe ser del usuario que la creó)
+PUT {{purpuraMain_HostAddress}}/playlist/changePrivacy
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": "be4f4676-4297-4f2a-bdaa-57227306c87c",
+  "userId": "6f4c8c96-b10f-4a12-80cd-668d70c5d573"
+}
+
+### Obtener las playlists de un usuario 
+GET {{purpuraMain_HostAddress}}/playlist/getPlaylists/user/6f4c8c96-b10f-4a12-80cd-668d70c5d573
+Accept: application/json
+
+
+### Crear una playlist
+POST {{purpuraMain_HostAddress}}/playlist
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Rap and Various Hip-Hop",
+  "userId": "6f4c8c96-b10f-4a12-80cd-668d70c5d573"
+}
+### Actualizar una playlist (Debe ser del usuario que la creó)
+PUT {{purpuraMain_HostAddress}}/playlist 
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": "8d92e7f9-6524-42af-b6e8-babce6df92d2",
+  "name": "Vice city vibes",
+  "description": "60s 70s and 80s songs that make you feel like you are in Vice city"
+
+}
+### Eliminar una playlist
+DELETE {{purpuraMain_HostAddress}}/playlist/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": "348d314d-483c-455c-a5fe-d1eaa59ae2fd",
+  "userId": "6f4c8c96-b10f-4a12-80cd-668d70c5d573"
+}
+
+
+### Obtener canciones por nombre, artista o album
+GET {{purpuraMain_HostAddress}}/song/search/songs/ifeelitcoming
+Accept: application/json

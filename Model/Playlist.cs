@@ -16,6 +16,7 @@ public class Playlist
   public required string ImageUrl { get; set; }
 
   public required bool IsPublic { get; set; }
+  public required bool Editable { get; set; }
   public DateTime CreatedAt { get; set; }
   public ICollection<Song>? Songs { get; set; } 
   public ICollection<Library>? Libraries { get; set; }

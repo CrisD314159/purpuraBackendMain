@@ -1,9 +1,9 @@
-namespace purpuraMain.Dto.InputDto
-{
+namespace purpuraMain.Dto.InputDto;
+
     public class UpdatePlaylistDTO
     {
         public required string Id { get; set; }
         public required string Name { get; set; }
+        public required string UserId { get; set; }
         public string? Description { get; set; }
     }
-}

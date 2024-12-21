@@ -22,9 +22,9 @@ public static class UserService
        try
        {
         
-        var user = await dbContext.Users!.Join(dbContext.Countries!, user => user.CountryId, country => country.Id, (user, country) => new GetUserDto{ Email = user.Email, Name = user.Name, Country= country.Name, Id= user.Id, Phone = user.Phone, ProfilePicture= user.ProfilePicture }).FirstOrDefaultAsync(user => user.Id == id) ?? throw new EntityNotFoundException("User does not exist");
+        var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).Join(dbContext.Countries!, user => user.CountryId, country => country.Id, (user, country) => new GetUserDto{ Email = user.Email, Name = user.Name!, Country= country.Name, Id= user.Id, Phone = user.Phone!, ProfilePicture= user.ProfilePicture, IsVerified= user.State == UserState.ACTIVE }).FirstOrDefaultAsync(user => user.Id == id) ?? throw new EntityNotFoundException("User does not exist");
         
-            return user;
+        return user;
        }
        catch(ValidationException val)
        {
@@ -50,7 +50,7 @@ public static class UserService
        try
        {
         
-         var user = await dbContext.Users!.FindAsync(id) ?? throw new EntityNotFoundException("User does not exist");
+        var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == id) ?? throw new EntityNotFoundException("User does not exist");
         
         return user;
        }
@@ -80,7 +80,7 @@ public static class UserService
         try
         {
             
-            var user = await dbContext.Users!.Join(dbContext.Countries!, user => user.CountryId, country => country.Id, (user, country) => new GetUserDto{ Email = user.Email, Name = user.Name, Country= country.Name, Id= user.Id, Phone = user.Phone, ProfilePicture= user.ProfilePicture }).FirstOrDefaultAsync(user => user.Email == email)?? throw new EntityNotFoundException("User does not exist");
+            var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).Join(dbContext.Countries!, user => user.CountryId, country => country.Id, (user, country) => new GetUserDto{ Email = user.Email, Name = user.Name!, Country= country.Name, Id= user.Id, Phone = user.Phone!, ProfilePicture= user.ProfilePicture , IsVerified = user.State == UserState.ACTIVE}).FirstOrDefaultAsync(user => user.Email == email)?? throw new EntityNotFoundException("User does not exist");
             
             return user;
         }
@@ -108,7 +108,7 @@ public static class UserService
 
         try
         {
-            var user = await dbContext.Users!.FirstOrDefaultAsync(user => user.Email == email);
+            var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(user => user.Email == email);
             if(user == null) return null!;
             return user;
         }
@@ -154,7 +154,6 @@ public static class UserService
         var transaction = await dbContext.Database.BeginTransactionAsync();
         try
         {
-            if(user == null) throw new ValidationException("User cannot be null");
             UserValidator validator = new ();
             ValidationResult result = validator.Validate(user);
             if (!result.IsValid) throw new ValidationException(result.Errors);
@@ -196,9 +195,10 @@ public static class UserService
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = "Purple Day List",
-                Description= "Esta es tu Purple Day List, aquí encontrarás recomendaciones diarias de la música que más te gusta",
+                Description= "Esta es tu Purpura Day - List, aquí encontrarás recomendaciones diarias de la música que más te gusta",
                 UserId = id,
                 IsPublic = false,
+                Editable= false,
                 ImageUrl = "https://res.cloudinary.com/dw43hgf5p/image/upload/v1734735036/pskgqakw7ojmfkn7x076.jpg",
                 CreatedAt = DateTime.UtcNow
             };
@@ -240,10 +240,10 @@ public static class UserService
 
         try
         {
-            if(user == null) throw new ValidationException("User cannot be null");
             UserUpdateValidator validator = new();
             if(validator.Validate(user).IsValid == false) throw new ValidationException("User input is not valid");
-            var userToUpdate = await dbContext.Users!.FindAsync(user.Id) ?? throw new EntityNotFoundException("User does not exist");
+            var userToUpdate = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == user.Id) ?? throw new EntityNotFoundException("User does not exist");
+            if(userToUpdate.State == UserState.UNVERIFIED) throw new ValidationException("User is not verified");
             userToUpdate.Name = user.Name;
             userToUpdate.Phone = user.Phone;
 
@@ -312,7 +312,6 @@ public static class UserService
 
         try
         {
-            if(passwordDTO == null) throw new ValidationException("Password cannot be null");
             var passwordValidator = new PasswordValidation();
             if(passwordValidator.Validate(passwordDTO).IsValid == false) throw new ValidationException("Password input is not valid");
 
