@@ -1,1 +1,0 @@
-namespace purpuraMain.Dto.OutputDto;

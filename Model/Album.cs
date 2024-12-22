@@ -12,6 +12,7 @@ public class Album
   public string? WriterName { get; set; }
   public string? ProducerName { get; set; }
   public string? RecordLabel { get; set; }
+   public ICollection<Library> Libraries { get; set; } = [];
   
 
 

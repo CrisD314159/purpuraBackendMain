@@ -30,6 +30,7 @@ public static class PlaylistServices
         Description = p.Description,
         UserName = p.User!.Name!,
         IsPublic = p.IsPublic,
+        ImageUrl = p.ImageUrl,
         Songs = p.Songs != null ? p.Songs.Select(s=> new GetSongDTO
         {
           Id = s.Id,
@@ -203,6 +204,7 @@ public static class PlaylistServices
       };
       await dbContext.Playlists!.AddAsync(playList);
       await dbContext.SaveChangesAsync();
+      await LibraryService.AddPlayListToLibrary(new AddRemovePlayListDTO{PlaylistId = playList.Id, UserId = playList.UserId}, dbContext);
       return true;
     }
     catch(EntityNotFoundException arg)

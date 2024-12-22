@@ -1,38 +1,185 @@
 namespace purpuraMain.Services;
 using purpuraMain.Model;
 using purpuraMain.DbContext;
-
+using purpuraMain.Dto.OutputDto;
+using purpuraMain.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 public static class LibraryService
 {
-    public static async void GetLibraryById(string id, PurpuraDbContext dbContext)
+    public static async Task<GetLibraryDTO> GetLibraryById(string id, PurpuraDbContext dbContext)
     {
+        try
+        {
+            var library = await dbContext.Libraries!.Where(l => l.Id == id || l.UserId == id && l.User!.State != UserState.INACTIVE).Select( l=>
+                new GetLibraryDTO{
+                   Id= l.Id,
+                   UserId = l.UserId!,
+                   UserName = l.User!.Name!,
+                   Albums = l.Albums.Select(a=> new GetLibraryAlbumDTO {
+                        Id = a.Id,
+                        Name = a.Name,
+                        Description = a.Description ?? "",
+                        PictureUrl = a.PictureUrl,
+                        ArtistId = a.ArtistId,
+                        ArtistName = a.Artist.Name,
+                        ReleaseDate = a.ReleaseDate,
+                   }).ToList(),
+                   Playlists = l.Playlists.Select(p=> new GetLibraryPlaylistDTO
+                   {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description ?? "",
+                    UserName = p.User!.Name!,
+                    UserId = p.UserId!,
+                    IsPublic = p.IsPublic,
+                    ImageUrl = p.ImageUrl
+                   }).ToList(),
+                   Songs= l.Songs.Select(s=> new GetSongDTO
+                   {
+                       Id = s.Id,
+                       Name = s.Name,
+                       Artists = s.Artists!.Select(a=> new GetPlaylistArtistDTO
+                       {
+                           Id = a.Id,
+                           Name = a.Name,
+                           Description = a.Description ?? ""
+                       }).ToList(),
+                       AlbumId = s.AlbumId!,
+                       AlbumName = s.Album!.Name!,
+                       Duration = s.Duration,
+                       ImageUrl = s.ImageUrl ?? "",
+                       AudioUrl = s.AudioUrl ?? "",
+                       Genres = s.Genres!.Select(g=> new GetGenreDTO
+                       {
+                           Id = g.Id,
+                           Name = g.Name,
+                           Description = g.Description ?? ""
+                       }).ToList(),
+                       Lyrics = s.Lyrics ?? ""
+                   }).ToList()
+                   
+                }
+            ).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Library not found");
+
+            return library;
+        }
+        catch(EntityNotFoundException arg)
+        {
+            throw new EntityNotFoundException(arg.Message);
+        }
+        catch (System.Exception)
+        {
+            
+            throw new Exception("An unexpected error occured while fetching library");
+        }
         
     }
 
-    public static async void GetLibraryByUserId(string userId, PurpuraDbContext dbContext)
+       private static async Task<Library> GetUserLibraryPrivate (string userId, PurpuraDbContext dbContext)
     {
+        try
+        {
+            var library = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State != UserState.INACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Library not found");
+            return library;
+        }
+        catch(EntityNotFoundException arg)
+        {
+            throw new EntityNotFoundException(arg.Message);
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
+
+    }
+
+    public static async Task<bool> AddSongToLibrary(AddRemoveSongLibraryDTO addRemoveSong, PurpuraDbContext dbContext)
+    {
+        try
+        {
+            var library = await GetUserLibraryPrivate(addRemoveSong.UserId, dbContext);
+            var song = await dbContext.Songs!.Where(s => s.Id == addRemoveSong.SongId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Song not found");
+            if(library.Songs!.Any(s => s.Id == song.Id))
+            {
+                library.Songs.Remove(song);
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            library.Songs.Add(song);
+            await dbContext.SaveChangesAsync();
+
+            return true;
+        }
+        catch(EntityNotFoundException arg)
+        {
+            throw new EntityNotFoundException(arg.Message);
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
+    }
+
+ 
+
+     public static async Task<bool> AddAlbumToLibrary(AddRemoveAlbumLibraryDTO addRemoveAlbum, PurpuraDbContext dbContext)
+    {
+          try
+        {
+            var library = await GetUserLibraryPrivate(addRemoveAlbum.UserId, dbContext);
+            var album = await dbContext.Albums!.Where(a => a.Id == addRemoveAlbum.AlbumId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Album not found");
+            if(library.Albums!.Any(a => a.Id == album.Id))
+            {
+                library.Albums.Remove(album);
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            library.Albums.Add(album);
+            await dbContext.SaveChangesAsync();
+
+            return true;
+        }
+        catch(EntityNotFoundException arg)
+        {
+            throw new EntityNotFoundException(arg.Message);
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
         
     }
 
-
-    public static async void CreateLibrary(Library library, PurpuraDbContext dbContext)
+      public static async Task<bool> AddPlayListToLibrary(AddRemovePlayListDTO addRemovePlayListDTO, PurpuraDbContext dbContext)
     {
-        
-    }
+           try
+        {
+            var library = await GetUserLibraryPrivate(addRemovePlayListDTO.UserId, dbContext);
+            var playlist = await dbContext.Playlists!.Where(p => p.Id == addRemovePlayListDTO.PlaylistId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Album not found");
+            if(library.Playlists!.Any(p => p.Id == playlist.Id))
+            {
+                library.Playlists.Remove(playlist);
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            library.Playlists.Add(playlist);
+            await dbContext.SaveChangesAsync();
 
-    public static async void AddSongToLibrary(string songId, PurpuraDbContext dbContext)
-    {
-        
-    }
-
-     public static async void AddAlbumToLibrary(string albumId, PurpuraDbContext dbContext)
-    {
-        
-    }
-
-    public static async void DeleteLibrary(string id, PurpuraDbContext dbContext)
-    {
+            return true;
+        }
+        catch(EntityNotFoundException arg)
+        {
+            throw new EntityNotFoundException(arg.Message);
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
         
     }
 }

@@ -6,6 +6,7 @@ public class Library
   public  string? UserId { get; set; }
   public User? User { get; set; }
 
-  public ICollection<Playlist> Playlists { get; set; } = new List<Playlist>();
-  public ICollection<Song> Songs { get; set; } = new List<Song>();
+  public ICollection<Playlist> Playlists { get; set; } = [];
+  public ICollection<Song> Songs { get; set; } = [];
+  public ICollection<Album> Albums { get; set; } = [];
 }
