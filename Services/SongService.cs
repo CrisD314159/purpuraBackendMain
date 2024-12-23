@@ -50,7 +50,8 @@ public static class SongService
     {
         try
         {
-            var songs = await dbContext.Songs!.Where(s => s.Name.Contains(input) || s.Artists!.Any(a=>a.Name.Contains(input)) || s.Album!.Name.Contains(input)).Select(s => new GetSongDTO{
+            string inputLower = input.ToLower();
+            var songs = await dbContext.Songs!.Where(s => s.Name.ToLower().Contains(inputLower) || s.Artists!.Any(a=>a.Name.ToLower().Contains(inputLower)) || s.Album!.Name.ToLower().Contains(inputLower)).Select(s => new GetSongDTO{
                 Id = s.Id,
                 Name = s.Name,
                 Artists = s.Artists!.Select(a=> new GetPlaylistArtistDTO{

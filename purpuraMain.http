@@ -83,6 +83,10 @@ Accept: application/json
 GET {{purpuraMain_HostAddress}}/playlist/be4f4676-4297-4f2a-bdaa-57227306c87c
 Accept: application/json
 
+### buscar una o varias pleylist por su nombre
+GET {{purpuraMain_HostAddress}}/playlist/search/hip-
+Accept: application/json
+
 ### Añadir una canción a una playlist (Debe ser del usuario que la creó)
 PUT {{purpuraMain_HostAddress}}/playlist/addSong
 Accept: application/json
@@ -152,3 +156,17 @@ Content-Type: application/json
 ### Obtener canciones por nombre, artista o album
 GET {{purpuraMain_HostAddress}}/song/search/songs/ifeelitcoming
 Accept: application/json
+
+
+
+### METODOS DE LIBRERIA
+
+
+### Obtener canciones por nombre, artista o album
+GET {{purpuraMain_HostAddress}}/library/6f4c8c96-b10f-4a12-80cd-668d70c5d573
+Accept: application/json
+
+
+
+### Métodos de Género
+

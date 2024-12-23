@@ -12,4 +12,5 @@ public class GetSongDTO
   public required string? AudioUrl { get; set; }
   public required List<GetGenreDTO> Genres { get; set; }
   public string? Lyrics { get; set; }
+  public int Plays {get; set;}
 }

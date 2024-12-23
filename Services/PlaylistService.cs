@@ -74,6 +74,41 @@ public static class PlaylistServices
       throw new Exception ("An unexpected error occured");
     }
   }
+  public static async Task<List<GetLibraryPlaylistDTO>> SearchPlaylist(string input, PurpuraDbContext dbcontext)
+  {
+    try
+    {
+      Console.WriteLine("HOLA NUENAS TARDES");
+      var playList = await 
+      dbcontext.Playlists!.Where(p => p.Name.ToLower().Contains(input.ToLower()) && p.IsPublic)
+      .Select(p=> new GetLibraryPlaylistDTO
+      {
+        Id =p.Id,
+        ImageUrl = p.ImageUrl,
+        IsPublic =p.IsPublic,
+        Description = p.Description ?? "",
+        Name = p.Name,
+        UserId =p.UserId!,
+        UserName = p.User!.Name!
+      }).ToListAsync() ?? [];
+     
+      return playList;
+    }
+
+    catch(NullFieldException arg)
+    {
+      throw new NullFieldException(arg.Message);
+    }
+    catch(EntityNotFoundException arg)
+    {
+      throw new EntityNotFoundException(arg.Message);
+    }
+    catch (System.Exception)
+    {
+      
+      throw new Exception ("An unexpected error occured");
+    }
+  }
   
 
   public static async Task<bool> AddSong(AddRemoveSongDTO addSongDTO, PurpuraDbContext dbContext)

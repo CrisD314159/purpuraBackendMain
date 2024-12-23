@@ -43,6 +43,29 @@ public class PlaylistController : ControllerBase
       return BadRequest(e.Message);
     }
   }
+
+  [HttpGet("search/{input}")]
+  public async Task<ActionResult<List<GetLibraryPlaylistDTO>>> SearchPlaylist(string input)
+  {
+    try
+    {
+      var playList = await PlaylistServices.SearchPlaylist(input, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
+      return playList;
+    }
+    catch(ValidationException ex)
+    {
+      return BadRequest(ex.Message);
+    }
+    catch(EntityNotFoundException ex)
+    {
+      return NotFound(ex.Message);
+    }
+    catch (System.Exception e)
+    {
+      return BadRequest(e.Message);
+    }
+  }
+  
   [HttpPut("addSong")]
   public async Task<ActionResult> AddSong(AddRemoveSongDTO addSongDTO)
   {
