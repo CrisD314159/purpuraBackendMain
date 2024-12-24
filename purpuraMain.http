@@ -170,3 +170,39 @@ Accept: application/json
 
 ### Métodos de Género
 
+### Obtener las canciones mas escuchadas por genero
+GET {{purpuraMain_HostAddress}}/genre/getTopSongs/1
+Accept: application/json
+
+### Obtener todos los generos
+GET {{purpuraMain_HostAddress}}/genre/getAll
+Accept: application/json
+
+### Crear un genero
+POST {{purpuraMain_HostAddress}}/genre
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name":"Pop",
+  "Description":"Pupular Songs",
+  "Color":"#2E5DF0"
+}
+
+### Actualizar un genero
+PUT {{purpuraMain_HostAddress}}/genre
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id":"0c1e6e02-b50b-427e-86fc-552b3c7fb745",
+  "name":"Pop",
+  "Description":"Catchy, commercial, and memorable music with simple harmonies.",
+  "Color":"#2E5DF0"
+}
+
+### Eliminar un genero
+GET {{purpuraMain_HostAddress}}/library/6f4c8c96-b10f-4a12-80cd-668d70c5d573
+Accept: application/json
+
+
