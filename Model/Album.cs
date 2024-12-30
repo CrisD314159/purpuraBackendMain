@@ -9,6 +9,8 @@ public class Album
   public required string ArtistId { get; set; }
   public required Artist Artist { get; set; }
   public DateTime ReleaseDate { get; set; }
+  public required string GenreId {get; set;}
+  public required Genre Genre {get; set;}
   public string? WriterName { get; set; }
   public string? ProducerName { get; set; }
   public string? RecordLabel { get; set; }
