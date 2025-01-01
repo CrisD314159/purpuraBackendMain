@@ -23,6 +23,9 @@ public static class AlbumService
                 Producer = a.ProducerName ?? "",
                 RecordLabel = a.RecordLabel ?? "",
                 Writer = a.WriterName ?? "",
+                GenreId = a.GenreId,
+                GenreName = a.Genre!.Name,
+                AlbumType = a.AlbumType,
                 Songs = dbContext.Songs != null ? dbContext.Songs.Where(s=> s.AlbumId == a.Id).Select(s=> new GetSongDTO
                 {
                     Id = s.Id,
@@ -77,7 +80,10 @@ public static class AlbumService
                 ReleaseDate = a.ReleaseDate,
                 Producer = a.ProducerName ?? "",
                 RecordLabel = a.RecordLabel ?? "",
-                Writer = a.WriterName ?? ""
+                Writer = a.WriterName ?? "",
+                GenreId = a.GenreId,
+                GenreName = a.Genre!.Name,
+                AlbumType = a.AlbumType,
 
             }).ToListAsync() ?? throw new EntityNotFoundException("Album not found");
 

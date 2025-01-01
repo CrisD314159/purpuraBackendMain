@@ -232,7 +232,7 @@ public static class PlaylistServices
         Name = createPlayListDTO.Name,
         Description = createPlayListDTO.Description ?? "",
         UserId = createPlayListDTO.UserId,
-        ImageUrl = "https://res.cloudinary.com/dw43hgf5p/image/upload/v1734736736/d6hymsfobsalsbvqvnmt.jpg",
+        ImageUrl = "https://res.cloudinary.com/dw43hgf5p/image/upload/v1735657347/qheqts3xhcejrmwu5hur.jpg",
         IsPublic = true,
         Editable = true,
         CreatedAt = DateTime.UtcNow

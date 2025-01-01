@@ -206,3 +206,12 @@ GET {{purpuraMain_HostAddress}}/library/6f4c8c96-b10f-4a12-80cd-668d70c5d573
 Accept: application/json
 
 
+### Obtener un album
+GET {{purpuraMain_HostAddress}}/album/getAlbumByInput/abbey
+Accept: application/json
+
+### Obtener un album
+GET {{purpuraMain_HostAddress}}/album/getAlbum/e121cec8-a4c1-449a-b0ec-6707a2aad53f
+Accept: application/json
+
+

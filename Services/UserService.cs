@@ -164,8 +164,11 @@ public static class UserService
             string id = Guid.NewGuid().ToString();
             PasswordManipulation passwordManipulation = new();
             string hashedPassword = passwordManipulation.HashPassword(user.Password);
-            // Crear codigo de verificación
+
+            // Generate a random code for the user verification
             int code = new Random().Next(1000, 9999);
+
+            // Create a new user
             User newUser = new()
             {
                 Id = id,
@@ -176,14 +179,14 @@ public static class UserService
                 CountryId = user.Country,
                 State = UserState.UNVERIFIED,
                 CreatedAt = DateTime.UtcNow,
-                ProfilePicture = "https://res.cloudinary.com/dw43hgf5p/image/upload/v1734452153/omhdxtxwbsza78sz4nkr.png",
+                ProfilePicture = "https://res.cloudinary.com/dw43hgf5p/image/upload/v1735614730/sd4xg3gxzsgtdiie0aht.jpg",
                 VerifyCode = code
             };
 
             await dbContext.Users!.AddAsync(newUser);
             
 
-
+            // Create a new library and a playlist for the user
             string libraryId = Guid.NewGuid().ToString();
             var library = new Library
             {
@@ -191,6 +194,7 @@ public static class UserService
                 UserId = id
             };
 
+            // Create a new playlist (Purpura Daylist) for the user
             var playlist = new Playlist
             {
                 Id = Guid.NewGuid().ToString(),
