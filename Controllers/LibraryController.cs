@@ -25,7 +25,7 @@ public class LibraryController : ControllerBase
     try
     {
       GetLibraryDTO library = await LibraryService.GetLibraryById(id, _dbcontext) ?? throw new EntityNotFoundException("Library not found");
-      return library;
+      return Ok(library);
     }
     catch (ValidationException ex)
     {

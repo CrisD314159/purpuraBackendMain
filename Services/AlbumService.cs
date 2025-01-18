@@ -100,6 +100,40 @@ public static class AlbumService
         }
         
     }
+
+
+    public static async Task<List<GetAlbumDTO>> GetAllAlbumbs(int offset, int limit, PurpuraDbContext dbContext)
+    {
+        try
+        {
+            var albums = await dbContext.Albums!.Where(a=> a.AlbumType == 0). Select(a=> new GetAlbumDTO
+            {
+                ArtistId = a.ArtistId,
+                ArtistName = a.Artist.Name,
+                Id = a.Id,
+                Name = a.Name,
+                PictureUrl = a.PictureUrl,
+                Description = a.Description ?? "",
+                ReleaseDate = a.ReleaseDate,
+                Producer = a.ProducerName ?? "",
+                RecordLabel = a.RecordLabel ?? "",
+                Writer = a.WriterName ?? "",
+                GenreId = a.GenreId,
+                GenreName = a.Genre!.Name,
+                AlbumType = a.AlbumType,
+            }).Skip(offset).Take(limit).ToListAsync();
+
+
+            return albums;
+        }
+
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
+
+    }
     
 
 

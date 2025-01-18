@@ -214,4 +214,22 @@ Accept: application/json
 GET {{purpuraMain_HostAddress}}/album/getAlbum/e121cec8-a4c1-449a-b0ec-6707a2aad53f
 Accept: application/json
 
+### Obtener todos los albumes
+GET {{purpuraMain_HostAddress}}/album/getAlbums?offset=0&limit=10
+Accept: application/json
 
+
+
+
+### Obtener un artista
+GET {{purpuraMain_HostAddress}}/artist/searchArtists?name=the&offset=0&limit=10
+Accept: application/json
+
+### Obtener un artista
+GET {{purpuraMain_HostAddress}}/artist/getArtists?name=the&offset=0&limit=10
+Accept: application/json
+
+
+
+### Obtener todas las canciones 
+GET {{purpuraMain_HostAddress}}/song/getSongs?offset=0&limit=10

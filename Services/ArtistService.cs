@@ -68,7 +68,7 @@ public static class ArtistService
         
     }
 
-    public static async Task<List<GetArtistDTO>> GetArtistByName(string name, PurpuraDbContext dbContext)
+    public static async Task<List<GetArtistDTO>> GetArtistByName(string name,int offset, int limit, PurpuraDbContext dbContext)
     {
 
         try
@@ -79,7 +79,7 @@ public static class ArtistService
                  Name = a.Name,
                  Description = a.Description ?? "",
                  ImageUrl = a.PictureUrl ?? ""
-            }).Take(30).ToListAsync() ?? [];
+            }).Skip(offset).Take(limit).ToListAsync() ?? [];
 
             return artists;
             
@@ -186,6 +186,29 @@ public static class ArtistService
     }
 
 
+    public static async Task<List<GetArtistDTO>> GetArtists(int offset, int limit, PurpuraDbContext dbContext)
+    {
+        try
+        {
+            var artists = await dbContext.Artists!.Select(a => new GetArtistDTO{
+                Id = a.Id,
+                Name = a.Name,
+                Description = a.Description ?? "",
+                ImageUrl = a.PictureUrl ?? ""
+            }).Skip(offset).Take(limit).ToListAsync() ?? [];
+
+            return artists;
+        }
+        catch(EntityNotFoundException)
+        {
+            throw;
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
+    }
 // Rest of the crud methods will be implemented in a nodejs standalone api
 
 }

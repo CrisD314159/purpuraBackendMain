@@ -25,7 +25,7 @@ public class ArtistController: ControllerBase
     try
     {
       var artist = await ArtistService.GetArtistById(id, _dbContext);
-      return artist;
+      return Ok(artist);
     }
     catch(EntityNotFoundException)
     {
@@ -38,13 +38,19 @@ public class ArtistController: ControllerBase
     }
 
   }
-  [HttpGet("searchArtists/{name}")]
-  public async Task<ActionResult<List<GetArtistDTO>>> GetArtistByName(string name)
+  [HttpGet("searchArtists")]
+  public async Task<ActionResult<List<GetArtistDTO>>> GetArtistByName(string name, int offset, int limit)
   {
     try
     {
-      var artist = await ArtistService.GetArtistByName(name, _dbContext);
-      return artist;
+
+      if(offset < 0 || limit < 1)
+      {
+        return BadRequest("Invalid offset or limit");
+      }
+
+      var artist = await ArtistService.GetArtistByName(name, offset, limit, _dbContext);
+      return Ok(artist);
     }
     catch(EntityNotFoundException)
     {
@@ -64,7 +70,7 @@ public class ArtistController: ControllerBase
     try
     {
       var artist = await ArtistService.GetArtistAlbums(id, _dbContext);
-      return artist;
+      return Ok(artist);
     }
     catch(EntityNotFoundException)
     {
@@ -83,7 +89,7 @@ public class ArtistController: ControllerBase
     try
     {
       var artist = await ArtistService.GetArtistSongs(id, _dbContext);
-      return artist;
+      return Ok(artist);
     }
     catch(EntityNotFoundException)
     {
@@ -95,6 +101,29 @@ public class ArtistController: ControllerBase
       return BadRequest("An unexpected error occured");
     }
 
+  }
+
+  [HttpGet("getArtists")]
+  public async Task<ActionResult<List<GetArtistDTO>>> GetArtists(int offset, int limit)
+  {
+    try
+    {
+      if(offset < 0 || limit < 1)
+      {
+        return BadRequest("Invalid offset or limit");
+      }
+      var artists = await ArtistService.GetArtists(offset, limit, _dbContext);
+      return Ok(artists);
+    }
+    catch(EntityNotFoundException)
+    {
+      return NotFound("Artists Not found");
+    }
+    catch (System.Exception)
+    {
+      
+      throw;
+    }
   }
 
 }

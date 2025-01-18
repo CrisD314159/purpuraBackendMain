@@ -46,7 +46,7 @@ public static class SongService
         
     }
 
-    public static async Task<List<GetSongDTO>> GetSongByInput(string input, PurpuraDbContext dbContext)
+    public static async Task<List<GetSongDTO>> GetSongByInput(string input, int offset, int limit, PurpuraDbContext dbContext)
     {
         try
         {
@@ -70,7 +70,7 @@ public static class SongService
                 ImageUrl = s.ImageUrl!,
                 Lyrics = s.Lyrics ?? ""
 
-            }).ToListAsync() ?? throw new EntityNotFoundException("There are no songs that match the search");
+            }).Skip(offset).Take(limit).ToListAsync() ?? throw new EntityNotFoundException("There are no songs that match the search");
 
             return songs;
         }
@@ -84,6 +84,43 @@ public static class SongService
             throw;
         }
         
+    }
+
+    public static async Task<List<GetSongDTO>> GetAllSongs (int offset, int limit, PurpuraDbContext dbContext)
+    {
+        try
+        {
+            var songs = await dbContext.Songs!.Select(s=> new GetSongDTO{
+                Id = s.Id,
+                Name = s.Name,
+                Artists = s.Artists!.Select(a=> new GetPlaylistArtistDTO{
+                    Id = a.Id,
+                    Name = a.Name,
+
+                }).ToList(),
+                AlbumId = s.AlbumId!,
+                AlbumName = s.Album!.Name!,
+                AudioUrl = s.AudioUrl!,
+                Duration = s.Duration,
+                Genres = s.Genres!.Select(g => new GetGenreDTO{
+                    Id = g.Id,
+                    Name = g.Name
+                }).ToList(),
+                ImageUrl = s.ImageUrl!,
+                Lyrics = s.Lyrics ?? ""
+            }).Skip(offset).Take(limit).ToListAsync() ?? [];
+
+            return songs;
+        }
+         catch (EntityNotFoundException ex)
+        {
+            throw new EntityNotFoundException(ex.Message);
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
     }
 
 // Nota: Los metodos de crud de las canciones van en un servicio de canciones hecho en node.js

@@ -26,7 +26,7 @@ public class UserController: ControllerBase
         {
         var user = await UserService.GetUserById(id, _dbContext);
 
-        return user;
+        return Ok(user);
         }
         catch (ValidationException val)
         {
@@ -51,7 +51,7 @@ public class UserController: ControllerBase
         try
         {
         var user = await UserService.GetUserByEmail(email, _dbContext);
-        return user; 
+        return Ok(user); 
         }
          catch (EntityNotFoundException ex)
         {

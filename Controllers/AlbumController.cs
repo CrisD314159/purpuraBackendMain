@@ -26,7 +26,7 @@ public class AlbumController: ControllerBase
     try
     {
       var album = await AlbumService.GetAlbumById(id, _dbContext);
-      return album;
+      return Ok(album);
     }
     catch(EntityNotFoundException)
     {
@@ -46,7 +46,7 @@ public class AlbumController: ControllerBase
     try
     {
       var album = await AlbumService.GetAlbumByInput(input, _dbContext);
-      return album;
+      return Ok(album);
     }
     catch(EntityNotFoundException)
     {
@@ -58,4 +58,25 @@ public class AlbumController: ControllerBase
       return BadRequest("An unexpected error occured");
     }
   }
+
+  [HttpGet("getAlbums")]
+  public async Task<ActionResult<List<GetAlbumDTO>>> GetAlbums(int offset, int limit)
+  {
+    try
+    {
+      if(offset < 0 || limit < 1) return BadRequest("Invalid offset or amount");
+      
+
+      var albums = await AlbumService.GetAllAlbumbs(offset, limit, _dbContext);
+      return Ok(albums);
+    }
+    catch (System.Exception)
+    {
+      
+      return BadRequest("An unexpected error occured");
+    }
+  }
+
+
+
 }

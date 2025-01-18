@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace purpuraMain.Model;
 
-
+[Index(nameof(Email), IsUnique = true)]
 public class User
 {
   public required string Id { get; set; }

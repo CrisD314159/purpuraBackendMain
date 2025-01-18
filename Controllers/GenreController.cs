@@ -24,7 +24,7 @@ public class GenreController : ControllerBase
     try
     {
       var topSongs = await GenreService.GetTopSongsByGenre(id, _dbContext);
-      return topSongs;
+      return Ok(topSongs);
     }
      catch (EntityNotFoundException)
         {
@@ -44,7 +44,7 @@ public class GenreController : ControllerBase
     try
     {
       var topSongs = await GenreService.GetAllGenres(_dbContext);
-      return topSongs;
+      return Ok(topSongs);
     }
     catch (System.Exception)
     {

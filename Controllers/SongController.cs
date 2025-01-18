@@ -25,7 +25,7 @@ public class SongController: ControllerBase
     try
     {
       GetSongDTO song = await SongService.GetSongById(id, _dbContext) ?? throw new EntityNotFoundException("Song not found");
-      return song;
+      return Ok(song);
     }
     catch (EntityNotFoundException ex)
     {
@@ -37,13 +37,17 @@ public class SongController: ControllerBase
     }
   }
 
-  [HttpGet("search/songs/{input}")]
-  public async Task<ActionResult<List<GetSongDTO>>> GetSongByInput(string input)
+  [HttpGet("search/songs")]
+  public async Task<ActionResult<List<GetSongDTO>>> GetSongByInput(string input, int offset, int limit)
   {
     try
     {
-      var song = await SongService.GetSongByInput(input, _dbContext) ?? throw new EntityNotFoundException("Song not found");
-      return song;
+      if(offset < 0 || limit < 1)
+      {
+        return BadRequest("Invalid offset or limit");
+      }
+      var song = await SongService.GetSongByInput(input, offset, limit, _dbContext) ?? throw new EntityNotFoundException("Song not found");
+      return Ok(song);
     }
     catch (EntityNotFoundException ex)
     {
@@ -52,6 +56,29 @@ public class SongController: ControllerBase
     catch (System.Exception e)
     {
       return BadRequest(e.Message);
+    }
+  }
+
+  [HttpGet("getSongs")]
+  public async Task<ActionResult<List<GetSongDTO>>> GetSongs(int offset, int limit)
+  {
+    try
+    {
+      if(offset < 0 || limit < 1)
+      {
+        return BadRequest("Invalid offset or limit");
+      }
+      var songs = await SongService.GetAllSongs(offset, limit, _dbContext) ?? throw new EntityNotFoundException("Song not found");
+      return Ok(songs);
+    }
+    catch (EntityNotFoundException ex)
+    {
+      return NotFound(ex.Message);
+    }
+    catch (System.Exception)
+    {
+      
+      throw;
     }
   }
 
