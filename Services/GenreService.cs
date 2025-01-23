@@ -80,5 +80,32 @@ public static class GenreService
         }
         
     }
+    
+     public static async Task<GetGenreDTO> GetGenreById(string id, PurpuraDbContext dbContext)
+    {
+
+        try
+        {
+            var genres = await dbContext.Genres!.Where(g => g.Id == id).Select(g => new GetGenreDTO
+            {
+                Id = g.Id,
+                Name = g.Name,
+                Description = g.Description ?? "",
+                Color = g.Color
+            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Genre not found");
+
+            return genres;
+        }
+        catch (EntityNotFoundException)
+        {
+            throw;
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
+        
+    }
 // Crud methods will be implemented y a nodejs api
 }

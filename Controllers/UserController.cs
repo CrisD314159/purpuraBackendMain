@@ -6,7 +6,7 @@ using purpuraMain.Dto.InputDto;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
-
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("[controller]")]
@@ -20,6 +20,7 @@ public class UserController: ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<ActionResult<GetUserDto>> GetUser(string id)
     {
         try
@@ -46,6 +47,7 @@ public class UserController: ControllerBase
 
 
       [HttpGet("getByEmail/{email}")]
+      [Authorize]
         public async Task<ActionResult<GetUserDto>> GetUserByEmail(string email)
     {
         try
@@ -95,6 +97,7 @@ public class UserController: ControllerBase
     }
 
     [HttpPut]
+    [Authorize]
     public async Task<ActionResult> UpdateUser(UpdateUserDto user )
     {
       try
@@ -126,6 +129,7 @@ public class UserController: ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<ActionResult> DeleteUser(string id)
     {
       try

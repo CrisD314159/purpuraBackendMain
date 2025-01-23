@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
@@ -8,6 +9,7 @@ namespace purpuraMain.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class SongController: ControllerBase
 {
 
@@ -19,7 +21,7 @@ public class SongController: ControllerBase
   }
 
 
-  [HttpGet("{id}")]
+  [HttpGet("getSong/{id}")]
   public async Task<ActionResult<GetSongDTO>> GetSong(string id)
   {
     try

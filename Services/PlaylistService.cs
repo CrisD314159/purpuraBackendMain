@@ -180,6 +180,7 @@ public static class PlaylistServices
     }
     catch (System.Exception)
     {
+
       
       throw new Exception ("An unexpected error occured");
     }
@@ -188,6 +189,7 @@ public static class PlaylistServices
   {
     try
     {
+      Console.WriteLine("HOLA NUENAS TARDES", userId);
       if(!await dbContext.Users!.AnyAsync(u => u.Id == userId)) throw new EntityNotFoundException("User not found");
       var playLists = await dbContext.Playlists!.Where(p => p.UserId== userId).Select(p=> new GetUserPlayListsDTO{
         Id = p.Id,

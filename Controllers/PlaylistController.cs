@@ -1,4 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
 using purpuraMain.DbContext;
@@ -11,6 +14,7 @@ namespace purpuraMain.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class PlaylistController : ControllerBase
 {
 
@@ -27,6 +31,7 @@ public class PlaylistController : ControllerBase
   {
     try
     {
+            // Requires userId extraction from token
       GetPlayListDTO playList = await PlaylistServices.GetPlaylist(id, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
       return playList;
     }
@@ -49,6 +54,7 @@ public class PlaylistController : ControllerBase
   {
     try
     {
+            // Requires offset and limit for pagination
       var playList = await PlaylistServices.SearchPlaylist(input, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
       return playList;
     }
@@ -71,6 +77,7 @@ public class PlaylistController : ControllerBase
   {
     try
     {
+            // Requires userId extraction from token
       var playList = await PlaylistServices.AddSong(addSongDTO, _dbContext);
       return Ok("Song added to playlist");
     }
@@ -87,11 +94,13 @@ public class PlaylistController : ControllerBase
       return BadRequest(e.Message);
     }
   }
+
   [HttpPut("removeSong")]
   public async Task<ActionResult> Remove(AddRemoveSongDTO addSongDTO)
   {
     try
     {
+            // Requires userId extraction from token
       var playList = await PlaylistServices.RemoveSong(addSongDTO, _dbContext);
       return Ok("Song Removed from playlist");
     }
@@ -114,6 +123,7 @@ public class PlaylistController : ControllerBase
   {
     try
     {
+            // Requires userId extraction from token
       var playList = await PlaylistServices.ChangePlayListState(changePrivacy, _dbContext);
       return Ok("Playlist privacy changed");
     }
@@ -130,12 +140,14 @@ public class PlaylistController : ControllerBase
       return BadRequest(e.Message);
     }
   }
-   [HttpGet("getPlaylists/user/{id}")]
-  public async Task<ActionResult<List<GetUserPlayListsDTO>>> GetUserPlaylists(string id)
+
+  [HttpGet("getPlaylists/user")]
+  public async Task<ActionResult<List<GetUserPlayListsDTO>>> GetUserPlaylists()
   {
     try
     {
-      var playLists = await PlaylistServices.GetUserPlayLists(id, _dbContext);
+      var userId = (User.FindFirst(ClaimTypes.NameIdentifier)?.Value) ?? throw new ValidationException("Could no find user id");
+      var playLists = await PlaylistServices.GetUserPlayLists(userId, _dbContext);
       return playLists;
     }
     catch(EntityNotFoundException ex)
@@ -156,6 +168,7 @@ public class PlaylistController : ControllerBase
   {
     try
     {
+            // Requires userId extraction from token
       var playList = await PlaylistServices.CreatePlayList(createPlayListDTO, _dbContext);
       return Created("Playlist created", new {message = $"Playlist {createPlayListDTO.Name} created",});
     }
@@ -178,6 +191,7 @@ public class PlaylistController : ControllerBase
   {
     try
     {
+            // Requires userId extraction from token
       var playList = await PlaylistServices.UpdatePlayList(updatePlaylist, _dbContext);
       return Ok("Playlist updated");
     }
@@ -199,6 +213,7 @@ public class PlaylistController : ControllerBase
   {
     try
     {
+            // Requires userId extraction from token
       var playList = await PlaylistServices.DeletePlayList(deletePlayList, _dbContext);
       return Ok("Playlist deleted");
     }

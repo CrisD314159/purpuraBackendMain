@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.InputDto;
@@ -10,6 +11,7 @@ namespace purpuraMain.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class GenreController : ControllerBase
 {
   private readonly PurpuraDbContext _dbContext;
@@ -52,5 +54,27 @@ public class GenreController : ControllerBase
       return BadRequest("An unexpected error occured");
     }
   }
+
+
+  [HttpGet("getGenre/{id}")]
+   public async Task<ActionResult<GetGenreDTO>> GetGenreById(string id)
+  {
+    try
+    {
+      var topSongs = await GenreService.GetGenreById(id, _dbContext);
+      return Ok(topSongs);
+    }
+    catch (EntityNotFoundException)
+    {
+            
+      return NotFound("Genre Not found");
+    }
+    catch (System.Exception)
+    {
+            
+      return BadRequest("An unexpected error occured");
+    }
+  }
+
 
 }

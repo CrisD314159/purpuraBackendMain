@@ -23,12 +23,17 @@ public static class SongService
                 AlbumName = s.Album!.Name!,
                 AudioUrl = s.AudioUrl!,
                 Duration = s.Duration,
+                ReleaseDate= s.Album!.ReleaseDate,
                 Genres = s.Genres!.Select(g => new GetGenreDTO{
                     Id = g.Id,
                     Name = g.Name
                 }).ToList(),
                 ImageUrl = s.ImageUrl!,
-                Lyrics = s.Lyrics ?? ""
+                Lyrics = s.Lyrics ?? "",
+                ProducerName = s.Album!.ProducerName ?? "",
+                RecordLabel = s.Album!.RecordLabel ?? "",
+                WriterName = s.Album!.WriterName ?? ""
+
 
             }).FirstAsync() ?? throw new EntityNotFoundException("Song not found");
 

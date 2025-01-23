@@ -118,7 +118,8 @@ Content-Type: application/json
 }
 
 ### Obtener las playlists de un usuario 
-GET {{purpuraMain_HostAddress}}/playlist/getPlaylists/user/6f4c8c96-b10f-4a12-80cd-668d70c5d573
+GET {{purpuraMain_HostAddress}}/playlist/getPlaylists/user
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImIwZTI1Y2IxLWQ3NjQtNGI1Ny1hNmJmLTcyODg2Nzk0NTc3MCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6Im1hcmlhQGdtYWlsLmNvbSIsImV4cCI6MTczNzU5NzQ3MiwiaXNzIjoiUHVycHVyYU11c2ljIiwiYXVkIjoiUHVycHVyYU11c2ljIn0.ZVaF042x6lFjdDgaOLl1jsp9z8LymWKzIGnJj83fcsM
 Accept: application/json
 
 
@@ -128,8 +129,8 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "name": "Rap and Various Hip-Hop",
-  "userId": "6f4c8c96-b10f-4a12-80cd-668d70c5d573"
+  "name": "I love harry styles",
+  "userId": "b0e25cb1-d764-4b57-a6bf-728867945770"
 }
 ### Actualizar una playlist (Debe ser del usuario que la creó)
 PUT {{purpuraMain_HostAddress}}/playlist 
@@ -177,6 +178,10 @@ Accept: application/json
 ### Obtener todos los generos
 GET {{purpuraMain_HostAddress}}/genre/getAll
 Accept: application/json
+### Obtener todos los generos
+
+GET {{purpuraMain_HostAddress}}/genre/getGenre/0c1e6e02-b50b-427e-86fc-552b3c7fb745
+Accept: application/json
 
 ### Crear un genero
 POST {{purpuraMain_HostAddress}}/genre
@@ -207,15 +212,16 @@ Accept: application/json
 
 
 ### Obtener un album
-GET {{purpuraMain_HostAddress}}/album/getAlbumByInput/abbey
+GET {{purpuraMain_HostAddress}}/album/getAlbumByInput/gg
 Accept: application/json
 
 ### Obtener un album
-GET {{purpuraMain_HostAddress}}/album/getAlbum/e121cec8-a4c1-449a-b0ec-6707a2aad53f
+GET {{purpuraMain_HostAddress}}/album/getAlbum/2e465b8d-aa39-4a8e-85a5-ea4daac845e0
 Accept: application/json
 
 ### Obtener todos los albumes
 GET {{purpuraMain_HostAddress}}/album/getAlbums?offset=0&limit=10
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiMGUyNWNiMS1kNzY0LTRiNTctYTZiZi03Mjg4Njc5NDU3NzAiLCJlbWFpbCI6Im1hcmlhQGdtYWlsLmNvbSIsImV4cCI6MTczNzU5MzM3NywiaXNzIjoiUHVycHVyYU11c2ljIiwiYXVkIjoiUHVycHVyYU11c2ljIn0.QjWzpUARrG9FpnrXDnEth14ihI9yztYd_VvoKeeQb6M
 Accept: application/json
 
 
@@ -226,10 +232,33 @@ GET {{purpuraMain_HostAddress}}/artist/searchArtists?name=the&offset=0&limit=10
 Accept: application/json
 
 ### Obtener un artista
-GET {{purpuraMain_HostAddress}}/artist/getArtists?name=the&offset=0&limit=10
+GET {{purpuraMain_HostAddress}}/artist/getArtists?offset=0&limit=10
+Accept: application/json
+
+
+### Obtener un artista
+GET {{purpuraMain_HostAddress}}/artist/getArtistProfile/99e516b1-592d-4c72-afb9-8a060821844d
 Accept: application/json
 
 
 
 ### Obtener todas las canciones 
 GET {{purpuraMain_HostAddress}}/song/getSongs?offset=0&limit=10
+### Obtener todas las canciones 
+GET {{purpuraMain_HostAddress}}/song/getSong/39a79345-e31b-46e7-8c71-15bcabec3a4a
+
+
+### Auth tests 
+POST {{purpuraMain_HostAddress}}/api/auth/login
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "maria@gmail.com",
+  "password": "password456"
+}
+### refreshToken
+PUT {{purpuraMain_HostAddress}}/api/auth/refresh/token
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImIwZTI1Y2IxLWQ3NjQtNGI1Ny1hNmJmLTcyODg2Nzk0NTc3MCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvc2VyaWFsbnVtYmVyIjoiMWE1MTVlMDYtN2U4OS00MjJiLTg0YWItYTkxNmNhZjc4MjA2IiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoibWFyaWFAZ21haWwuY29tIiwiZXhwIjoxNzM3NTk3Mzk2LCJpc3MiOiJQdXJwdXJhTXVzaWMiLCJhdWQiOiJQdXJwdXJhTXVzaWMifQ.P_Mj2g2lEb14sc06p6n95vM95sfpO9F8oRTS3yDaN0I
+Content-Type: application/json
+

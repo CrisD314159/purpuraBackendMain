@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
@@ -9,6 +10,7 @@ namespace purpuraMain.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class LibraryController : ControllerBase
 {
 
@@ -24,6 +26,7 @@ public class LibraryController : ControllerBase
   {
     try
     {
+      // Requires userId extraction from token
       GetLibraryDTO library = await LibraryService.GetLibraryById(id, _dbcontext) ?? throw new EntityNotFoundException("Library not found");
       return Ok(library);
     }
@@ -45,6 +48,7 @@ public class LibraryController : ControllerBase
   {
     try
     {
+      // Requires userId extraction from token
       await LibraryService.AddSongToLibrary(addSong, _dbcontext);
       return Ok("Song added to library");
     }
@@ -67,6 +71,7 @@ public class LibraryController : ControllerBase
   {
     try
     {
+      // Requires userId extraction from token
       await LibraryService.AddSongToLibrary(addSong, _dbcontext);
       return Ok("Song removed from library");
     }
@@ -88,6 +93,7 @@ public class LibraryController : ControllerBase
   {
     try
     {
+      // Requires userId extraction from token
       await LibraryService.AddPlayListToLibrary(addPlaylist, _dbcontext);
       return Ok("Playlist added to library");
     }
@@ -110,6 +116,7 @@ public class LibraryController : ControllerBase
   {
     try
     {
+      // Requires userId extraction from token
       await LibraryService.AddPlayListToLibrary(addPlaylist, _dbcontext);
       return Ok("Playlist removed from library");
     }
@@ -131,6 +138,7 @@ public class LibraryController : ControllerBase
   {
     try
     {
+      // Requires userId extraction from token
       await LibraryService.AddAlbumToLibrary(addAlbum, _dbcontext);
       return Ok("Album added to library");
     }
@@ -152,6 +160,7 @@ public class LibraryController : ControllerBase
   {
     try
     {
+      // Requires userId extraction from token
       await LibraryService.AddAlbumToLibrary(addAlbum, _dbcontext);
       return Ok("Album removed to library");
     }

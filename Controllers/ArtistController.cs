@@ -1,5 +1,7 @@
 
 namespace purpuraMain.Controllers;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Org.BouncyCastle.Crypto.Modes;
 using purpuraMain.DbContext;
@@ -9,7 +11,7 @@ using purpuraMain.Services;
 
 [ApiController]
 [Route("[controller]")]
-
+[Authorize]
 public class ArtistController: ControllerBase
 {
   private readonly PurpuraDbContext _dbContext;

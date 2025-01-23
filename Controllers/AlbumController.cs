@@ -1,3 +1,6 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
@@ -8,6 +11,7 @@ namespace purpuraMain.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class AlbumController: ControllerBase
 {
   private readonly PurpuraDbContext _dbContext;
@@ -16,7 +20,6 @@ public class AlbumController: ControllerBase
   {
     _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
   }
-
 
 
   [HttpGet("getAlbum/{id}")]
@@ -67,7 +70,7 @@ public class AlbumController: ControllerBase
       if(offset < 0 || limit < 1) return BadRequest("Invalid offset or amount");
       
 
-      var albums = await AlbumService.GetAllAlbumbs(offset, limit, _dbContext);
+      var albums = await AlbumService.GetAllAlbums(offset, limit, _dbContext);
       return Ok(albums);
     }
     catch (System.Exception)

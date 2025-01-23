@@ -102,7 +102,7 @@ public static class AlbumService
     }
 
 
-    public static async Task<List<GetAlbumDTO>> GetAllAlbumbs(int offset, int limit, PurpuraDbContext dbContext)
+    public static async Task<List<GetAlbumDTO>> GetAllAlbums(int offset, int limit, PurpuraDbContext dbContext)
     {
         try
         {
@@ -121,6 +121,30 @@ public static class AlbumService
                 GenreId = a.GenreId,
                 GenreName = a.Genre!.Name,
                 AlbumType = a.AlbumType,
+                Songs = dbContext.Songs != null ? dbContext.Songs.Where(s=> s.AlbumId == a.Id).Select(s=> new GetSongDTO
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Artists = s.Artists != null ? s.Artists.Select(a => new GetPlaylistArtistDTO
+                    {
+                        Id = a.Id,
+                        Name = a.Name,
+                        Description = a.Description??""
+                    }).ToList() : new List<GetPlaylistArtistDTO>(),
+                    AlbumId = s.AlbumId!,
+                    AlbumName = s.Album!.Name!,
+                    Duration = s.Duration,
+                    ImageUrl = s.ImageUrl?? "",
+                    AudioUrl = s.AudioUrl?? "",
+                    Genres = s.Genres!.Select(g => new GetGenreDTO
+                    {
+                        Id = g.Id,
+                        Name = g.Name,
+                        Description = g.Description?? ""
+                    }).ToList(),
+                    Lyrics = s.Lyrics ?? "",
+                    
+                    }).ToList() : new List<GetSongDTO>()
             }).Skip(offset).Take(limit).ToListAsync();
 
 
