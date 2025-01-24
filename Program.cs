@@ -45,6 +45,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+DotNetEnv.Env.Load();
+
 app.MapControllers();
 
 app.Run();

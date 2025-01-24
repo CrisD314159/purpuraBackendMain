@@ -25,7 +25,6 @@ public class AlbumController: ControllerBase
   [HttpGet("getAlbum/{id}")]
   public async Task<ActionResult<GetAlbumDTO>> GetAlbumById(string id)
   {
-
     try
     {
       var album = await AlbumService.GetAlbumById(id, _dbContext);
@@ -43,12 +42,11 @@ public class AlbumController: ControllerBase
   }
 
   [HttpGet("getAlbumByInput/{input}")]
-  public async Task<ActionResult<List<GetAlbumDTO>>> GetAlbumByInput(string input)
+  public async Task<ActionResult<List<GetAlbumDTO>>> GetAlbumByInput(string input, int offset, int limit)
   {
-
     try
     {
-      var album = await AlbumService.GetAlbumByInput(input, _dbContext);
+      var album = await AlbumService.GetAlbumByInput(input, offset, limit, _dbContext);
       return Ok(album);
     }
     catch(EntityNotFoundException)

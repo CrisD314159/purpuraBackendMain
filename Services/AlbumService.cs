@@ -65,7 +65,7 @@ public static class AlbumService
             throw;
         }
     }
-    public static async Task<List<GetAlbumDTO>> GetAlbumByInput(string input, PurpuraDbContext dbContext)
+    public static async Task<List<GetAlbumDTO>> GetAlbumByInput(string input, int offset, int limit, PurpuraDbContext dbContext)
     {
           try
         {
@@ -85,7 +85,7 @@ public static class AlbumService
                 GenreName = a.Genre!.Name,
                 AlbumType = a.AlbumType,
 
-            }).ToListAsync() ?? throw new EntityNotFoundException("Album not found");
+            }).Skip(offset).Take(limit).ToListAsync() ?? throw new EntityNotFoundException("Album not found");
 
             return album;
         }

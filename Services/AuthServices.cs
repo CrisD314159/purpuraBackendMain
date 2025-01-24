@@ -4,6 +4,7 @@ using purpuraMain.DbContext;
 using purpuraMain.Dto;
 using purpuraMain.Exceptions;
 using purpuraMain.Utils;
+using purpuraMain.Model;
 
 namespace purpuraMain.Services;
 
@@ -13,7 +14,7 @@ public static class AuthServices
   {
     try
     {
-      var user = await dbContext.Users!.Where(u=> u.Email == email).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Invalid email or password");
+      var user = await dbContext.Users!.Where(u=> u.Email == email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Invalid email or password");
       if (new PasswordManipulation().VerifyPassword(user.Password, password) == false)
       {
         throw new BadRequestException("Invalid email or password");
@@ -60,4 +61,23 @@ public static class AuthServices
     }
 
   }
+
+
+  public static async Task<bool> LogoutRequest (string userId, string sessionId, PurpuraDbContext dbContext)
+  {
+    try
+    {
+      var session = await dbContext.Sessions!.Where(s => s.UserId == userId && s.Id == sessionId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Session not found");
+      dbContext.Sessions!.Remove(session);
+      await dbContext.SaveChangesAsync();
+      return true;
+    }
+    catch (System.Exception)
+    {
+      
+      throw;
+    }
+
+  }
+
 }

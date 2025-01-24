@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -21,14 +22,18 @@ public class LibraryController : ControllerBase
   }
 
 
-  [HttpGet("{id}")]
-  public async Task<ActionResult<GetLibraryDTO>> GetLibrary(string id)
+  [HttpGet("user")]
+  public async Task<ActionResult<GetLibraryDTO>> GetLibrary()
   {
     try
     {
       // Requires userId extraction from token
-      GetLibraryDTO library = await LibraryService.GetLibraryById(id, _dbcontext) ?? throw new EntityNotFoundException("Library not found");
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+      GetLibraryDTO library = await LibraryService.GetLibraryById(userId, _dbcontext) ?? throw new EntityNotFoundException("Library not found");
       return Ok(library);
+    }
+    catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
     catch (ValidationException ex)
     {
@@ -43,14 +48,19 @@ public class LibraryController : ControllerBase
       return BadRequest(e.Message);
     }
   }
+
   [HttpPut("addSong")]
   public async Task<ActionResult> AddSong(AddRemoveSongLibraryDTO addSong )
   {
     try
     {
       // Requires userId extraction from token
-      await LibraryService.AddSongToLibrary(addSong, _dbcontext);
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+      await LibraryService.AddSongToLibrary(userId, addSong, _dbcontext);
       return Ok("Song added to library");
+    }
+    catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
     catch (ValidationException ex)
     {
@@ -72,7 +82,8 @@ public class LibraryController : ControllerBase
     try
     {
       // Requires userId extraction from token
-      await LibraryService.AddSongToLibrary(addSong, _dbcontext);
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+      await LibraryService.AddSongToLibrary(userId, addSong, _dbcontext);
       return Ok("Song removed from library");
     }
     catch (ValidationException ex)
@@ -94,8 +105,12 @@ public class LibraryController : ControllerBase
     try
     {
       // Requires userId extraction from token
-      await LibraryService.AddPlayListToLibrary(addPlaylist, _dbcontext);
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found"); 
+      await LibraryService.AddPlayListToLibrary(userId, addPlaylist, _dbcontext);
       return Ok("Playlist added to library");
+    }
+     catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
     catch (ValidationException ex)
     {
@@ -117,8 +132,12 @@ public class LibraryController : ControllerBase
     try
     {
       // Requires userId extraction from token
-      await LibraryService.AddPlayListToLibrary(addPlaylist, _dbcontext);
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+      await LibraryService.AddPlayListToLibrary(userId, addPlaylist, _dbcontext);
       return Ok("Playlist removed from library");
+    }
+     catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
     catch (ValidationException ex)
     {
@@ -139,8 +158,12 @@ public class LibraryController : ControllerBase
     try
     {
       // Requires userId extraction from token
-      await LibraryService.AddAlbumToLibrary(addAlbum, _dbcontext);
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+      await LibraryService.AddAlbumToLibrary(userId,addAlbum, _dbcontext);
       return Ok("Album added to library");
+    }
+     catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
     catch (ValidationException ex)
     {
@@ -161,8 +184,12 @@ public class LibraryController : ControllerBase
     try
     {
       // Requires userId extraction from token
-      await LibraryService.AddAlbumToLibrary(addAlbum, _dbcontext);
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+      await LibraryService.AddAlbumToLibrary(userId, addAlbum, _dbcontext);
       return Ok("Album removed to library");
+    }
+     catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
     catch (ValidationException ex)
     {

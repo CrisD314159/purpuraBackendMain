@@ -26,10 +26,10 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "email": "maria@gmail.com",
+  "email": "vargasloaizacristian@gmail.com",
   "password": "Password@432",
-  "name": "Mario García",
-  "phone": "311243124",
+  "name": "Cristian Vargas Loaiza",
+  "phone": "3003918913",
   "country": 1
 }
 

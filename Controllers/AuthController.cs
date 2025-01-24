@@ -75,4 +75,37 @@ public class AuthController : ControllerBase
         }
     }
 
+
+    [HttpDelete("logout")]
+    [Authorize]
+
+    public async Task<ActionResult<object>> Logout()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new SessionExpiredException("Invalid token");
+            var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new SessionExpiredException("Invalid token");
+            var response = await AuthServices.LogoutRequest(userId, sessionId, _dbContext);
+            if(!response) throw new BadRequestException("An error occured while logging out");
+            return Ok("Logged out successfully");
+        }
+        catch(SessionExpiredException ex)
+        {
+            return Unauthorized(ex.Message);
+
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (BadRequestException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (System.Exception)
+        {
+            return BadRequest("An unexpected error occured");
+        }
+    }
+
 }

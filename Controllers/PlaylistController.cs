@@ -32,8 +32,12 @@ public class PlaylistController : ControllerBase
     try
     {
             // Requires userId extraction from token
-      GetPlayListDTO playList = await PlaylistServices.GetPlaylist(id, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+      GetPlayListDTO playList = await PlaylistServices.GetPlaylist(userId, id, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
       return playList;
+    }
+      catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
     catch(ValidationException ex)
     {
@@ -50,12 +54,12 @@ public class PlaylistController : ControllerBase
   }
 
   [HttpGet("search/{input}")]
-  public async Task<ActionResult<List<GetLibraryPlaylistDTO>>> SearchPlaylist(string input)
+  public async Task<ActionResult<List<GetLibraryPlaylistDTO>>> SearchPlaylist(string input, int offset, int limit)
   {
     try
     {
             // Requires offset and limit for pagination
-      var playList = await PlaylistServices.SearchPlaylist(input, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
+      var playList = await PlaylistServices.SearchPlaylist(input, offset, limit, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
       return playList;
     }
     catch(ValidationException ex)
@@ -78,8 +82,12 @@ public class PlaylistController : ControllerBase
     try
     {
             // Requires userId extraction from token
-      var playList = await PlaylistServices.AddSong(addSongDTO, _dbContext);
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+      var playList = await PlaylistServices.AddSong(userId, addSongDTO, _dbContext);
       return Ok("Song added to playlist");
+    }
+    catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
      catch(ValidationException ex)
     {
@@ -101,8 +109,12 @@ public class PlaylistController : ControllerBase
     try
     {
             // Requires userId extraction from token
-      var playList = await PlaylistServices.RemoveSong(addSongDTO, _dbContext);
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+      var playList = await PlaylistServices.RemoveSong(userId, addSongDTO, _dbContext);
       return Ok("Song Removed from playlist");
+    }
+    catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
      catch(ValidationException ex)
     {
@@ -124,8 +136,12 @@ public class PlaylistController : ControllerBase
     try
     {
             // Requires userId extraction from token
-      var playList = await PlaylistServices.ChangePlayListState(changePrivacy, _dbContext);
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+      var playList = await PlaylistServices.ChangePlayListState(userId, changePrivacy, _dbContext);
       return Ok("Playlist privacy changed");
+    }
+    catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
      catch(ValidationException ex)
     {
@@ -146,9 +162,12 @@ public class PlaylistController : ControllerBase
   {
     try
     {
-      var userId = (User.FindFirst(ClaimTypes.NameIdentifier)?.Value) ?? throw new ValidationException("Could no find user id");
+      var userId = (User.FindFirst(ClaimTypes.NameIdentifier)?.Value) ?? throw new UnauthorizedAccessException("User not found");
       var playLists = await PlaylistServices.GetUserPlayLists(userId, _dbContext);
       return playLists;
+    }
+     catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
     catch(EntityNotFoundException ex)
     {
@@ -169,8 +188,12 @@ public class PlaylistController : ControllerBase
     try
     {
             // Requires userId extraction from token
-      var playList = await PlaylistServices.CreatePlayList(createPlayListDTO, _dbContext);
+      var userId = (User.FindFirst(ClaimTypes.NameIdentifier)?.Value) ?? throw new UnauthorizedAccessException("User not found");
+      var playList = await PlaylistServices.CreatePlayList(userId, createPlayListDTO, _dbContext);
       return Created("Playlist created", new {message = $"Playlist {createPlayListDTO.Name} created",});
+    }
+      catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
     catch(EntityNotFoundException ex)
     {
@@ -192,8 +215,12 @@ public class PlaylistController : ControllerBase
     try
     {
             // Requires userId extraction from token
-      var playList = await PlaylistServices.UpdatePlayList(updatePlaylist, _dbContext);
+      var userId = (User.FindFirst(ClaimTypes.NameIdentifier)?.Value) ?? throw new UnauthorizedAccessException("User not found");
+      var playList = await PlaylistServices.UpdatePlayList(userId, updatePlaylist, _dbContext);
       return Ok("Playlist updated");
+    }
+    catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
     catch(EntityNotFoundException ex)
     {
@@ -214,8 +241,12 @@ public class PlaylistController : ControllerBase
     try
     {
             // Requires userId extraction from token
-      var playList = await PlaylistServices.DeletePlayList(deletePlayList, _dbContext);
+      var userId = (User.FindFirst(ClaimTypes.NameIdentifier)?.Value) ?? throw new UnauthorizedAccessException("User not found");
+      var playList = await PlaylistServices.DeletePlayList(userId, deletePlayList, _dbContext);
       return Ok("Playlist deleted");
+    }
+    catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
     }
     catch(EntityNotFoundException ex)
     {
