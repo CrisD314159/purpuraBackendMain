@@ -31,6 +31,9 @@ public class AuthController : ControllerBase
           var response = await AuthServices.LoginRequest(login.Email, login.Password, _dbContext, _config);
           return Ok(response);
         }
+         catch(NotVerifiedException ex){
+            return Unauthorized(ex.Message); // Si el login lanza un 401 es porque el usuario no ha verificado su cuenta  
+        }
         catch (EntityNotFoundException ex)
         {
             return NotFound(ex.Message);
@@ -46,7 +49,7 @@ public class AuthController : ControllerBase
     }
     [HttpPut("refresh/token")]
     [Authorize]
-    public async Task<ActionResult<object>> RefreshToken()
+    public async Task<ActionResult<LoginResponseDTO>> RefreshToken()
     {
         try
         {
@@ -54,7 +57,7 @@ public class AuthController : ControllerBase
             var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new SessionExpiredException("Invalid token");
             var email = User.FindFirst(ClaimTypes.Email)?.Value ?? throw new BadRequestException("Invalid token");
             var token = await AuthServices.RefreshTokenRequest(userId, sessionId, email, _dbContext, _config);
-            return Ok(new {token});
+            return Ok(new {success=true, token = token.Token, refreshToken = token.RefreshToken});
         }
         catch(SessionExpiredException ex)
         {
@@ -89,6 +92,7 @@ public class AuthController : ControllerBase
             if(!response) throw new BadRequestException("An error occured while logging out");
             return Ok("Logged out successfully");
         }
+       
         catch(SessionExpiredException ex)
         {
             return Unauthorized(ex.Message);
@@ -101,6 +105,25 @@ public class AuthController : ControllerBase
         catch (BadRequestException ex)
         {
             return BadRequest(ex.Message);
+        }
+        catch (System.Exception)
+        {
+            return BadRequest("An unexpected error occured");
+        }
+    }
+
+    [HttpPut("checkToken")]
+    [Authorize]
+    public  ActionResult<object> CheckToken()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new SessionExpiredException("Invalid token");
+            return Ok(new {success= true, message = "Token is valid"});
+        }
+        catch(SessionExpiredException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (System.Exception)
         {

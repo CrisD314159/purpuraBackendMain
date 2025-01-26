@@ -16,12 +16,14 @@ public class User
 
   [MinLength(2)]
   [MaxLength(30)]
-  public string? Name { get; set; }
-  public DateTime CreatedAt { get; set; }
+  public string? FirstName { get; set; }
 
   [MinLength(2)]
   [MaxLength(30)]
-  public string? Phone { get; set; }
+  public string? SurName { get; set; }
+
+  public DateTime CreatedAt { get; set; }
+
 
   public int CountryId { get; set; }
   public  Country? Country { get; set; }

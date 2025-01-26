@@ -10,12 +10,12 @@ public static class LibraryService
     public static async Task<GetLibraryDTO> GetLibraryById(string userId, PurpuraDbContext dbContext)
     {
         try
-        {
-            var library = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State != UserState.INACTIVE).Select( l=>
+        {   
+            var library = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Select( l=>
                 new GetLibraryDTO{
                    Id= l.Id,
                    UserId = l.UserId!,
-                   UserName = l.User!.Name!,
+                   UserName = l.User!.FirstName!,
                    Albums = l.Albums.Select(a=> new GetLibraryAlbumDTO {
                         Id = a.Id,
                         Name = a.Name,
@@ -30,7 +30,7 @@ public static class LibraryService
                     Id = p.Id,
                     Name = p.Name,
                     Description = p.Description ?? "",
-                    UserName = p.User!.Name!,
+                    UserName = p.User!.FirstName!,
                     UserId = p.UserId!,
                     IsPublic = p.IsPublic,
                     ImageUrl = p.ImageUrl
@@ -80,7 +80,7 @@ public static class LibraryService
     {
         try
         {
-            var library = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State != UserState.INACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Library not found");
+            var library = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State != UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Library not found");
             return library;
         }
         catch(EntityNotFoundException arg)

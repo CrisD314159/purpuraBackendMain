@@ -7,6 +7,7 @@ using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 [ApiController]
 [Route("[controller]")]
@@ -19,53 +20,33 @@ public class UserController: ControllerBase
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("getProfile")]
     [Authorize]
-    public async Task<ActionResult<GetUserDto>> GetUser(string id)
+    public async Task<ActionResult<GetUserDto>> GetUser()
     {
         try
         {
-        var user = await UserService.GetUserById(id, _dbContext);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+        var user = await UserService.GetUserById(userId, _dbContext);
 
         return Ok(user);
         }
         catch (ValidationException val)
         {
-          return BadRequest(new {Title ="There was an error with the input", Detail = val.Message});
+          return BadRequest(new  {success =false, message = val.Message});
         }
         catch (EntityNotFoundException ex)
         {
-          return BadRequest(ex.Message);
+          return NotFound( new {success =false, message = ex.Message});
         }
-        catch (System.Exception)
+        catch (System.Exception e)
         {
-          NotFound();
+          return BadRequest(new {success =false, message = e.Message});
         }     
-
-        return NotFound();   
+  
     }
 
 
-      [HttpGet("getByEmail/{email}")]
-      [Authorize]
-        public async Task<ActionResult<GetUserDto>> GetUserByEmail(string email)
-    {
-        try
-        {
-        var user = await UserService.GetUserByEmail(email, _dbContext);
-        return Ok(user); 
-        }
-         catch (EntityNotFoundException ex)
-        {
-          return BadRequest(ex.Message);
-        }
-        catch (System.Exception)
-        {
-          NotFound();
-        }     
-
-        return NotFound();   
-    }
 
     [HttpPost]
     public async Task<ActionResult> CreateUser(CreateUserDTO user)
@@ -74,25 +55,20 @@ public class UserController: ControllerBase
       {
         var returnStatement = await UserService.CreateUser(user, _dbContext);
 
-        if(returnStatement == false)
-        {
-          return BadRequest("An error occured while creating the user");
-        }
-
-        return CreatedAtAction(nameof(GetUserByEmail),new {email = user.Email}, user);
+        return CreatedAtAction("GetUser", new {success = true, message = "User created successfully"});
       }
       catch(ValidationException val)
       {
-        return BadRequest(new {Title ="There was an error with the input", Detail = val.Message});
+        return BadRequest(new  {success =false, message = val.Message});
       }
        catch (EntityNotFoundException ex)
         {
-          return BadRequest(ex.Message);
+          return BadRequest(new  {success =false, message = ex.Message});
         }
       catch (System.Exception e)
       {
         
-        return BadRequest(e.Message);
+        return BadRequest( new {success =false, message = e.Message});
       }        
     }
 
@@ -114,7 +90,7 @@ public class UserController: ControllerBase
       }
       catch(ValidationException val)
       {
-        return BadRequest(new {Title ="There was an error with the input", Detail = val.Message});
+        return BadRequest(new  {success =false, message = val.Message});
       }
        catch (EntityNotFoundException ex)
         {
@@ -123,7 +99,7 @@ public class UserController: ControllerBase
       catch (System.Exception e)
       {
         
-        return BadRequest(new {Title ="An unexpected error occured", Detail = e.Message});
+        return BadRequest(new  {success =false, message = e.Message});
       }
 
     }
@@ -136,22 +112,17 @@ public class UserController: ControllerBase
       {
         var serviceResponse = await UserService.DeleteUser(id, _dbContext);
 
-        if(serviceResponse == false)
-        {
-          return BadRequest("An error occured while deleting the user");
-        }
-
         return Ok("User deleted successfully");
         
       }
        catch (EntityNotFoundException ex)
         {
-          return BadRequest(ex.Message);
+          return BadRequest(new  {success =false, message = ex.Message});
         }
       catch (System.Exception e)
       {
         
-        return BadRequest(new {Title ="An unexpected error occured", Detail = e.Message});
+        return BadRequest(new  {success =false, message = e.Message});
       }
 
     }
@@ -167,19 +138,13 @@ public class UserController: ControllerBase
           return BadRequest("Email and code are required");
         }
        var serviceResponse =  await UserService.VerifyAccount(verifyAccount, _dbContext);
-
-        if(serviceResponse == false)
-        {
-          return BadRequest("An error occured while verifying the account");
-        }
         
         return Ok("Account verified successfully");
-        
-        
+      
       }
       catch(ValidationException val)
       {
-        return BadRequest(new {Title ="There was an error with the input", Detail = val.Message});
+        return BadRequest(new {success =false, message = val.Message});
       }
        catch (EntityNotFoundException ex)
         {
@@ -188,7 +153,7 @@ public class UserController: ControllerBase
       catch (System.Exception e)
       {
         
-        return BadRequest(new {Title ="An unexpected error occured", Detail = e.Message});
+        return BadRequest(new {success =false, message = e.Message});
       }
 
     }
@@ -204,11 +169,6 @@ public class UserController: ControllerBase
           return BadRequest("Email, code and password are required");
         }
        var serviceResponse =  await UserService.UpdateUserPassword(passwordChange, _dbContext);
-
-        if(serviceResponse == false)
-        {
-          return BadRequest("An error occured while verifying the account");
-        }
         
         return Ok("Password updated successfully");
         
@@ -216,7 +176,7 @@ public class UserController: ControllerBase
       }
       catch(ValidationException val)
       {
-        return BadRequest(new {Title ="There was an error with the input", Detail = val.Message});
+        return BadRequest(new {success =false, message = val.Message});
       }
        catch (EntityNotFoundException ex)
         {
@@ -225,7 +185,7 @@ public class UserController: ControllerBase
       catch (System.Exception e)
       {
         
-        return BadRequest(new {Title ="An unexpected error occured", Detail = e.Message});
+        return BadRequest(new {success =false, message = e.Message});
       }
 
     }
@@ -241,11 +201,6 @@ public class UserController: ControllerBase
           return BadRequest("Email is required");
         }
        var serviceResponse =  await UserService.SendPasswordRecoveryCode(email, _dbContext);
-
-        if(serviceResponse == false)
-        {
-          return BadRequest("An error occured while sending the verification email");
-        }
         
         return Ok("Recovery email sent successfully");
         
@@ -253,7 +208,7 @@ public class UserController: ControllerBase
       }
       catch(ValidationException val)
       {
-        return BadRequest(new {Title ="There was an error with the input", Detail = val.Message});
+        return BadRequest(new  {success =false, message = val.Message});
       }
        catch (EntityNotFoundException ex)
         {
@@ -262,7 +217,7 @@ public class UserController: ControllerBase
       catch (System.Exception e)
       {
         
-        return BadRequest(new {Title ="An unexpected error occured", Detail = e.Message});
+        return BadRequest(new  {success =false, message = e.Message});
       }
 
     }

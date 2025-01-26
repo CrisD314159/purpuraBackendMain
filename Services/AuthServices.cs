@@ -14,7 +14,8 @@ public static class AuthServices
   {
     try
     {
-      var user = await dbContext.Users!.Where(u=> u.Email == email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Invalid email or password");
+      var user = await dbContext.Users!.Where(u=> u.Email == email && u.State != UserState.INACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Invalid email or password");
+      if(user.State == UserState.UNVERIFIED) throw new NotVerifiedException("User not verified");
       if (new PasswordManipulation().VerifyPassword(user.Password, password) == false)
       {
         throw new BadRequestException("Invalid email or password");
@@ -35,7 +36,7 @@ public static class AuthServices
     }
 
   }
-  public static async Task<string> RefreshTokenRequest (string userId, string sessionId, string email, PurpuraDbContext dbContext, IConfiguration configuration)
+  public static async Task<LoginResponseDTO> RefreshTokenRequest (string userId, string sessionId, string email, PurpuraDbContext dbContext, IConfiguration configuration)
   {
     try
     {
@@ -49,14 +50,25 @@ public static class AuthServices
 
       var token = JWTManagement.GenerateAccessToken(session.UserId, email, configuration);
 
-      session.ExpiresdAt = DateTime.UtcNow.AddDays(5);
-      await dbContext.SaveChangesAsync();
+     // Renueva la expiración de la sesión si faltan menos de 2 días
+    if (DateTime.UtcNow >= session.ExpiresdAt.AddDays(-2))
+    {
+        session.ExpiresdAt = DateTime.UtcNow.AddDays(5);
+        await dbContext.SaveChangesAsync();
+        var newSessionId = JWTManagement.ExtendSessionToken(sessionId, userId, email, configuration);
 
-      return token;
+        return new LoginResponseDTO
+        {
+            RefreshToken = newSessionId,
+            Token = token
+        };
+    }
+      return new LoginResponseDTO{
+        Token = token
+      };
     }
     catch (System.Exception)
     {
-      
       throw;
     }
 

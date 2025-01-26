@@ -22,7 +22,7 @@ public static class UserService
        try
        {
         
-        var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).Join(dbContext.Countries!, user => user.CountryId, country => country.Id, (user, country) => new GetUserDto{ Email = user.Email, Name = user.Name!, Country= country.Name, Id= user.Id, Phone = user.Phone!, ProfilePicture= user.ProfilePicture, IsVerified= user.State == UserState.ACTIVE }).FirstOrDefaultAsync(user => user.Id == id) ?? throw new EntityNotFoundException("User does not exist");
+        var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).Join(dbContext.Countries!, user => user.CountryId, country => country.Id, (user, country) => new GetUserDto{ Email = user.Email, FirstName = user.FirstName!, Country= country.Name, Id= user.Id, SurName = user.SurName!, ProfilePicture= user.ProfilePicture, IsVerified= user.State == UserState.ACTIVE }).FirstOrDefaultAsync(user => user.Id == id) ?? throw new EntityNotFoundException("User does not exist");
         
         return user;
        }
@@ -70,34 +70,6 @@ public static class UserService
      
     }
 
-    /*
-
-    This method is used to get a user by email
-    */
-    public static async Task<GetUserDto> GetUserByEmail(string email, PurpuraDbContext dbContext)
-    {
-
-        try
-        {
-            
-            var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).Join(dbContext.Countries!, user => user.CountryId, country => country.Id, (user, country) => new GetUserDto{ Email = user.Email, Name = user.Name!, Country= country.Name, Id= user.Id, Phone = user.Phone!, ProfilePicture= user.ProfilePicture , IsVerified = user.State == UserState.ACTIVE}).FirstOrDefaultAsync(user => user.Email == email)?? throw new EntityNotFoundException("User does not exist");
-            
-            return user;
-        }
-         catch(ValidationException val)
-       {
-           throw new ValidationException(val.Message);
-       }
-       catch(EntityNotFoundException ex)
-       {
-           throw new EntityNotFoundException(ex.Message);
-       }
-        catch (System.Exception)
-        {
-            throw new Exception("An error occured while fetching the user");
-        }
-       
-    }
 
 
     /*
@@ -124,29 +96,6 @@ public static class UserService
     }
 
     /*
-    This method is used to verify if a user exists
-    */
-    private static async Task<bool> VerifyUserExists(string email, PurpuraDbContext dbContext)
-    {
-
-        try
-        {
-            var user = await dbContext.Users!.FirstOrDefaultAsync(user => user.Email == email);
-            if(user == null) return false;
-            return true;
-        }
-        catch(ValidationException val)
-       {
-           throw new ValidationException(val.Message);
-       }
-        catch (System.Exception)
-        {
-            throw new Exception("An error occured while fetching the user");
-        }
-       
-    }
-
-    /*
     This method creates a new user, asigns a library and a playlist (purple day list) to the user
     */
     public static async Task<bool> CreateUser(CreateUserDTO user, PurpuraDbContext dbContext)
@@ -156,9 +105,9 @@ public static class UserService
         {
             UserValidator validator = new ();
             ValidationResult result = validator.Validate(user);
-            if (!result.IsValid) throw new ValidationException(result.Errors);
+            if (!result.IsValid) throw new ValidationException("User input is not valid");
 
-            if (await VerifyUserExists(user.Email, dbContext)) throw new ValidationException("User already exists");
+            if (await dbContext.Users!.AnyAsync(u => u.Email == user.Email)) throw new ValidationException("User already exists");
 
 
             string id = Guid.NewGuid().ToString();
@@ -172,10 +121,10 @@ public static class UserService
             User newUser = new()
             {
                 Id = id,
-                Name = user.Name,
+                FirstName = user.FirstName,
                 Email = user.Email,
                 Password = hashedPassword,
-                Phone = user.Phone,
+                SurName = user.SurName,
                 CountryId = user.Country,
                 State = UserState.UNVERIFIED,
                 CreatedAt = DateTime.UtcNow,
@@ -213,7 +162,7 @@ public static class UserService
             await dbContext.Playlists!.AddAsync(playlist);
             await dbContext.SaveChangesAsync();
 
-            await MailService.SendVerificationEmail(user.Email, code.ToString(), user.Name);
+            await MailService.SendVerificationEmail(user.Email, code.ToString(), user.FirstName);
             transaction.Commit();
 
 
@@ -248,8 +197,8 @@ public static class UserService
             if(validator.Validate(user).IsValid == false) throw new ValidationException("User input is not valid");
             var userToUpdate = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == user.Id) ?? throw new EntityNotFoundException("User does not exist");
             if(userToUpdate.State == UserState.UNVERIFIED) throw new ValidationException("User is not verified");
-            userToUpdate.Name = user.Name;
-            userToUpdate.Phone = user.Phone;
+            userToUpdate.FirstName = user.FirstName;
+            userToUpdate.SurName = user.SurName;
 
             await dbContext.SaveChangesAsync();
             return true;
@@ -320,14 +269,14 @@ public static class UserService
             if(passwordValidator.Validate(passwordDTO).IsValid == false) throw new ValidationException("Password input is not valid");
 
             var user = await GetUserByEmailPrivate(passwordDTO.Email!, dbContext) ?? throw new EntityNotFoundException("User does not exist");
-            if(user.State == UserState.UNVERIFIED) throw new ValidationException("User is not verified");
+            if(user.State == UserState.UNVERIFIED) throw new NotVerifiedException("User is not verified");
             if(user.VerifyCode != passwordDTO.Code) throw new ValidationException("Invalid code");
 
             PasswordManipulation passwordManipulation = new();
             string hashedPassword = passwordManipulation.HashPassword(passwordDTO.Password!);
             user.Password = hashedPassword;
             user.VerifyCode = 0;
-            await MailService.SendPasswordChangeMail(passwordDTO.Email!, user.Name!);
+            await MailService.SendPasswordChangeMail(passwordDTO.Email!, user.FirstName!);
             await dbContext.SaveChangesAsync();
             return true;
         }
@@ -362,7 +311,7 @@ public static class UserService
             user.State = UserState.ACTIVE;
             user.VerifyCode = 0;
             await dbContext.SaveChangesAsync();
-            await MailService.SendVerifiedAccountMail(verifyAccountDTO.Email!, user.Name!);
+            await MailService.SendVerifiedAccountMail(verifyAccountDTO.Email!, user.FirstName!);
             return true;
         }
         catch (ValidationException val)
@@ -375,7 +324,7 @@ public static class UserService
        }
         catch (System.Exception)
         {
-            throw new Exception("An error occured while verifying the account");
+            throw new Exception("An error occured while trying to verify your account");
         }
         
     }
@@ -386,11 +335,11 @@ public static class UserService
         try
         {
             var user = await GetUserByEmailPrivate(email, dbContext) ?? throw new EntityNotFoundException("User does not exist");
-            if(user.State == UserState.UNVERIFIED) throw new ValidationException("User is not verified");
+            if(user.State == UserState.UNVERIFIED) throw new NotVerifiedException("User is not verified");
             int code = new Random().Next(1000, 9999);
             user.VerifyCode = code;
             await dbContext.SaveChangesAsync();
-            await MailService.SendPasswordRecoveryCodeEmail(email, code.ToString(), user.Name!);
+            await MailService.SendPasswordRecoveryCodeEmail(email, code.ToString(), user.FirstName!);
             return true;
         }
         catch (ValidationException val)
@@ -408,6 +357,4 @@ public static class UserService
     }
 
 
-
-    // Send verification code and the rest methods realated to smtp services will be implemented in a nodejs microservice
 }

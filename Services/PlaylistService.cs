@@ -12,26 +12,20 @@ namespace purpuraMain.Services;
 public static class PlaylistServices
 {
 
-  private static async Task<bool> CheckIfPlaylistExists(string playListId, PurpuraDbContext dbcontext)
-  {
-    return await dbcontext.Playlists!.AnyAsync(p => p.Id == playListId);
-  }
-
   public static async Task<GetPlayListDTO> GetPlaylist(string userId, string playListId, PurpuraDbContext dbcontext)
   {
     try
     {
       //Esto es para verificar si el usuario que hace la petición puede ver la playlist
-      if( await dbcontext.Playlists!.AnyAsync(p => p.Id == playListId && p.UserId != userId && p.IsPublic == false)) throw new EntityNotFoundException("Playlist not found");   
-
-      var playList = await 
+      if( await dbcontext.Playlists!.AnyAsync(p => p.Id == playListId && p.UserId != userId && p.IsPublic == false)) throw new EntityNotFoundException("Playlist not found");
+      var playList = await
       dbcontext.Playlists!.Where(p => p.Id == playListId)
       .Select(p => new GetPlayListDTO
       {
         Id = p.Id,
         Name = p.Name,
         Description = p.Description,
-        UserName = p.User!.Name!,
+        UserName = p.User!.FirstName!,
         IsPublic = p.IsPublic,
         ImageUrl = p.ImageUrl,
         Songs = p.Songs != null ? p.Songs.Select(s=> new GetSongDTO
@@ -56,7 +50,7 @@ public static class PlaylistServices
             Description = g.Description?? ""
           }).ToList(),
           Lyrics = s.Lyrics ?? "",
-          
+
         }).ToList() : new List<GetSongDTO>()
       }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
 
@@ -73,7 +67,7 @@ public static class PlaylistServices
     }
     catch (System.Exception)
     {
-      
+
       throw new Exception ("An unexpected error occured");
     }
   }
@@ -82,7 +76,7 @@ public static class PlaylistServices
     try
     {
       Console.WriteLine("HOLA NUENAS TARDES");
-      var playList = await 
+      var playList = await
       dbcontext.Playlists!.Where(p => p.Name.ToLower().Contains(input.ToLower()) && p.IsPublic)
       .Select(p=> new GetLibraryPlaylistDTO
       {
@@ -92,9 +86,9 @@ public static class PlaylistServices
         Description = p.Description ?? "",
         Name = p.Name,
         UserId =p.UserId!,
-        UserName = p.User!.Name!
+        UserName = p.User!.FirstName!
       }).Skip(offset).Take(limit).ToListAsync() ?? [];
-     
+
       return playList;
     }
 
@@ -108,11 +102,11 @@ public static class PlaylistServices
     }
     catch (System.Exception)
     {
-      
+
       throw new Exception ("An unexpected error occured");
     }
   }
-  
+
 
   public static async Task<bool> AddSong(string userId, AddRemoveSongDTO addSongDTO, PurpuraDbContext dbContext)
   {
@@ -120,10 +114,10 @@ public static class PlaylistServices
     {
       var playlist = await dbContext.Playlists!.FindAsync(addSongDTO.PlaylistId) ?? throw new EntityNotFoundException("Playlist not found");
       if(playlist.UserId != userId) throw new ValidationException("You are not authorized to add songs to this playlist");
-      var song = await dbContext.Songs!.FindAsync(addSongDTO.SongId) ?? throw new EntityNotFoundException("Song not found");  
+      var song = await dbContext.Songs!.FindAsync(addSongDTO.SongId) ?? throw new EntityNotFoundException("Song not found");
       playlist.Songs!.Add(song);
       await dbContext.SaveChangesAsync();
-      return true;    
+      return true;
     }
     catch(NullFieldException arg)
     {
@@ -135,7 +129,7 @@ public static class PlaylistServices
     }
     catch (System.Exception)
     {
-      
+
       throw new Exception ("An unexpected error occured");
     }
   }
@@ -147,10 +141,10 @@ public static class PlaylistServices
     {
       var playlist = await dbContext.Playlists!.FindAsync(addSongDTO.PlaylistId) ?? throw new EntityNotFoundException("Playlist not found");
       if(playlist.UserId != userId) throw new ValidationException("You are not authorized to add songs to this playlist");
-      var song = await dbContext.Songs!.FindAsync(addSongDTO.SongId) ?? throw new EntityNotFoundException("Song not found");  
+      var song = await dbContext.Songs!.FindAsync(addSongDTO.SongId) ?? throw new EntityNotFoundException("Song not found");
       playlist.Songs!.Remove(song);
       await dbContext.SaveChangesAsync();
-      return true;    
+      return true;
     }
     catch(EntityNotFoundException arg)
     {
@@ -158,7 +152,7 @@ public static class PlaylistServices
     }
     catch (System.Exception)
     {
-      
+
       throw new Exception ("An unexpected error occured");
     }
   }
@@ -184,7 +178,7 @@ public static class PlaylistServices
     catch (System.Exception)
     {
 
-      
+
       throw new Exception ("An unexpected error occured");
     }
   }
@@ -198,7 +192,7 @@ public static class PlaylistServices
         Name = p.Name,
         Description = p.Description,
         UserId = p.UserId!,
-        UserName = p.User!.Name!,
+        UserName = p.User!.FirstName!,
         IsPublic = p.IsPublic,
         ImageUrl = p.ImageUrl
       }).ToListAsync() ?? [];
@@ -215,7 +209,7 @@ public static class PlaylistServices
     }
     catch (System.Exception)
     {
-      
+
       throw new Exception ("An unexpected error occured");
     }
   }
@@ -229,7 +223,7 @@ public static class PlaylistServices
       if(!validator.Validate(createPlayListDTO).IsValid) throw new ValidationException("Invalid output");
       if(!await dbContext.Users!.AnyAsync(u => u.Id == userId)) throw new EntityNotFoundException("User not found");
       if(await dbContext.Playlists!.AnyAsync(p => p.Name == createPlayListDTO.Name && p.UserId == userId)) throw new ValidationException("There is already a playlist with that name on your library");
-      
+
       var playList = new Playlist
       {
         Id = Guid.NewGuid().ToString(),
@@ -284,10 +278,10 @@ public static class PlaylistServices
     }
     catch (System.Exception)
     {
-      
+
       throw new Exception ("An unexpected error occured");
     }
-    
+
   }
 
   public static async Task<bool> DeletePlayList(string userId, DeletePlayListDTO deletePlaylist, PurpuraDbContext dbContext)
@@ -310,12 +304,12 @@ public static class PlaylistServices
     }
     catch (System.Exception)
     {
-      
+
       throw new Exception ("An unexpected error occured");
     }
   }
 
-  
+
 
 
 

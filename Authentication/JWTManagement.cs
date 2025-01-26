@@ -28,6 +28,29 @@ public class JWTManagement{
     );
     return new JwtSecurityTokenHandler().WriteToken(token);
   }
+
+  public static string ExtendSessionToken (string sessionId, string userId, string email, IConfiguration configuration){
+    var claims = new []
+      {
+        new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+        new Claim(ClaimTypes.SerialNumber, sessionId),
+        new Claim(ClaimTypes.Email, email)
+      };
+
+      var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]!));
+      var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+      var token = new JwtSecurityToken(
+          issuer: configuration["Jwt:Issuer"],
+              audience: configuration["Jwt:Audience"],
+              claims: claims,
+              expires: DateTime.UtcNow.AddDays(5),
+              signingCredentials: credentials
+      );
+
+    return new JwtSecurityTokenHandler().WriteToken(token);
+
+  }
   public static async Task<string> GenerateRefreshToken(string userId, string email, IConfiguration configuration, PurpuraDbContext dbContext){
 
     try
@@ -47,7 +70,7 @@ public class JWTManagement{
           issuer: configuration["Jwt:Issuer"],
               audience: configuration["Jwt:Audience"],
               claims: claims,
-              expires: DateTime.UtcNow.AddMinutes(10),
+              expires: DateTime.UtcNow.AddDays(5),
               signingCredentials: credentials
       );
 
@@ -55,7 +78,7 @@ public class JWTManagement{
         Id = sessionId,
         UserId = userId,
         CreatedAt = DateTime.UtcNow,
-        ExpiresdAt = DateTime.UtcNow.AddMinutes(1)
+        ExpiresdAt = DateTime.UtcNow.AddDays(5)
       });
       await dbContext.SaveChangesAsync();
 
