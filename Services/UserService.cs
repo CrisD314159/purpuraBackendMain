@@ -22,7 +22,7 @@ public static class UserService
        try
        {
         
-        var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).Join(dbContext.Countries!, user => user.CountryId, country => country.Id, (user, country) => new GetUserDto{ Email = user.Email, FirstName = user.FirstName!, Country= country.Name, Id= user.Id, SurName = user.SurName!, ProfilePicture= user.ProfilePicture, IsVerified= user.State == UserState.ACTIVE }).FirstOrDefaultAsync(user => user.Id == id) ?? throw new EntityNotFoundException("User does not exist");
+        var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).Join(dbContext.Countries!, user => user.CountryId, country => country.Id, (user, country) => new GetUserDto{ Email = user.Email, FirstName = user.FirstName!, Country= country.Name, Id= user.Id, SurName = user.SurName!, ProfilePicture= user.ProfilePicture, IsVerified= user.State == UserState.ACTIVE, CountryId = country.Id }).FirstOrDefaultAsync(user => user.Id == id) ?? throw new EntityNotFoundException("User does not exist");
         
         return user;
        }
@@ -188,37 +188,33 @@ public static class UserService
     /*
     This method is used to update user's information (Only name and phone)
     */
-    public static async Task<bool> UpdateUser(UpdateUserDto user, PurpuraDbContext dbContext)
+    public static async Task<bool> UpdateUser(string userId, UpdateUserDto user, PurpuraDbContext dbContext)
     {
 
         try
         {
             UserUpdateValidator validator = new();
             if(validator.Validate(user).IsValid == false) throw new ValidationException("User input is not valid");
-            var userToUpdate = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == user.Id) ?? throw new EntityNotFoundException("User does not exist");
+            var userToUpdate = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == userId) ?? throw new EntityNotFoundException("User does not exist");
             if(userToUpdate.State == UserState.UNVERIFIED) throw new ValidationException("User is not verified");
+            var country = await dbContext.Countries!.FindAsync(user.Country) ?? throw new EntityNotFoundException("Country  not found");
+      
             userToUpdate.FirstName = user.FirstName;
             userToUpdate.SurName = user.SurName;
-
+            userToUpdate.Country = country;
             await dbContext.SaveChangesAsync();
+
             return true;
         }
-        catch (ValidationException val)
-        {
-            throw new ValidationException(val.Message);
-        }
+       
         catch(DbException)
         {
             
             throw new ValidationException("An error occured with the server while updating the user");
         }
-         catch(EntityNotFoundException ex)
-       {
-           throw new EntityNotFoundException(ex.Message);
-       }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
-            throw new Exception(e.Message);
+            throw ;
         }
    
     }

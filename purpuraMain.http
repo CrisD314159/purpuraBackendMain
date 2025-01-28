@@ -11,7 +11,8 @@ Accept: application/json
 
 
 ### Obtener un usuario por su id
-GET {{purpuraMain_HostAddress}}/user/15f10770-1beb-4476-8e8e-303a78a73266
+GET {{purpuraMain_HostAddress}}/user/getProfile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImQ1ZDVkMzMyLTA5NTktNGQ4Ny1iMTQ1LTlhZTVjZmRlYzA2MyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImNyaXN0aWFuZGF2aWR2YXJnYXM3MTdAZ21haWwuY29tIiwiZXhwIjoxNzM3OTg5NTk1LCJpc3MiOiJQdXJwdXJhTXVzaWMiLCJhdWQiOiJQdXJwdXJhTXVzaWMifQ.B64hmYvNCiOIAusT4LGE4LEG7pO-lVn_8YbnGZu-8fY
 Accept: application/json
 
 
@@ -35,16 +36,14 @@ Content-Type: application/json
 
 ### Actualizar Un Usuario
 PUT {{purpuraMain_HostAddress}}/user
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjlkMjhiNzgxLWY0NDItNDNjMC1iYzBlLWRlYmYwYTA2YjlhMiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InZhcmdhc2xvYWl6YWNyaXN0aWFuQGdtYWlsLmNvbSIsImV4cCI6MTczODAzMTY2MiwiaXNzIjoiUHVycHVyYU11c2ljIiwiYXVkIjoiUHVycHVyYU11c2ljIn0.GIqCgWcsfTkE4kX9xqDSE39TobFXG2Ql9KnmAP1fRMA
 Accept: application/json
 Content-Type: application/json
 
 {
-  "id": "6f4c8c96-b10f-4a12-80cd-668d70c5d573",
-  "email": "maria@gmail.com",
-  "password": "password456",
-  "name": "Mario Angel García",
-  "phone": "3003893442",
-  "country": 2
+  "firstName": "Cristian David",
+  "surName": "Vargas",
+  "country": 10
 }
 
 ### Verificar la cuenta de un usuario

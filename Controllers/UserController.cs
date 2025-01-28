@@ -78,16 +78,14 @@ public class UserController: ControllerBase
     {
       try
       {
-        var serviceResponse = await UserService.UpdateUser(user, _dbContext);
-
-        if(serviceResponse == false)
-        {
-          return BadRequest("An error occured while updating the user");
-        }
-
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+        var serviceResponse = await UserService.UpdateUser(userId, user, _dbContext);
         return Ok("User updated successfully");
         
       }
+       catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
+    }
       catch(ValidationException val)
       {
         return BadRequest(new  {success =false, message = val.Message});
@@ -104,17 +102,21 @@ public class UserController: ControllerBase
 
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete]
     [Authorize]
-    public async Task<ActionResult> DeleteUser(string id)
+    public async Task<ActionResult> DeleteUser()
     {
       try
       {
-        var serviceResponse = await UserService.DeleteUser(id, _dbContext);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+        var serviceResponse = await UserService.DeleteUser(userId, _dbContext);
 
         return Ok("User deleted successfully");
         
       }
+       catch( UnauthorizedAccessException ex){
+      return Unauthorized(ex.Message);
+    }
        catch (EntityNotFoundException ex)
         {
           return BadRequest(new  {success =false, message = ex.Message});
