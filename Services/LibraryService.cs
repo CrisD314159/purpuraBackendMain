@@ -157,7 +157,7 @@ public static class LibraryService
 
       public static async Task<bool> AddPlayListToLibrary(string userId, AddRemovePlayListDTO addRemovePlayListDTO, PurpuraDbContext dbContext)
     {
-           try
+        try
         {
             var library = await GetUserLibraryPrivate(userId, dbContext);
             var playlist = await dbContext.Playlists!.Where(p => p.Id == addRemovePlayListDTO.PlaylistId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Album not found");

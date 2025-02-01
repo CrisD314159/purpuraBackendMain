@@ -117,10 +117,6 @@ public static class SongService
 
             return songs;
         }
-         catch (EntityNotFoundException ex)
-        {
-            throw new EntityNotFoundException(ex.Message);
-        }
         catch (System.Exception)
         {
             

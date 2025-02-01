@@ -209,6 +209,26 @@ public static class ArtistService
             throw;
         }
     }
+
+
+    public static async Task<List<GetArtistPlaysDTO>> GetMostListenArtists(int offset, int limit, PurpuraDbContext dbContext)
+    {
+        try
+        {
+            var artists = await dbContext.Artists!.Select(a => new GetArtistPlaysDTO{
+                Id = a.Id,
+                Name = a.Name,
+                ImageUrl = a.PictureUrl ?? "",
+                Plays = dbContext.PlayHistories!.Where(pl => pl.Song!.Artists != null && pl.Song.Artists.Any(ar => ar.Id == a.Id)).Count()
+            }).Skip(offset).Take(limit).OrderByDescending(a => a.Plays).ToListAsync() ?? throw new EntityNotFoundException("Not found artists");
+
+            return artists;     
+        }
+        catch (System.Exception)
+        {
+            throw;
+        }
+    }
 // Rest of the crud methods will be implemented in a nodejs standalone api
 
 }

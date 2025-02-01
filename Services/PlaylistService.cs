@@ -6,6 +6,7 @@ using purpuraMain.Exceptions;
 using purpuraMain.Dto.InputDto;
 using purpuraMain.Validations;
 using System.ComponentModel.DataAnnotations;
+using CloudinaryDotNet.Actions;
 
 namespace purpuraMain.Services;
 
@@ -218,10 +219,9 @@ public static class PlaylistServices
   {
     try
     {
-
       PlayListValidation validator = new();
       if(!validator.Validate(createPlayListDTO).IsValid) throw new ValidationException("Invalid output");
-      if(!await dbContext.Users!.AnyAsync(u => u.Id == userId)) throw new EntityNotFoundException("User not found");
+      var library = await dbContext.Libraries!.Where(l=> l.UserId == userId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Library not found");
       if(await dbContext.Playlists!.AnyAsync(p => p.Name == createPlayListDTO.Name && p.UserId == userId)) throw new ValidationException("There is already a playlist with that name on your library");
 
       var playList = new Playlist
@@ -230,28 +230,19 @@ public static class PlaylistServices
         Name = createPlayListDTO.Name,
         Description = createPlayListDTO.Description ?? "",
         UserId = userId,
-        ImageUrl = "https://res.cloudinary.com/dw43hgf5p/image/upload/v1735657347/qheqts3xhcejrmwu5hur.jpg",
+        ImageUrl = createPlayListDTO.ImageUrl ?? "https://res.cloudinary.com/dw43hgf5p/image/upload/v1735657347/qheqts3xhcejrmwu5hur.jpg",
         IsPublic = true,
         Editable = true,
         CreatedAt = DateTime.UtcNow
       };
       await dbContext.Playlists!.AddAsync(playList);
+      library.Playlists.Add(playList);
       await dbContext.SaveChangesAsync();
-      await LibraryService.AddPlayListToLibrary(playList.UserId, new AddRemovePlayListDTO{PlaylistId = playList.Id}, dbContext);
       return true;
     }
-    catch(EntityNotFoundException arg)
+    catch (System.Exception)
     {
-      throw new EntityNotFoundException(arg.Message);
-    }
-    catch(ValidationException arg)
-    {
-      throw new ValidationException(arg.Message);
-    }
-    catch (System.Exception e)
-    {
-      Console.WriteLine(e.Message);
-      throw new Exception ("An unexpected error occured");
+      throw;
     }
   }
 

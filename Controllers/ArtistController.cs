@@ -129,4 +129,26 @@ public class ArtistController: ControllerBase
   }
 
 
+  [HttpGet("getMostListenArtists")]
+  public async Task<ActionResult<List<GetArtistPlaysDTO>>> GetMostListenArtists(int offset, int limit){
+    try
+    {
+      if(offset < 0 || limit < 1)
+      {
+        return BadRequest("Invalid offset or limit");
+      }
+
+      var artists = await ArtistService.GetMostListenArtists(offset, limit, _dbContext);
+      return Ok(artists);
+      
+    }
+    catch (EntityNotFoundException)
+    {
+      return NotFound("Artists Not found");
+    }
+    catch (System.Exception)
+    {
+      return BadRequest("An unexpected error occured");
+    }
+  }
 }
