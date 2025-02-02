@@ -39,10 +39,6 @@ public static class SongService
 
             return song;
         }
-        catch (EntityNotFoundException ex)
-        {
-            throw new EntityNotFoundException(ex.Message);
-        }
         catch (System.Exception)
         {
             
@@ -78,10 +74,6 @@ public static class SongService
             }).Skip(offset).Take(limit).ToListAsync() ?? throw new EntityNotFoundException("There are no songs that match the search");
 
             return songs;
-        }
-        catch (EntityNotFoundException ex)
-        {
-            throw new EntityNotFoundException(ex.Message);
         }
         catch (System.Exception)
         {

@@ -12,8 +12,8 @@ using purpuraMain.DbContext;
 namespace purpuraMain.Migrations
 {
     [DbContext(typeof(PurpuraDbContext))]
-    [Migration("20250128032001_DatabaseChange")]
-    partial class DatabaseChange
+    [Migration("20250201230403_ModelListChanges")]
+    partial class ModelListChanges
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

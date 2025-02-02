@@ -18,11 +18,11 @@ public class Song
   public required string AudioUrl { get; set; }
   public required string ImageUrl { get; set; }
 
-  public ICollection<Playlist>? Playlists { get; set; }
+  public ICollection<Playlist>? Playlists { get; set; } =[];
 
-  public ICollection<Artist>? Artists { get; set; }
+  public ICollection<Artist>? Artists { get; set; } =[];
 
-  public ICollection<Genre>? Genres { get; set; }
+  public ICollection<Genre>? Genres { get; set; } =[];
 
-  public ICollection<Library>? Libraries { get; set; }
+  public ICollection<Library>? Libraries { get; set; }=[];
 }

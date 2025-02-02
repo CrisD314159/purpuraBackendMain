@@ -2,6 +2,9 @@ namespace purpuraMain.DbContext;
 using Microsoft.EntityFrameworkCore;
 using purpuraMain.Model;
 
+
+// El dbcontext es el contexto necesario para poder que ef core mapee o estructure la base de datos en el motor
+// Esto debe tener las entidades que queremos ver reflejadas en la base de datos y de importa desde el Program.cs para la inyección de dependencias
 public class PurpuraDbContext(DbContextOptions<PurpuraDbContext> options) : DbContext(options)
 {
   public DbSet<Library>? Libraries { get; set; }

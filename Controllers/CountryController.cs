@@ -26,7 +26,7 @@ public class CountryController : ControllerBase
         }
         catch (System.Exception)
         {
-            return BadRequest("An unexpected error occured");
+            return BadRequest(new {message="An unexpected error occured", success=false});
         }
     }
 }

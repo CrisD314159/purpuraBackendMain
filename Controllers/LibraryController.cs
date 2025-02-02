@@ -9,201 +9,162 @@ using purpuraMain.Services;
 
 namespace purpuraMain.Controllers;
 
+/// <summary>
+/// Controlador para la gestión de la biblioteca de música del usuario.
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 [Authorize]
 public class LibraryController : ControllerBase
 {
+    private readonly PurpuraDbContext _dbcontext;
 
-  private readonly PurpuraDbContext _dbcontext;
-  public LibraryController(PurpuraDbContext dbcontext)
-  {
-    _dbcontext = dbcontext ?? throw new ArgumentNullException(nameof(dbcontext));
-  }
+    /// <summary>
+    /// Constructor del controlador de biblioteca.
+    /// </summary>
+    /// <param name="dbcontext">Contexto de la base de datos.</param>
+    public LibraryController(PurpuraDbContext dbcontext)
+    {
+        _dbcontext = dbcontext ?? throw new ArgumentNullException(nameof(dbcontext));
+    }
 
+    /// <summary>
+    /// Obtiene la biblioteca del usuario autenticado.
+    /// </summary>
+    /// <returns>Biblioteca del usuario.</returns>
+    [HttpGet("user")]
+    public async Task<ActionResult<GetLibraryDTO>> GetLibrary()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            GetLibraryDTO library = await LibraryService.GetLibraryById(userId, _dbcontext) ?? throw new EntityNotFoundException("Library not found");
+            return Ok(library);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (System.Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 
-  [HttpGet("user")]
-  public async Task<ActionResult<GetLibraryDTO>> GetLibrary()
-  {
-    try
+    /// <summary>
+    /// Obtiene las canciones de la biblioteca del usuario con paginación.
+    /// </summary>
+    /// <param name="offset">Número de elementos a omitir.</param>
+    /// <param name="limit">Número de elementos a devolver.</param>
+    /// <returns>Lista de canciones.</returns>
+    [HttpGet("user/songs")]
+    public async Task<ActionResult<GetLibraryDTO>> GetUserSongs(int offset, int limit)
     {
-      // Requires userId extraction from token
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-      GetLibraryDTO library = await LibraryService.GetLibraryById(userId, _dbcontext) ?? throw new EntityNotFoundException("Library not found");
-      return Ok(library);
-    }
-    catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-    catch (ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch (EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
+        try
+        {
+            if (offset < 0 || limit < 1)
+            {
+                return BadRequest("Invalid offset or limit");
+            }
 
-  [HttpPut("addSong")]
-  public async Task<ActionResult> AddSong(AddRemoveSongLibraryDTO addSong )
-  {
-    try
-    {
-      // Requires userId extraction from token
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-      await LibraryService.AddSongToLibrary(userId, addSong, _dbcontext);
-      return Ok("Song added to library");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            var songs = await LibraryService.GetUserSongs(userId, offset, limit, _dbcontext) ?? throw new EntityNotFoundException("Library not found");
+            return Ok(songs);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message, success = false });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message, success = false });
+        }
+        catch (System.Exception e)
+        {
+            return BadRequest(new { message = e.Message, success = false });
+        }
     }
-    catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-    catch (ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch (EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
-  
-  [HttpPut("removeSong")]
-  public async Task<ActionResult> RemoveSong(AddRemoveSongLibraryDTO addSong )
-  {
-    try
-    {
-      // Requires userId extraction from token
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-      await LibraryService.AddSongToLibrary(userId, addSong, _dbcontext);
-      return Ok("Song removed from library");
-    }
-    catch (ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch (EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
-  [HttpPut("addPlaylist")]
-  public async Task<ActionResult> AddPlayList(AddRemovePlayListDTO addPlaylist )
-  {
-    try
-    {
-      // Requires userId extraction from token
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found"); 
-      await LibraryService.AddPlayListToLibrary(userId, addPlaylist, _dbcontext);
-      return Ok("Playlist added to library");
-    }
-     catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-    catch (ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch (EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
 
-  [HttpPut("removePlaylist")]
-  public async Task<ActionResult> RemovePlayList(AddRemovePlayListDTO addPlaylist )
-  {
-    try
+    /// <summary>
+    /// Agrega una canción a la biblioteca del usuario.
+    /// </summary>
+    [HttpPut("addSong")]
+    public async Task<ActionResult> AddSong(AddRemoveSongLibraryDTO addSong)
     {
-      // Requires userId extraction from token
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-      await LibraryService.AddPlayListToLibrary(userId, addPlaylist, _dbcontext);
-      return Ok("Playlist removed from library");
+        return await ModifyLibrary(addSong, LibraryService.AddSongToLibrary, "Song added to library");
     }
-     catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-    catch (ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch (EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
-  [HttpPut("addAlbum")]
-  public async Task<ActionResult> AddAlbum(AddRemoveAlbumLibraryDTO addAlbum )
-  {
-    try
-    {
-      // Requires userId extraction from token
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-      await LibraryService.AddAlbumToLibrary(userId,addAlbum, _dbcontext);
-      return Ok("Album added to library");
-    }
-     catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-    catch (ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch (EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
-  [HttpPut("removeAlbum")]
-  public async Task<ActionResult> RemoveAlbum(AddRemoveAlbumLibraryDTO addAlbum )
-  {
-    try
-    {
-      // Requires userId extraction from token
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-      await LibraryService.AddAlbumToLibrary(userId, addAlbum, _dbcontext);
-      return Ok("Album removed to library");
-    }
-     catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-    catch (ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch (EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
- 
 
+    /// <summary>
+    /// Elimina una canción de la biblioteca del usuario.
+    /// </summary>
+    [HttpPut("removeSong")]
+    public async Task<ActionResult> RemoveSong(AddRemoveSongLibraryDTO removeSong)
+    {
+        return await ModifyLibrary(removeSong, LibraryService.AddSongToLibrary, "Song removed from library");
+    }
+
+    /// <summary>
+    /// Agrega una playlist a la biblioteca del usuario.
+    /// </summary>
+    [HttpPut("addPlaylist")]
+    public async Task<ActionResult> AddPlaylist(AddRemovePlayListDTO addPlaylist)
+    {
+        return await ModifyLibrary(addPlaylist, LibraryService.AddPlayListToLibrary, "Playlist added to library");
+    }
+
+    /// <summary>
+    /// Elimina una playlist de la biblioteca del usuario.
+    /// </summary>
+    [HttpPut("removePlaylist")]
+    public async Task<ActionResult> RemovePlaylist(AddRemovePlayListDTO removePlaylist)
+    {
+        return await ModifyLibrary(removePlaylist, LibraryService.AddPlayListToLibrary, "Playlist removed from library");
+    }
+
+    /// <summary>
+    /// Agrega un álbum a la biblioteca del usuario.
+    /// </summary>
+    [HttpPut("addAlbum")]
+    public async Task<ActionResult> AddAlbum(AddRemoveAlbumLibraryDTO addAlbum)
+    {
+        return await ModifyLibrary(addAlbum, LibraryService.AddAlbumToLibrary, "Album added to library");
+    }
+
+    /// <summary>
+    /// Elimina un álbum de la biblioteca del usuario.
+    /// </summary>
+    [HttpPut("removeAlbum")]
+    public async Task<ActionResult> RemoveAlbum(AddRemoveAlbumLibraryDTO removeAlbum)
+    {
+        return await ModifyLibrary(removeAlbum, LibraryService.AddAlbumToLibrary, "Album removed from library");
+    }
+
+    /// <summary>
+    /// Método genérico para agregar o eliminar elementos de la biblioteca.
+    /// </summary>
+    private async Task<ActionResult> ModifyLibrary<T>(T dto, Func<string, T, PurpuraDbContext, Task> serviceMethod, string successMessage)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            await serviceMethod(userId, dto, _dbcontext);
+            return Ok(new { success = true, message = successMessage });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message, success = false });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message, success = false });
+        }
+        catch (System.Exception e)
+        {
+            return BadRequest(new { message = e.Message, success = false });
+        }
+    }
 }

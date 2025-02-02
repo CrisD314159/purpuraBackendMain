@@ -9,6 +9,6 @@ public class Genre
   public required string Name { get; set; }
   public string? Description { get; set; }
   public string? Color { get; set; }
-  public ICollection<Song> Songs { get; set; } = new List<Song>();
+  public ICollection<Song> Songs { get; set; } = [];
 
 }

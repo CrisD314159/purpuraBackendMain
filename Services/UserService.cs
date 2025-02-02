@@ -26,18 +26,10 @@ public static class UserService
         
         return user;
        }
-       catch(ValidationException val)
-       {
-           throw new ValidationException(val.Message);
-       }
-       catch(EntityNotFoundException)
-       {
-           throw new EntityNotFoundException("User does not exist");
-       }
        catch (System.Exception)
        {
         
-        throw new Exception("An error occured while fetching the user");
+        throw ;
        }
      
     }
@@ -54,47 +46,13 @@ public static class UserService
         
         return user;
        }
-        catch(ValidationException val)
-       {
-           throw new ValidationException(val.Message);
-       }
-       catch(EntityNotFoundException ex)
-       {
-           throw new EntityNotFoundException(ex.Message);
-       }
        catch (System.Exception)
        {
         
-        throw new Exception("An error occured while fetching the user");
+        throw;
        }
      
     }
-
-
-
-    /*
-    This method is used to get a user by email in a private way
-    */
-     private static async Task<User> GetUserByEmailPrivate(string email, PurpuraDbContext dbContext)
-    {
-
-        try
-        {
-            var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(user => user.Email == email);
-            if(user == null) return null!;
-            return user;
-        }
-         catch(ValidationException val)
-       {
-           throw new ValidationException(val.Message);
-       }
-        catch (System.Exception)
-        {
-            throw new Exception("An error occured while fetching the user");
-        }
-       
-    }
-
     /*
     This method creates a new user, asigns a library and a playlist (purple day list) to the user
     */
@@ -168,19 +126,10 @@ public static class UserService
 
             return true;
         }
-        catch (ValidationException val)
-        {   transaction.Rollback();
-            throw new ValidationException(val.Message);
-        }
-        catch(DbException)
+        catch (System.Exception)
         {
             transaction.Rollback();
-            throw new ValidationException("An error occured with the server while creating the user");
-        }
-        catch (System.Exception e)
-        {
-            transaction.Rollback();
-            throw new Exception(e.Message);
+            throw;
         }
     }
 
@@ -206,12 +155,6 @@ public static class UserService
 
             return true;
         }
-       
-        catch(DbException)
-        {
-            
-            throw new ValidationException("An error occured with the server while updating the user");
-        }
         catch (System.Exception)
         {
             throw ;
@@ -233,18 +176,6 @@ public static class UserService
             await dbContext.SaveChangesAsync();
             return true;
         }
-        catch (ValidationException val)
-        {
-            throw new ValidationException(val.Message);
-        }
-        catch(DbException)
-        {
-            throw new ValidationException("An error occured with the server while deleting the user");
-        }
-         catch(EntityNotFoundException ex)
-       {
-           throw new EntityNotFoundException(ex.Message);
-       }
         catch (System.Exception e)
         {
             throw new Exception(e.Message);
@@ -264,7 +195,7 @@ public static class UserService
             var passwordValidator = new PasswordValidation();
             if(passwordValidator.Validate(passwordDTO).IsValid == false) throw new ValidationException("Password input is not valid");
 
-            var user = await GetUserByEmailPrivate(passwordDTO.Email!, dbContext) ?? throw new EntityNotFoundException("User does not exist");
+            var user = await dbContext.Users!.Where(u=> u.Email == passwordDTO.Email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
             if(user.State == UserState.UNVERIFIED) throw new NotVerifiedException("User is not verified");
             if(user.VerifyCode != passwordDTO.Code) throw new ValidationException("Invalid code");
 
@@ -276,15 +207,6 @@ public static class UserService
             await dbContext.SaveChangesAsync();
             return true;
         }
-        catch (ValidationException val)
-        {
-            throw new ValidationException(val.Message);
-            
-        }
-         catch(EntityNotFoundException ex)
-       {
-           throw new EntityNotFoundException(ex.Message);
-       }
         catch (System.Exception)
         {
             
@@ -301,7 +223,7 @@ public static class UserService
 
         try
         {
-            var user = await GetUserByEmailPrivate(verifyAccountDTO.Email!, dbContext) ?? throw new EntityNotFoundException("User does not exist");
+            var user = await dbContext.Users!.Where(u=> u.Email == verifyAccountDTO.Email && u.State == UserState.UNVERIFIED).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
             if(user.State == UserState.ACTIVE) throw new ValidationException("User is already verified");
             if(user.VerifyCode != verifyAccountDTO.Code) throw new ValidationException("Invalid code");
             user.State = UserState.ACTIVE;
@@ -310,14 +232,6 @@ public static class UserService
             await MailService.SendVerifiedAccountMail(verifyAccountDTO.Email!, user.FirstName!);
             return true;
         }
-        catch (ValidationException val)
-        {
-            throw new ValidationException(val.Message);
-        }
-         catch(EntityNotFoundException ex)
-       {
-           throw new EntityNotFoundException(ex.Message);
-       }
         catch (System.Exception)
         {
             throw new Exception("An error occured while trying to verify your account");
@@ -330,7 +244,7 @@ public static class UserService
     {
         try
         {
-            var user = await GetUserByEmailPrivate(email, dbContext) ?? throw new EntityNotFoundException("User does not exist");
+           var user = await dbContext.Users!.Where(u=> u.Email == email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
             if(user.State == UserState.UNVERIFIED) throw new NotVerifiedException("User is not verified");
             int code = new Random().Next(1000, 9999);
             user.VerifyCode = code;
@@ -338,14 +252,6 @@ public static class UserService
             await MailService.SendPasswordRecoveryCodeEmail(email, code.ToString(), user.FirstName!);
             return true;
         }
-        catch (ValidationException val)
-        {
-            throw new ValidationException(val.Message);
-        }
-         catch(EntityNotFoundException ex)
-       {
-           throw new EntityNotFoundException(ex.Message);
-       }
         catch (System.Exception)
         {
             throw new Exception("An error occured while sending the verification code");

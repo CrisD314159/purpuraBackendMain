@@ -7,5 +7,5 @@ public class Artist
   public string? Description { get; set; }
   public string? PictureUrl { get; set; }
 
-  public ICollection<Song>? Songs { get; set; }
+  public ICollection<Song>? Songs { get; set; } =[];
 }

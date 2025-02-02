@@ -5,7 +5,7 @@
 namespace purpuraMain.Migrations
 {
     /// <inheritdoc />
-    public partial class DatabaseChange : Migration
+    public partial class ModelListChanges : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

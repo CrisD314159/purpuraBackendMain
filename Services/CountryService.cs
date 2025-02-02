@@ -17,7 +17,7 @@ public static class CountryService
         }
         catch (System.Exception)
         {
-            throw new Exception("An error occured while fetching the countries");
+            throw;
         }
     }
 }

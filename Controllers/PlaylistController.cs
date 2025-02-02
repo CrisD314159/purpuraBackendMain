@@ -1,9 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.InputDto;
 using purpuraMain.Dto.OutputDto;
@@ -12,255 +10,204 @@ using purpuraMain.Services;
 
 namespace purpuraMain.Controllers;
 
+/// <summary>
+/// Controlador para la gestión de playlists.
+/// Permite crear, modificar, eliminar y gestionar canciones en playlists.
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 [Authorize]
 public class PlaylistController : ControllerBase
 {
+    private readonly PurpuraDbContext _dbContext;
 
-  private readonly PurpuraDbContext _dbContext;
+    public PlaylistController(PurpuraDbContext dbContext)
+    {
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    }
 
-  public PlaylistController (PurpuraDbContext dbContext)
-  {
-    _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext)); 
+    /// <summary>
+    /// Obtiene una playlist por su ID.
+    /// </summary>
+    /// <param name="id">ID de la playlist.</param>
+    /// <returns>Datos de la playlist.</returns>
+    [HttpGet("{id}")]
+    public async Task<ActionResult<GetPlayListDTO>> GetPlaylist(string id)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            var playList = await PlaylistServices.GetPlaylist(userId, id, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
+            return Ok(playList);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message, success = false });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message, success = false });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.Message, success = false });
+        }
+    }
 
-  }
+    /// <summary>
+    /// Busca playlists por nombre con paginación.
+    /// </summary>
+    /// <param name="input">Texto de búsqueda.</param>
+    /// <param name="offset">Número de elementos a omitir.</param>
+    /// <param name="limit">Número de elementos a devolver.</param>
+    /// <returns>Lista de playlists encontradas.</returns>
+    [HttpGet("search/{input}")]
+    public async Task<ActionResult<List<GetLibraryPlaylistDTO>>> SearchPlaylist(string input, [FromQuery] int offset, [FromQuery] int limit)
+    {
+        try
+        {
+            var playList = await PlaylistServices.SearchPlaylist(input, offset, limit, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
+            return Ok(playList);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message, success = false });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.Message, success = false });
+        }
+    }
 
-  [HttpGet("{id}")]
-  public async Task<ActionResult<GetPlayListDTO>> GetPlaylist(string id)
-  {
-    try
+    /// <summary>
+    /// Agrega una canción a una playlist.
+    /// </summary>
+    /// <param name="addSongDTO">Datos de la canción y la playlist.</param>
+    [HttpPut("addSong")]
+    public async Task<ActionResult> AddSong(AddRemoveSongDTO addSongDTO)
     {
-            // Requires userId extraction from token
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-      GetPlayListDTO playList = await PlaylistServices.GetPlaylist(userId, id, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
-      return playList;
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            await PlaylistServices.AddSong(userId, addSongDTO, _dbContext);
+            return Ok(new { message = "Song added to playlist", success = true });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.Message, success = false });
+        }
     }
-      catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-    catch(ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch(EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
 
-  [HttpGet("search/{input}")]
-  public async Task<ActionResult<List<GetLibraryPlaylistDTO>>> SearchPlaylist(string input, int offset, int limit)
-  {
-    try
+    /// <summary>
+    /// Elimina una canción de una playlist.
+    /// </summary>
+    /// <param name="addSongDTO">Datos de la canción y la playlist.</param>
+    [HttpPut("removeSong")]
+    public async Task<ActionResult> RemoveSong(AddRemoveSongDTO addSongDTO)
     {
-            // Requires offset and limit for pagination
-      var playList = await PlaylistServices.SearchPlaylist(input, offset, limit, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
-      return playList;
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            await PlaylistServices.RemoveSong(userId, addSongDTO, _dbContext);
+            return Ok(new { message = "Song removed from playlist", success = true });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.Message, success = false });
+        }
     }
-    catch(ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch(EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
-  
-  [HttpPut("addSong")]
-  public async Task<ActionResult> AddSong(AddRemoveSongDTO addSongDTO)
-  {
-    try
-    {
-            // Requires userId extraction from token
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-      var playList = await PlaylistServices.AddSong(userId, addSongDTO, _dbContext);
-      return Ok("Song added to playlist");
-    }
-    catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-     catch(ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch(EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
 
-  [HttpPut("removeSong")]
-  public async Task<ActionResult> Remove(AddRemoveSongDTO addSongDTO)
-  {
-    try
+    /// <summary>
+    /// Cambia la privacidad de una playlist.
+    /// </summary>
+    /// <param name="changePrivacy">Datos de la playlist y la privacidad.</param>
+    [HttpPut("changePrivacy")]
+    public async Task<ActionResult> ChangePlaylistPrivacy(ChangePrivacyPlaylistDto changePrivacy)
     {
-            // Requires userId extraction from token
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-      var playList = await PlaylistServices.RemoveSong(userId, addSongDTO, _dbContext);
-      return Ok("Song Removed from playlist");
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            await PlaylistServices.ChangePlayListState(userId, changePrivacy, _dbContext);
+            return Ok(new { message = "Playlist privacy changed", success = true });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.Message, success = false });
+        }
     }
-    catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-     catch(ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch(EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
 
-   [HttpPut("changePrivacy")]
-  public async Task<ActionResult> ChangePlaylistPrivacy(ChangePrivacyPlaylistDto changePrivacy)
-  {
-    try
+    /// <summary>
+    /// Obtiene las playlists del usuario autenticado.
+    /// </summary>
+    [HttpGet("getPlaylists/user")]
+    public async Task<ActionResult<List<GetUserPlayListsDTO>>> GetUserPlaylists()
     {
-            // Requires userId extraction from token
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-      var playList = await PlaylistServices.ChangePlayListState(userId, changePrivacy, _dbContext);
-      return Ok("Playlist privacy changed");
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            var playLists = await PlaylistServices.GetUserPlayLists(userId, _dbContext);
+            return Ok(playLists);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.Message, success = false });
+        }
     }
-    catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-     catch(ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch(EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
 
-  [HttpGet("getPlaylists/user")]
-  public async Task<ActionResult<List<GetUserPlayListsDTO>>> GetUserPlaylists()
-  {
-    try
+    /// <summary>
+    /// Crea una nueva playlist.
+    /// </summary>
+    /// <param name="createPlayListDTO">Datos de la nueva playlist.</param>
+    [HttpPost]
+    public async Task<ActionResult> CreatePlayList(CreatePlayListDTO createPlayListDTO)
     {
-      var userId = (User.FindFirst(ClaimTypes.NameIdentifier)?.Value) ?? throw new UnauthorizedAccessException("User not found");
-      var playLists = await PlaylistServices.GetUserPlayLists(userId, _dbContext);
-      return playLists;
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            await PlaylistServices.CreatePlayList(userId, createPlayListDTO, _dbContext);
+            return Created("", new { message = $"Playlist {createPlayListDTO.Name} created", success = true });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.Message, success = false });
+        }
     }
-     catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-    catch(EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-     catch(ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
-   [HttpPost]
-  public async Task<ActionResult> CreatePlayList(CreatePlayListDTO createPlayListDTO)
-  {
-    try
-    {
-            // Requires userId extraction from token
-      var userId = (User.FindFirst(ClaimTypes.NameIdentifier)?.Value) ?? throw new UnauthorizedAccessException("User not found");
-      var playList = await PlaylistServices.CreatePlayList(userId, createPlayListDTO, _dbContext);
-      return Created("Playlist created", new {message = $"Playlist {createPlayListDTO.Name} created",});
-    }
-      catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-    catch(EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch(ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
 
-   [HttpPut]
-  public async Task<ActionResult> UpdatePlaylist(UpdatePlaylistDTO updatePlaylist)
-  {
-    try
+    /// <summary>
+    /// Actualiza una playlist existente.
+    /// </summary>
+    /// <param name="updatePlaylist">Datos de la playlist a actualizar.</param>
+    [HttpPut]
+    public async Task<ActionResult> UpdatePlaylist(UpdatePlaylistDTO updatePlaylist)
     {
-            // Requires userId extraction from token
-      var userId = (User.FindFirst(ClaimTypes.NameIdentifier)?.Value) ?? throw new UnauthorizedAccessException("User not found");
-      var playList = await PlaylistServices.UpdatePlayList(userId, updatePlaylist, _dbContext);
-      return Ok("Playlist updated");
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            await PlaylistServices.UpdatePlayList(userId, updatePlaylist, _dbContext);
+            return Ok(new { message = "Playlist updated", success = true });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.Message, success = false });
+        }
     }
-    catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-    catch(EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-    catch(ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
-   [HttpDelete]
-  public async Task<ActionResult> DeletePlayList(DeletePlayListDTO deletePlayList)
-  {
-    try
-    {
-            // Requires userId extraction from token
-      var userId = (User.FindFirst(ClaimTypes.NameIdentifier)?.Value) ?? throw new UnauthorizedAccessException("User not found");
-      var playList = await PlaylistServices.DeletePlayList(userId, deletePlayList, _dbContext);
-      return Ok("Playlist deleted");
-    }
-    catch( UnauthorizedAccessException ex){
-      return Unauthorized(ex.Message);
-    }
-    catch(EntityNotFoundException ex)
-    {
-      return NotFound(ex.Message);
-    }
-     catch(ValidationException ex)
-    {
-      return BadRequest(ex.Message);
-    }
-    catch (System.Exception e)
-    {
-      return BadRequest(e.Message);
-    }
-  }
 
-
+    /// <summary>
+    /// Elimina una playlist.
+    /// </summary>
+    /// <param name="deletePlayList">Datos de la playlist a eliminar.</param>
+    [HttpDelete]
+    public async Task<ActionResult> DeletePlayList(DeletePlayListDTO deletePlayList)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            await PlaylistServices.DeletePlayList(userId, deletePlayList, _dbContext);
+            return Ok(new { message = "Playlist deleted", success = true });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.Message, success = false });
+        }
+    }
 }

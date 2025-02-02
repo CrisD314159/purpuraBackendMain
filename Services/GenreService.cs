@@ -46,11 +46,6 @@ public static class GenreService
             
             return songs;
         }
-         catch (EntityNotFoundException)
-        {
-            
-            throw;
-        }
         catch (System.Exception)
         {
             
@@ -96,10 +91,6 @@ public static class GenreService
 
             return genres;
         }
-        catch (EntityNotFoundException)
-        {
-            throw;
-        }
         catch (System.Exception)
         {
             
@@ -107,5 +98,4 @@ public static class GenreService
         }
         
     }
-// Crud methods will be implemented y a nodejs api
 }

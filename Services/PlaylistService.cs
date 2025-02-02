@@ -58,18 +58,10 @@ public static class PlaylistServices
       return playList;
 
     }
-    catch(NullFieldException arg)
-    {
-      throw new NullFieldException(arg.Message);
-    }
-    catch(EntityNotFoundException arg)
-    {
-      throw new EntityNotFoundException(arg.Message);
-    }
     catch (System.Exception)
     {
 
-      throw new Exception ("An unexpected error occured");
+      throw;
     }
   }
   public static async Task<List<GetLibraryPlaylistDTO>> SearchPlaylist(string input, int offset, int limit, PurpuraDbContext dbcontext)
@@ -92,19 +84,10 @@ public static class PlaylistServices
 
       return playList;
     }
-
-    catch(NullFieldException arg)
-    {
-      throw new NullFieldException(arg.Message);
-    }
-    catch(EntityNotFoundException arg)
-    {
-      throw new EntityNotFoundException(arg.Message);
-    }
     catch (System.Exception)
     {
 
-      throw new Exception ("An unexpected error occured");
+      throw ;
     }
   }
 
@@ -120,18 +103,10 @@ public static class PlaylistServices
       await dbContext.SaveChangesAsync();
       return true;
     }
-    catch(NullFieldException arg)
-    {
-      throw new NullFieldException(arg.Message);
-    }
-    catch(EntityNotFoundException arg)
-    {
-      throw new EntityNotFoundException(arg.Message);
-    }
     catch (System.Exception)
     {
 
-      throw new Exception ("An unexpected error occured");
+      throw;
     }
   }
 
@@ -147,14 +122,10 @@ public static class PlaylistServices
       await dbContext.SaveChangesAsync();
       return true;
     }
-    catch(EntityNotFoundException arg)
-    {
-      throw new EntityNotFoundException(arg.Message);
-    }
     catch (System.Exception)
     {
 
-      throw new Exception ("An unexpected error occured");
+      throw;
     }
   }
 
@@ -168,19 +139,11 @@ public static class PlaylistServices
       await dbContext.SaveChangesAsync();
       return true;
     }
-    catch(EntityNotFoundException arg)
-    {
-      throw new EntityNotFoundException(arg.Message);
-    }
-    catch(ValidationException arg)
-    {
-      throw new ValidationException(arg.Message);
-    }
     catch (System.Exception)
     {
 
 
-      throw new Exception ("An unexpected error occured");
+      throw;
     }
   }
   public static async Task<List<GetUserPlayListsDTO>> GetUserPlayLists(string userId, PurpuraDbContext dbContext)
@@ -200,18 +163,10 @@ public static class PlaylistServices
 
     return playLists;
     }
-    catch(EntityNotFoundException arg)
-    {
-      throw new EntityNotFoundException(arg.Message);
-    }
-    catch(ValidationException arg)
-    {
-      throw new ValidationException(arg.Message);
-    }
     catch (System.Exception)
     {
 
-      throw new Exception ("An unexpected error occured");
+      throw ;
     }
   }
 
@@ -259,18 +214,10 @@ public static class PlaylistServices
       await dbContext.SaveChangesAsync();
       return true;
     }
-    catch(EntityNotFoundException arg)
-    {
-      throw new EntityNotFoundException(arg.Message);
-    }
-    catch(ValidationException arg)
-    {
-      throw new ValidationException(arg.Message);
-    }
     catch (System.Exception)
     {
 
-      throw new Exception ("An unexpected error occured");
+      throw ;
     }
 
   }
@@ -284,14 +231,6 @@ public static class PlaylistServices
       dbContext.Playlists!.Remove(playList);
       await dbContext.SaveChangesAsync();
       return true;
-    }
-    catch(EntityNotFoundException arg)
-    {
-      throw new EntityNotFoundException(arg.Message);
-    }
-    catch(ValidationException arg)
-    {
-      throw new ValidationException(arg.Message);
     }
     catch (System.Exception)
     {
