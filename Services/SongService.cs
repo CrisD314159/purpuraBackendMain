@@ -7,10 +7,11 @@ using purpuraMain.Exceptions;
 
 public static class SongService
 {
-    public static async Task<GetSongDTO> GetSongById(string id, PurpuraDbContext dbContext)
+    public static async Task<GetSongDTO> GetSongById(string userId, string id, PurpuraDbContext dbContext)
     {
         try
         {
+            var isOnLibrary = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).AnyAsync(l => l.Songs.Any(s=> s.Id == id));
             var song = await dbContext.Songs!.Where(s => s.Id == id).Select(s => new GetSongDTO{
                 Id = s.Id,
                 Name = s.Name,
@@ -32,7 +33,8 @@ public static class SongService
                 Lyrics = s.Lyrics ?? "",
                 ProducerName = s.Album!.ProducerName ?? "",
                 RecordLabel = s.Album!.RecordLabel ?? "",
-                WriterName = s.Album!.WriterName ?? ""
+                WriterName = s.Album!.WriterName ?? "",
+                IsOnLibrary = isOnLibrary,
 
 
             }).FirstAsync() ?? throw new EntityNotFoundException("Song not found");
@@ -47,7 +49,7 @@ public static class SongService
         
     }
 
-    public static async Task<List<GetSongDTO>> GetSongByInput(string input, int offset, int limit, PurpuraDbContext dbContext)
+    public static async Task<List<GetSongDTO>> GetSongByInput(string userId, string input, int offset, int limit, PurpuraDbContext dbContext)
     {
         try
         {
@@ -69,9 +71,15 @@ public static class SongService
                     Name = g.Name
                 }).ToList(),
                 ImageUrl = s.ImageUrl!,
-                Lyrics = s.Lyrics ?? ""
+                Lyrics = s.Lyrics ?? "",
+                IsOnLibrary = false,
 
             }).Skip(offset).Take(limit).ToListAsync() ?? throw new EntityNotFoundException("There are no songs that match the search");
+
+            foreach (var song in songs)
+            {
+                song.IsOnLibrary = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).AnyAsync(l => l.Songs.Any(so => so.Id == song.Id));
+            }
 
             return songs;
         }

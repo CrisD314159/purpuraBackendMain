@@ -14,6 +14,7 @@ public class GetSongDTO
   public required List<GetGenreDTO> Genres { get; set; }
   public string? Lyrics { get; set; }
   public int Plays {get; set;}
+  public bool? IsOnLibrary {get; set;}
 
   public string? WriterName { get; set; }
   public string? ProducerName { get; set; }

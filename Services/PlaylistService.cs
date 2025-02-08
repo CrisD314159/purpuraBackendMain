@@ -68,7 +68,6 @@ public static class PlaylistServices
   {
     try
     {
-      Console.WriteLine("HOLA NUENAS TARDES");
       var playList = await
       dbcontext.Playlists!.Where(p => p.Name.ToLower().Contains(input.ToLower()) && p.IsPublic)
       .Select(p=> new GetLibraryPlaylistDTO
@@ -154,9 +153,6 @@ public static class PlaylistServices
       var playLists = await dbContext.Playlists!.Where(p => p.UserId== userId).Select(p=> new GetUserPlayListsDTO{
         Id = p.Id,
         Name = p.Name,
-        Description = p.Description,
-        UserId = p.UserId!,
-        UserName = p.User!.FirstName!,
         IsPublic = p.IsPublic,
         ImageUrl = p.ImageUrl
       }).ToListAsync() ?? [];

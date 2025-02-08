@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -37,9 +38,14 @@ public class SongController : ControllerBase
     {
         try
         {
-            GetSongDTO song = await SongService.GetSongById(id, _dbContext) 
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            GetSongDTO song = await SongService.GetSongById(userId, id, _dbContext) 
                 ?? throw new EntityNotFoundException("Song not found");
             return Ok(song);
+        }
+        catch(UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message, success = false });
         }
         catch (EntityNotFoundException ex)
         {
@@ -67,8 +73,8 @@ public class SongController : ControllerBase
             {
                 return BadRequest("Invalid offset or limit");
             }
-
-            var songs = await SongService.GetSongByInput(input, offset, limit, _dbContext) 
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            var songs = await SongService.GetSongByInput(userId, input, offset, limit, _dbContext) 
                 ?? throw new EntityNotFoundException("Song not found");
             return Ok(songs);
         }

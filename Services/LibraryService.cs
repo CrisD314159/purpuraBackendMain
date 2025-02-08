@@ -56,6 +56,7 @@ public static class LibraryService
                            Name = g.Name,
                            Description = g.Description ?? ""
                        }).ToList(),
+                       IsOnLibrary= true,
                        Lyrics = s.Lyrics ?? ""
                    }).ToList()
                    
@@ -97,6 +98,7 @@ public static class LibraryService
                        Duration = s.Duration,
                        ImageUrl = s.ImageUrl ?? "",
                        AudioUrl = s.AudioUrl ?? "",
+                       IsOnLibrary = true,
                        Genres = s.Genres!.Select(g=> new GetGenreDTO
                        {
                            Id = g.Id,
