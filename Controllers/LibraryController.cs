@@ -90,7 +90,7 @@ public class LibraryController : ControllerBase
     }
 
     /// <summary>
-    /// Agrega una canción a la biblioteca del usuario.
+    /// Agrega o elimina una canción a la biblioteca del usuario.
     /// </summary>
     [HttpPut("addSong")]
     public async Task<ActionResult> AddSong(AddRemoveSongLibraryDTO addSong)
@@ -99,16 +99,7 @@ public class LibraryController : ControllerBase
     }
 
     /// <summary>
-    /// Elimina una canción de la biblioteca del usuario.
-    /// </summary>
-    [HttpPut("removeSong")]
-    public async Task<ActionResult> RemoveSong(AddRemoveSongLibraryDTO removeSong)
-    {
-        return await ModifyLibrary(removeSong, LibraryService.AddSongToLibrary, "Song removed from library");
-    }
-
-    /// <summary>
-    /// Agrega una playlist a la biblioteca del usuario.
+    /// Agrega o elimina una playlist a la biblioteca del usuario.
     /// </summary>
     [HttpPut("addPlaylist")]
     public async Task<ActionResult> AddPlaylist(AddRemovePlayListDTO addPlaylist)
@@ -116,14 +107,7 @@ public class LibraryController : ControllerBase
         return await ModifyLibrary(addPlaylist, LibraryService.AddPlayListToLibrary, "Playlist added to library");
     }
 
-    /// <summary>
-    /// Elimina una playlist de la biblioteca del usuario.
-    /// </summary>
-    [HttpPut("removePlaylist")]
-    public async Task<ActionResult> RemovePlaylist(AddRemovePlayListDTO removePlaylist)
-    {
-        return await ModifyLibrary(removePlaylist, LibraryService.AddPlayListToLibrary, "Playlist removed from library");
-    }
+
 
     /// <summary>
     /// Agrega un álbum a la biblioteca del usuario.
