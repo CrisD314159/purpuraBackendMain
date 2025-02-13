@@ -256,8 +256,8 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "email": "vargasloaizacristian@gmail.com",
-  "password": "Cris-2004"
+  "email": "juanjo132003@gmail.com",
+  "password": "Juanjo-2026"
 }
 ### refreshToken
 PUT {{purpuraMain_HostAddress}}/api/auth/refresh/token
@@ -285,11 +285,13 @@ Content-Type: application/json
 }
 ###
 GET {{purpuraMain_HostAddress}}/library/user/songs?offset=0&limit=10
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjU2NzAxODcxLWUzNzctNDcyNS04M2Q2LWI1ZmEzNWY1MTViNyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InZhcmdhc2xvYWl6YWNyaXN0aWFuQGdtYWlsLmNvbSIsImV4cCI6MTczODQ1MzMwNiwiaXNzIjoiUHVycHVyYU11c2ljIiwiYXVkIjoiUHVycHVyYU11c2ljIn0.gKYZG0SAFXw6Prjsy1CDgsKcDngKSoA-DYUMVTJ6nog
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6Ijg4NGViMDYxLTU1ODctNDdiZC05NWIwLWM1ZjE3ZDcxNmM1OCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImNyaXN0aWFuZGF2aWR2YXJnYXMyQGljbG91ZC5jb20iLCJleHAiOjE3Mzk0NjU0NjMsImlzcyI6IlB1cnB1cmFNdXNpYyIsImF1ZCI6IlB1cnB1cmFNdXNpYyJ9.T0CLjk4_Mos4y-vGkZLFI7NR-t1IytILgHCy7BUL310
 ### refreshToken
 
 ###
-GET {{purpuraMain_HostAddress}}/search/input?search=feid
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjU2NzAxODcxLWUzNzctNDcyNS04M2Q2LWI1ZmEzNWY1MTViNyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InZhcmdhc2xvYWl6YWNyaXN0aWFuQGdtYWlsLmNvbSIsImV4cCI6MTczODk0ODY3MCwiaXNzIjoiUHVycHVyYU11c2ljIiwiYXVkIjoiUHVycHVyYU11c2ljIn0.ao9gUdxbJ606SpGlND9BKDPd_L2pzzz5KKqaUfv4RKM
+GET {{purpuraMain_HostAddress}}/search/input?search=daft
+
+### refreshToken
+GET {{purpuraMain_HostAddress}}/search/input/public?search=daft
 ### refreshToken
 

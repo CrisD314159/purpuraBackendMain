@@ -106,24 +106,36 @@ public static class ArtistService
     /// <param name="limit">Límite de registros a devolver.</param>
     /// <param name="dbContext">Contexto de base de datos.</param>
     /// <returns>Lista de artistas más escuchados.</returns>
-    public static async Task<List<GetArtistPlaysDTO>> GetMostListenArtists(int offset, int limit, PurpuraDbContext dbContext)
+public static async Task<List<GetArtistPlaysDTO>> GetMostListenArtists(int offset, int limit, PurpuraDbContext dbContext)
+{
+    try
     {
-        try
-        {
-            var artists = await dbContext.Artists!.Select(a => new GetArtistPlaysDTO
+        var artistPlays = await dbContext.Artists!
+            .Select(a => new
             {
-                Id = a.Id,
-                Name = a.Name,
-                ImageUrl = a.PictureUrl ?? "",
-                Plays = dbContext.PlayHistories!.Where(pl => pl.Song!.Artists != null && pl.Song.Artists.Any(ar => ar.Id == a.Id)).Count()
-            }).Skip(offset).Take(limit).OrderByDescending(a => a.Plays).ToListAsync()
-            ?? throw new EntityNotFoundException("Not found artists");
+                Artist = a,
+                Plays = dbContext.PlayHistories!
+                    .Count(pl => pl.Song!.Artists!.Any(ar => ar.Id == a.Id))
+            })
+            .OrderByDescending(a => a.Plays) // Ordenamos antes de paginar
+            .Skip(offset)
+            .Take(limit)
+            .ToListAsync();
 
-            return artists;     
-        }
-        catch (System.Exception)
+        // Mapear a DTO después de ejecutar la consulta
+        var artists = artistPlays.Select(a => new GetArtistPlaysDTO
         {
-            throw;
-        }
+            Id = a.Artist.Id,
+            Name = a.Artist.Name,
+            ImageUrl = a.Artist.PictureUrl ?? "",
+            Plays = a.Plays
+        }).ToList();
+
+        return artists;
     }
+    catch (System.Exception)
+    {
+        throw;
+    }
+}
 }

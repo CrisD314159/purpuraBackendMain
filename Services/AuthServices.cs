@@ -18,7 +18,7 @@ public static class AuthServices
       if(user.State == UserState.UNVERIFIED) throw new NotVerifiedException("User not verified");
       if (new PasswordManipulation().VerifyPassword(user.Password, password) == false)
       {
-        throw new BadRequestException("Invalid email or password");
+        throw new EntityNotFoundException("Invalid email or password");
       }
 
       var accessToken = JWTManagement.GenerateAccessToken(user.Id, user.Email, configuration);

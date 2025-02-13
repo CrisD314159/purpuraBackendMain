@@ -49,19 +49,15 @@ public class AuthController : ControllerBase
         }
         catch (NotVerifiedException ex)
         {
-            return Unauthorized(ex.Message); // Usuario no ha verificado su cuenta
+            return Unauthorized(new {message = ex.Message, success = false}); // Usuario no ha verificado su cuenta
         }
         catch (EntityNotFoundException ex)
         {
-            return NotFound(ex.Message);
-        }
-        catch (BadRequestException ex)
-        {
-            return BadRequest(ex.Message);
+            return NotFound(new {message = ex.Message, success = false});
         }
         catch (System.Exception)
         {
-            return BadRequest("An unexpected error occurred");
+            return BadRequest(new {message = "An unexpected error occurred", success = false});
         }
     }
 
@@ -84,19 +80,19 @@ public class AuthController : ControllerBase
         }
         catch (SessionExpiredException ex)
         {
-            return Unauthorized(ex.Message);
+            return Unauthorized(new {message = ex.Message, success = false});
         }
         catch (EntityNotFoundException ex)
         {
-            return NotFound(ex.Message);
+            return NotFound(new {message = ex.Message, success = false});
         }
         catch (BadRequestException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new {message = ex.Message, success = false});
         }
         catch (System.Exception)
         {
-            return BadRequest("An unexpected error occurred");
+            return BadRequest(new {message = "An unexpected error occurred", success = false});
         }
     }
 
@@ -121,19 +117,19 @@ public class AuthController : ControllerBase
         }
         catch (SessionExpiredException ex)
         {
-            return Unauthorized(ex.Message);
+            return Unauthorized(new {message = ex.Message, success = false});
         }
         catch (EntityNotFoundException ex)
         {
-            return NotFound(ex.Message);
+            return NotFound(new {message = ex.Message, success = false});
         }
         catch (BadRequestException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new {message = ex.Message, success = false});
         }
         catch (System.Exception)
         {
-            return BadRequest("An unexpected error occurred");
+            return BadRequest(new {message = "An unexpected error occurred", success = false});
         }
     }
 

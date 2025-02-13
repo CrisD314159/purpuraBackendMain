@@ -11,7 +11,6 @@ using purpuraMain.Services;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-[Authorize]
 public class AlbumController : ControllerBase
 {
     private readonly PurpuraDbContext _dbContext;
