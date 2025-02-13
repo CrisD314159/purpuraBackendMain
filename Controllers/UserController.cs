@@ -10,27 +10,23 @@ using System.Security.Claims;
 
 namespace purpuraMain.Controllers;
 
-/// <summary>
 /// Controlador para la gestión de usuarios.
-/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class UserController : ControllerBase
 {
     private readonly PurpuraDbContext _dbContext;
 
-    /// <summary>
+
     /// Constructor del controlador de usuarios.
-    /// </summary>
     /// <param name="dbContext">Contexto de base de datos.</param>
     public UserController(PurpuraDbContext dbContext)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    /// <summary>
+
     /// Obtiene la información del usuario autenticado.
-    /// </summary>
     [HttpGet("getProfile")]
     [Authorize]
     public async Task<ActionResult<GetUserDto>> GetUser()
@@ -56,9 +52,8 @@ public class UserController : ControllerBase
         }
     }
 
-    /// <summary>
+
     /// Crea un nuevo usuario.
-    /// </summary>
     [HttpPost]
     public async Task<ActionResult> CreateUser(CreateUserDTO user)
     {
@@ -81,9 +76,8 @@ public class UserController : ControllerBase
         }
     }
 
-    /// <summary>
+
     /// Actualiza la información del usuario autenticado.
-    /// </summary>
     [HttpPut]
     [Authorize]
     public async Task<ActionResult> UpdateUser(UpdateUserDto user)
@@ -113,9 +107,8 @@ public class UserController : ControllerBase
         }
     }
 
-    /// <summary>
+
     /// Elimina la cuenta del usuario autenticado.
-    /// </summary>
     [HttpDelete]
     [Authorize]
     public async Task<ActionResult> DeleteUser()
@@ -141,9 +134,8 @@ public class UserController : ControllerBase
         }
     }
 
-    /// <summary>
+
     /// Verifica la cuenta de usuario.
-    /// </summary>
     [HttpPut("verifyAccount")]
     public async Task<ActionResult> VerifyAccount(VerifyAccountDTO verifyAccount)
     {

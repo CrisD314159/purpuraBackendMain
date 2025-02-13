@@ -8,6 +8,9 @@ public static class CountryService
 {
 
 
+    /// <summary>
+    /// Obtiene todos los países disponibles.
+    /// </summary>
     public static async Task<List<GetCountriesDTO>> GetCountries(PurpuraDbContext dbContext)
     {
         try

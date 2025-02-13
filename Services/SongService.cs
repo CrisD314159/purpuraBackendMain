@@ -7,6 +7,14 @@ using purpuraMain.Exceptions;
 
 public static class SongService
 {
+
+    /// <summary>
+    /// Obtiene una canción por su ID.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="id"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
     public static async Task<GetSongDTO> GetSongById(string userId, string id, PurpuraDbContext dbContext)
     {
         try
@@ -49,6 +57,15 @@ public static class SongService
         
     }
 
+    /// <summary>
+    /// Obtiene una lista de canciones que coincidan con el input ingresado.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="input"></param>
+    /// <param name="offset"></param>
+    /// <param name="limit"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
     public static async Task<List<GetSongDTO>> GetSongByInput(string userId, string input, int offset, int limit, PurpuraDbContext dbContext)
     {
         try
@@ -91,6 +108,13 @@ public static class SongService
         
     }
 
+    /// <summary>
+    /// Obtiene todas las canciones disponibles en la plataforma usando paginación.
+    /// </summary>
+    /// <param name="offset"></param>
+    /// <param name="limit"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
     public static async Task<List<GetSongDTO>> GetAllSongs (int offset, int limit, PurpuraDbContext dbContext)
     {
         try
@@ -123,7 +147,5 @@ public static class SongService
             throw;
         }
     }
-
-// Nota: Los metodos de crud de las canciones van en un servicio de canciones hecho en node.js
  
 }

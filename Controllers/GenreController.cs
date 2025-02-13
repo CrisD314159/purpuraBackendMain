@@ -1,3 +1,4 @@
+namespace purpuraMain.Controllers;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,11 +8,8 @@ using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
 
-namespace purpuraMain.Controllers;
 
-/// <summary>
 /// Controlador para gestionar géneros musicales.
-/// </summary>
 [ApiController]
 [Route("[controller]")]
 [Authorize]
@@ -19,18 +17,14 @@ public class GenreController : ControllerBase
 {
     private readonly PurpuraDbContext _dbContext;
 
-    /// <summary>
     /// Constructor del controlador de géneros.
-    /// </summary>
     /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
     public GenreController(PurpuraDbContext dbContext)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    /// <summary>
     /// Obtiene las canciones más populares de un género específico.
-    /// </summary>
     /// <param name="id">ID del género.</param>
     /// <returns>Lista de canciones más populares dentro del género especificado.</returns>
     [HttpGet("getTopSongs/{id}")]
@@ -51,9 +45,7 @@ public class GenreController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Obtiene todos los géneros disponibles en la plataforma.
-    /// </summary>
     /// <returns>Lista de géneros musicales.</returns>
     [HttpGet("getAll")]
     public async Task<ActionResult<List<GetGenreDTO>>> GetAllGenres()
@@ -73,9 +65,7 @@ public class GenreController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Obtiene la información de un género específico por su ID.
-    /// </summary>
     /// <param name="id">ID del género.</param>
     /// <returns>Datos del género especificado.</returns>
     [HttpGet("getGenre/{id}")]

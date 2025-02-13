@@ -8,9 +8,8 @@ using purpuraMain.Services;
 
 namespace purpuraMain.Controllers;
 
-/// <summary>
+
 /// Controlador para gestionar las operaciones relacionadas con las canciones.
-/// </summary>
 [ApiController]
 [Route("[controller]")]
 [Authorize]
@@ -18,9 +17,7 @@ public class SongController : ControllerBase
 {
     private readonly PurpuraDbContext _dbContext;
 
-    /// <summary>
     /// Constructor del controlador de canciones.
-    /// </summary>
     /// <param name="dbContext">Contexto de base de datos de la aplicación.</param>
     /// <exception cref="ArgumentNullException">Se lanza si el contexto de la base de datos es nulo.</exception>
     public SongController(PurpuraDbContext dbContext)
@@ -28,9 +25,7 @@ public class SongController : ControllerBase
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    /// <summary>
     /// Obtiene una canción por su identificador.
-    /// </summary>
     /// <param name="id">Identificador de la canción.</param>
     /// <returns>Devuelve los detalles de la canción si se encuentra.</returns>
     [HttpGet("getSong/{id}")]
@@ -57,9 +52,7 @@ public class SongController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Busca canciones según un criterio de entrada.
-    /// </summary>
     /// <param name="input">Texto de búsqueda.</param>
     /// <param name="offset">Número de registros a omitir.</param>
     /// <param name="limit">Número máximo de registros a devolver.</param>
@@ -88,9 +81,7 @@ public class SongController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Obtiene una lista paginada de canciones.
-    /// </summary>
     /// <param name="offset">Número de registros a omitir.</param>
     /// <param name="limit">Número máximo de registros a devolver.</param>
     /// <returns>Lista de canciones disponibles.</returns>

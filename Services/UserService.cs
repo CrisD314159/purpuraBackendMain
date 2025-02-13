@@ -14,9 +14,12 @@ using System.Reflection.Metadata.Ecma335;
 
 public static class UserService
 {
-    /*
-    This method is used to get a user by id
-    */
+    /// <summary>
+    /// Obtiene un usuario por su ID.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
     public static async Task<GetUserDto> GetUserById(string id, PurpuraDbContext dbContext)
     {
        try
@@ -34,9 +37,12 @@ public static class UserService
      
     }
 
-    /*
-    This method is used to get a user by id in a private way
-    */
+    /// <summary>
+    /// Obtiene un usuario por su ID.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
     private static async Task<User> GetUser(string id, PurpuraDbContext dbContext)
     {
        try
@@ -53,9 +59,13 @@ public static class UserService
        }
      
     }
-    /*
-    This method creates a new user, asigns a library and a playlist (purple day list) to the user
-    */
+   
+   /// <summary>
+   /// Este metodo crea un usuario, su biblioteca y la playlist de recomendaciones por defecto
+   /// </summary>
+   /// <param name="user"></param>
+   /// <param name="dbContext"></param>
+   /// <returns></returns>
     public static async Task<bool> CreateUser(CreateUserDTO user, PurpuraDbContext dbContext)
     {
         var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -134,9 +144,13 @@ public static class UserService
     }
 
 
-    /*
-    This method is used to update user's information (Only name and phone)
-    */
+    /// <summary>
+    /// Este metodo actualiza la información de un usuario
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="user"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
     public static async Task<bool> UpdateUser(string userId, UpdateUserDto user, PurpuraDbContext dbContext)
     {
 
@@ -163,9 +177,13 @@ public static class UserService
     }
 
 
-    /*
-    This method is used to delete Logically a user (Change state to inactive)
-    */
+    /// <summary>
+    /// Este metodo elimina un usuario de forma lógica
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public static async Task<bool> DeleteUser(string id, PurpuraDbContext dbContext)
     {
         try
@@ -184,9 +202,13 @@ public static class UserService
     }
 
 
-    /*
-    This method is used to change the password of a user after receiving a code in the email
-    */
+    /// <summary>
+    /// Este metodo actualiza la contraseña de un usuario
+    /// </summary>
+    /// <param name="passwordDTO"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public static async Task<bool> UpdateUserPassword(PasswordChangeDTO passwordDTO, PurpuraDbContext dbContext)
     {
 
@@ -215,9 +237,13 @@ public static class UserService
      
     }
 
-    /*
-    This method is used to verify the user account after de sign up and code sending via email process
-    */
+    /// <summary>
+    /// Este metodo verifica la cuenta de un usuario
+    /// </summary>
+    /// <param name="verifyAccountDTO"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public static async Task<bool> VerifyAccount(VerifyAccountDTO verifyAccountDTO, PurpuraDbContext dbContext)
     {
 
@@ -240,6 +266,13 @@ public static class UserService
     }
 
 
+    /// <summary>
+    /// Este metodo envia un email con un codigo de verificación para recuperar la contraseña
+    /// </summary>
+    /// <param name="email"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public static async Task<bool> SendPasswordRecoveryCode(string email, PurpuraDbContext dbContext)
     {
         try

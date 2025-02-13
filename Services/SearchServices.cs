@@ -7,6 +7,13 @@ namespace purpuraMain.Services;
 public static class SearchServices
 {
 
+  /// <summary>
+  /// Obtiene las canciones, artistas y playlists que coincidan con la búsqueda.
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="input"></param>
+  /// <param name="dbContext"></param>
+  /// <returns></returns>
   public static async Task<GetSearchDTO> GetSearch(string userId, string input, PurpuraDbContext dbContext)
   {
     try

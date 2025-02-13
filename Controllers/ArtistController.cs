@@ -7,19 +7,16 @@ using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
 
-/// <summary>
 /// Controlador para la gestión de artistas en la plataforma.
 /// Proporciona endpoints para obtener información sobre artistas, buscar artistas y recuperar sus álbumes y canciones.
-/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class ArtistController : ControllerBase
 {
     private readonly PurpuraDbContext _dbContext;
 
-    /// <summary>
+   
     /// Constructor del controlador de artistas.
-    /// </summary>
     /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
     /// <exception cref="ArgumentNullException">Se lanza si el contexto es nulo.</exception>
     public ArtistController(PurpuraDbContext dbContext)
@@ -27,9 +24,8 @@ public class ArtistController : ControllerBase
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    /// <summary>
+   
     /// Obtiene el perfil de un artista por su ID.
-    /// </summary>
     /// <param name="id">ID del artista.</param>
     /// <returns>El perfil del artista.</returns>
     [HttpGet("getArtistProfile/{id}")]
@@ -50,9 +46,8 @@ public class ArtistController : ControllerBase
         }
     }
 
-    /// <summary>
+   
     /// Busca artistas por nombre con paginación.
-    /// </summary>
     /// <param name="name">Nombre del artista a buscar.</param>
     /// <param name="offset">Número de elementos a omitir.</param>
     /// <param name="limit">Cantidad de artistas a recuperar.</param>
@@ -80,9 +75,8 @@ public class ArtistController : ControllerBase
         }
     }
 
-    /// <summary>
+   
     /// Obtiene los álbumes de un artista por su ID.
-    /// </summary>
     /// <param name="id">ID del artista.</param>
     /// <returns>Lista de álbumes del artista.</returns>
     [HttpGet("getArtistAlbums/{id}")]
@@ -103,9 +97,8 @@ public class ArtistController : ControllerBase
         }
     }
 
-    /// <summary>
+   
     /// Obtiene las canciones de un artista por su ID.
-    /// </summary>
     /// <param name="id">ID del artista.</param>
     /// <returns>Lista de canciones del artista.</returns>
     [HttpGet("getArtistSongs/{id}")]
@@ -126,9 +119,8 @@ public class ArtistController : ControllerBase
         }
     }
 
-    /// <summary>
+   
     /// Obtiene una lista de artistas con paginación.
-    /// </summary>
     /// <param name="offset">Número de elementos a omitir.</param>
     /// <param name="limit">Cantidad de artistas a recuperar.</param>
     /// <returns>Lista de artistas.</returns>
@@ -154,9 +146,8 @@ public class ArtistController : ControllerBase
         }
     }
 
-    /// <summary>
+   
     /// Obtiene los artistas más escuchados con paginación.
-    /// </summary>
     /// <param name="offset">Número de elementos a omitir.</param>
     /// <param name="limit">Cantidad de artistas a recuperar.</param>
     /// <returns>Lista de los artistas más escuchados.</returns>

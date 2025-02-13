@@ -13,6 +13,13 @@ namespace purpuraMain.Services;
 public static class PlaylistServices
 {
 
+  /// <summary>
+  /// Obtiene la información de una playlist verificando primero si es del usuario que la solicita.
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="playListId"></param>
+  /// <param name="dbcontext"></param>
+  /// <returns></returns>
   public static async Task<GetPlayListDTO> GetPlaylist(string userId, string playListId, PurpuraDbContext dbcontext)
   {
     try
@@ -64,6 +71,15 @@ public static class PlaylistServices
       throw;
     }
   }
+
+  /// <summary>
+  /// Busca playlists que coincidan con el input del usuario (verifica que sean públicas).
+  /// </summary>
+  /// <param name="input"></param>
+  /// <param name="offset"></param>
+  /// <param name="limit"></param>
+  /// <param name="dbcontext"></param>
+  /// <returns></returns>
   public static async Task<List<GetLibraryPlaylistDTO>> SearchPlaylist(string input, int offset, int limit, PurpuraDbContext dbcontext)
   {
     try
@@ -90,7 +106,13 @@ public static class PlaylistServices
     }
   }
 
-
+  /// <summary>
+  /// Añade una canción a una playlist.
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="addSongDTO"></param>
+  /// <param name="dbContext"></param>
+  /// <returns></returns>
   public static async Task<bool> AddSong(string userId, AddRemoveSongDTO addSongDTO, PurpuraDbContext dbContext)
   {
     try
@@ -110,6 +132,13 @@ public static class PlaylistServices
   }
 
 
+  /// <summary>
+  /// Elimina una canción de una playlist.
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="addSongDTO"></param>
+  /// <param name="dbContext"></param>
+  /// <returns></returns>
   public static async Task<bool> RemoveSong(string userId, AddRemoveSongDTO addSongDTO, PurpuraDbContext dbContext)
   {
     try
@@ -128,6 +157,13 @@ public static class PlaylistServices
     }
   }
 
+  /// <summary>
+  /// Cambia la privacidad de una playlist.
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="changePrivacy"></param>
+  /// <param name="dbContext"></param>
+  /// <returns></returns>
   public static async Task<bool> ChangePlayListState(string userId, ChangePrivacyPlaylistDto changePrivacy, PurpuraDbContext dbContext)
   {
     try
@@ -145,6 +181,13 @@ public static class PlaylistServices
       throw;
     }
   }
+
+  /// <summary>
+  /// Obtiene las playlists de un usuario.
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="dbContext"></param>
+  /// <returns></returns>
   public static async Task<List<GetUserPlayListsDTO>> GetUserPlayLists(string userId, PurpuraDbContext dbContext)
   {
     try
@@ -166,6 +209,14 @@ public static class PlaylistServices
     }
   }
 
+
+  /// <summary>
+  /// Crea una nueva playlist.
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="createPlayListDTO"></param>
+  /// <param name="dbContext"></param>
+  /// <returns></returns>
   public static async Task<bool> CreatePlayList(string userId, CreatePlayListDTO createPlayListDTO, PurpuraDbContext dbContext)
   {
     try
@@ -197,6 +248,14 @@ public static class PlaylistServices
     }
   }
 
+
+  /// <summary>
+  /// Actualiza una playlist.
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="updatePlaylistDTO"></param>
+  /// <param name="dbContext"></param>
+  /// <returns></returns>
   public static async Task<bool> UpdatePlayList(string userId, UpdatePlaylistDTO updatePlaylistDTO, PurpuraDbContext dbContext)
   {
     try
@@ -218,6 +277,15 @@ public static class PlaylistServices
 
   }
 
+
+  /// <summary>
+  /// Elimina una playlist.
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="deletePlaylist"></param>
+  /// <param name="dbContext"></param>
+  /// <returns></returns>
+  /// <exception cref="Exception"></exception>
   public static async Task<bool> DeletePlayList(string userId, DeletePlayListDTO deletePlaylist, PurpuraDbContext dbContext)
   {
     try

@@ -7,6 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 public static class LibraryService
 {
+    /// <summary>
+    /// Obtiene la biblioteca de un usuario por su ID.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="dbContext"></param>
+    /// <returns>Objeto GetLibraryDTO con la información de la librería de un usuario (playlists y canciones) </returns>
     public static async Task<GetLibraryDTO> GetLibraryById(string userId, PurpuraDbContext dbContext)
     {
         try
@@ -74,6 +80,14 @@ public static class LibraryService
         
     }
 
+    /// <summary>
+    /// Obtiene las canciones de un usuario por su ID.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="offset"></param>
+    /// <param name="limit"></param>
+    /// <param name="dbContext"></param>
+    /// <returns>Canciones guardadas por el usuario</returns>
     public static async Task<GetLibraryDTO> GetUserSongs (string userId, int offset, int limit, PurpuraDbContext dbContext)
     {
         try
@@ -121,13 +135,19 @@ public static class LibraryService
         }
     } 
 
+    /// <summary>
+    /// Añade o elimina una canción de la biblioteca de un usuario.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="addRemoveSong"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
     public static async Task<bool> AddSongToLibrary(string userId, AddRemoveSongLibraryDTO addRemoveSong, PurpuraDbContext dbContext)
     {
         try
         {
             var library = await dbContext.Libraries!.Include(l=> l.Songs).Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Library not found");
             var song = await dbContext.Songs!.Where(s => s.Id == addRemoveSong.SongId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Song not found");
-            Console.WriteLine(library.Songs!.Any(s => s.Id == addRemoveSong.SongId));
             if(library.Songs!.Any(s => s.Id == addRemoveSong.SongId))
             {
                 // Si ya existe la cancion en la biblioteca, se elimina
@@ -149,7 +169,13 @@ public static class LibraryService
     }
 
  
-
+    /// <summary>
+    /// Añade o elimina un álbum de la biblioteca de un usuario.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="addRemoveAlbum"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
      public static async Task<bool> AddAlbumToLibrary(string userId, AddRemoveAlbumLibraryDTO addRemoveAlbum, PurpuraDbContext dbContext)
     {
           try
@@ -175,6 +201,13 @@ public static class LibraryService
         
     }
 
+    /// <summary>
+    /// Añade o elimina una playlist de la biblioteca de un usuario.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="addRemovePlayListDTO"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
       public static async Task<bool> AddPlayListToLibrary(string userId, AddRemovePlayListDTO addRemovePlayListDTO, PurpuraDbContext dbContext)
     {
         try

@@ -9,6 +9,9 @@ namespace purpuraMain.Controllers;
 /// <summary>
 /// Controlador para la gestión de imágenes.
 /// </summary>
+/// <remarks>
+/// Este controlador permite subir imágenes a la aplicación.
+/// </remarks>
 [ApiController]
 [Route("[controller]")]
 [Authorize]
@@ -16,18 +19,16 @@ public class ImageController : ControllerBase
 {
     private readonly PurpuraDbContext _dbContext;
 
-    /// <summary>
     /// Constructor del controlador de imágenes.
-    /// </summary>
+
     /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
     public ImageController(PurpuraDbContext dbContext)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    /// <summary>
-    /// Sube una imagen y devuelve la URL de acceso.
-    /// </summary>
+
+    /// Sube una imagen y devuelve la URL de acceso. (No aparece en la documentación de la API de Swagger)
     /// <param name="image">Archivo de imagen a subir.</param>
     /// <returns>URL de la imagen subida.</returns>
     [HttpPost("upload")]

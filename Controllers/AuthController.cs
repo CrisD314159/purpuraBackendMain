@@ -9,10 +9,9 @@ using purpuraMain.Services;
 
 namespace purpuraMain.Controllers;
 
-/// <summary>
+
 /// Controlador de autenticación para manejar el inicio de sesión, 
 /// la renovación de tokens y el cierre de sesión de los usuarios.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -20,9 +19,8 @@ public class AuthController : ControllerBase
     private readonly PurpuraDbContext _dbContext;
     private readonly IConfiguration _config;
 
-    /// <summary>
+
     /// Constructor del controlador de autenticación.
-    /// </summary>
     /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
     /// <param name="configuration">Configuración de la aplicación.</param>
     public AuthController(PurpuraDbContext dbContext, IConfiguration configuration)
@@ -31,9 +29,8 @@ public class AuthController : ControllerBase
         _config = configuration;
     }
 
-    /// <summary>
+
     /// Inicia sesión con email y contraseña.
-    /// </summary>
     /// <param name="login">Datos del usuario para autenticación.</param>
     /// <returns>Un token de acceso y un refresh token si la autenticación es exitosa.</returns>
     [HttpPost("login")]
@@ -61,9 +58,8 @@ public class AuthController : ControllerBase
         }
     }
 
-    /// <summary>
+
     /// Renueva el token de autenticación si el refresh token es válido.
-    /// </summary>
     /// <returns>Nuevo token de acceso y refresh token.</returns>
     [HttpPut("refresh/token")]
     [Authorize]
@@ -96,9 +92,8 @@ public class AuthController : ControllerBase
         }
     }
 
-    /// <summary>
+
     /// Cierra la sesión del usuario actual, invalidando el token de sesión.
-    /// </summary>
     /// <returns>Mensaje confirmando el cierre de sesión.</returns>
     [HttpDelete("logout")]
     [Authorize]
@@ -133,9 +128,8 @@ public class AuthController : ControllerBase
         }
     }
 
-    /// <summary>
+
     /// Verifica si el token del usuario es válido.
-    /// </summary>
     /// <returns>Un mensaje confirmando si el token es válido o no.</returns>
     [HttpPut("checkToken")]
     [Authorize]

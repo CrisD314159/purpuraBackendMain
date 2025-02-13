@@ -9,9 +9,8 @@ using purpuraMain.Services;
 
 namespace purpuraMain.Controllers;
 
-/// <summary>
+
 /// Controlador para la gestión de la biblioteca de música del usuario.
-/// </summary>
 [ApiController]
 [Route("[controller]")]
 [Authorize]
@@ -19,18 +18,14 @@ public class LibraryController : ControllerBase
 {
     private readonly PurpuraDbContext _dbcontext;
 
-    /// <summary>
     /// Constructor del controlador de biblioteca.
-    /// </summary>
     /// <param name="dbcontext">Contexto de la base de datos.</param>
     public LibraryController(PurpuraDbContext dbcontext)
     {
         _dbcontext = dbcontext ?? throw new ArgumentNullException(nameof(dbcontext));
     }
 
-    /// <summary>
     /// Obtiene la biblioteca del usuario autenticado.
-    /// </summary>
     /// <returns>Biblioteca del usuario.</returns>
     [HttpGet("user")]
     public async Task<ActionResult<GetLibraryDTO>> GetLibrary()
@@ -55,9 +50,7 @@ public class LibraryController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Obtiene las canciones de la biblioteca del usuario con paginación.
-    /// </summary>
     /// <param name="offset">Número de elementos a omitir.</param>
     /// <param name="limit">Número de elementos a devolver.</param>
     /// <returns>Lista de canciones.</returns>
@@ -89,18 +82,14 @@ public class LibraryController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Agrega o elimina una canción a la biblioteca del usuario.
-    /// </summary>
     [HttpPut("addSong")]
     public async Task<ActionResult> AddSong(AddRemoveSongLibraryDTO addSong)
     {
         return await ModifyLibrary(addSong, LibraryService.AddSongToLibrary, "Song added to library");
     }
 
-    /// <summary>
     /// Agrega o elimina una playlist a la biblioteca del usuario.
-    /// </summary>
     [HttpPut("addPlaylist")]
     public async Task<ActionResult> AddPlaylist(AddRemovePlayListDTO addPlaylist)
     {
@@ -109,27 +98,21 @@ public class LibraryController : ControllerBase
 
 
 
-    /// <summary>
     /// Agrega un álbum a la biblioteca del usuario.
-    /// </summary>
     [HttpPut("addAlbum")]
     public async Task<ActionResult> AddAlbum(AddRemoveAlbumLibraryDTO addAlbum)
     {
         return await ModifyLibrary(addAlbum, LibraryService.AddAlbumToLibrary, "Album added to library");
     }
 
-    /// <summary>
     /// Elimina un álbum de la biblioteca del usuario.
-    /// </summary>
     [HttpPut("removeAlbum")]
     public async Task<ActionResult> RemoveAlbum(AddRemoveAlbumLibraryDTO removeAlbum)
     {
         return await ModifyLibrary(removeAlbum, LibraryService.AddAlbumToLibrary, "Album removed from library");
     }
 
-    /// <summary>
     /// Método genérico para agregar o eliminar elementos de la biblioteca.
-    /// </summary>
     private async Task<ActionResult> ModifyLibrary<T>(T dto, Func<string, T, PurpuraDbContext, Task> serviceMethod, string successMessage)
     {
         try

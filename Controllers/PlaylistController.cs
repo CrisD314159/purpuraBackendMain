@@ -10,10 +10,9 @@ using purpuraMain.Services;
 
 namespace purpuraMain.Controllers;
 
-/// <summary>
+
 /// Controlador para la gestión de playlists.
 /// Permite crear, modificar, eliminar y gestionar canciones en playlists.
-/// </summary>
 [ApiController]
 [Route("[controller]")]
 [Authorize]
@@ -26,9 +25,7 @@ public class PlaylistController : ControllerBase
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    /// <summary>
     /// Obtiene una playlist por su ID.
-    /// </summary>
     /// <param name="id">ID de la playlist.</param>
     /// <returns>Datos de la playlist.</returns>
     [HttpGet("{id}")]
@@ -54,9 +51,7 @@ public class PlaylistController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Busca playlists por nombre con paginación.
-    /// </summary>
     /// <param name="input">Texto de búsqueda.</param>
     /// <param name="offset">Número de elementos a omitir.</param>
     /// <param name="limit">Número de elementos a devolver.</param>
@@ -79,9 +74,7 @@ public class PlaylistController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Agrega una canción a una playlist.
-    /// </summary>
     /// <param name="addSongDTO">Datos de la canción y la playlist.</param>
     [HttpPut("addSong")]
     public async Task<ActionResult> AddSong(AddRemoveSongDTO addSongDTO)
@@ -98,9 +91,7 @@ public class PlaylistController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Elimina una canción de una playlist.
-    /// </summary>
     /// <param name="addSongDTO">Datos de la canción y la playlist.</param>
     [HttpPut("removeSong")]
     public async Task<ActionResult> RemoveSong(AddRemoveSongDTO addSongDTO)
@@ -117,9 +108,7 @@ public class PlaylistController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Cambia la privacidad de una playlist.
-    /// </summary>
     /// <param name="changePrivacy">Datos de la playlist y la privacidad.</param>
     [HttpPut("changePrivacy")]
     public async Task<ActionResult> ChangePlaylistPrivacy(ChangePrivacyPlaylistDto changePrivacy)
@@ -136,9 +125,7 @@ public class PlaylistController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Obtiene las playlists del usuario autenticado.
-    /// </summary>
     [HttpGet("getPlaylists/user")]
     public async Task<ActionResult<List<GetUserPlayListsDTO>>> GetUserPlaylists()
     {
@@ -154,9 +141,7 @@ public class PlaylistController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Crea una nueva playlist.
-    /// </summary>
     /// <param name="createPlayListDTO">Datos de la nueva playlist.</param>
     [HttpPost]
     public async Task<ActionResult> CreatePlayList(CreatePlayListDTO createPlayListDTO)
@@ -173,9 +158,7 @@ public class PlaylistController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Actualiza una playlist existente.
-    /// </summary>
     /// <param name="updatePlaylist">Datos de la playlist a actualizar.</param>
     [HttpPut]
     public async Task<ActionResult> UpdatePlaylist(UpdatePlaylistDTO updatePlaylist)
@@ -192,9 +175,7 @@ public class PlaylistController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Elimina una playlist.
-    /// </summary>
     /// <param name="deletePlayList">Datos de la playlist a eliminar.</param>
     [HttpDelete]
     public async Task<ActionResult> DeletePlayList(DeletePlayListDTO deletePlayList)

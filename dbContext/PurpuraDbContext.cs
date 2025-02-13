@@ -7,6 +7,8 @@ using purpuraMain.Model;
 // Esto debe tener las entidades que queremos ver reflejadas en la base de datos y de importa desde el Program.cs para la inyección de dependencias
 public class PurpuraDbContext(DbContextOptions<PurpuraDbContext> options) : DbContext(options)
 {
+  // Aquí se definen las tablas que se quieren ver reflejadas en la base de datos
+  // Las tablas de muchos a muchos como SongPlaylists las genera ef core automáticamente cuando lee nuestro modelo
   public DbSet<Library>? Libraries { get; set; }
   public DbSet<Artist>? Artists { get; set; }
   public DbSet<Genre>? Genres { get; set; }

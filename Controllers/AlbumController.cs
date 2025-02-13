@@ -6,27 +6,22 @@ using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
 
-/// <summary>
+
 /// Controlador para gestionar las operaciones relacionadas con los álbumes.
-/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class AlbumController : ControllerBase
 {
     private readonly PurpuraDbContext _dbContext;
 
-    /// <summary>
     /// Constructor del controlador AlbumController.
-    /// </summary>
     /// <param name="dbContext">Contexto de base de datos para acceder a la información de los álbumes.</param>
     public AlbumController(PurpuraDbContext dbContext)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    /// <summary>
     /// Obtiene un álbum por su identificador único.
-    /// </summary>
     /// <param name="id">Identificador del álbum.</param>
     /// <returns>Un objeto GetAlbumDTO con los detalles del álbum.</returns>
     [HttpGet("getAlbum/{id}")]
@@ -47,9 +42,8 @@ public class AlbumController : ControllerBase
         }
     }
 
-    /// <summary>
+
     /// Busca álbumes basándose en un texto de entrada.
-    /// </summary>
     /// <param name="input">Texto a buscar en los álbumes.</param>
     /// <param name="offset">Número de elementos a omitir en la paginación.</param>
     /// <param name="limit">Número máximo de álbumes a devolver.</param>
@@ -72,9 +66,7 @@ public class AlbumController : ControllerBase
         }
     }
 
-    /// <summary>
     /// Obtiene una lista de álbumes con paginación.
-    /// </summary>
     /// <param name="offset">Número de elementos a omitir en la paginación.</param>
     /// <param name="limit">Número máximo de álbumes a devolver.</param>
     /// <returns>Una lista de objetos GetAlbumDTO con los álbumes disponibles.</returns>
