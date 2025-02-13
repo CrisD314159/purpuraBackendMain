@@ -3,6 +3,7 @@ using purpuraMain.DbContext;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,46 @@ builder.Services.AddDbContextPool<PurpuraDbContext>(opt =>
 // Agrega controladores a la aplicación.
 builder.Services.AddControllers();
 
+// Agregar OpenAPI (Swagger)
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Púrpura Music API",
+        Version = "v1",
+        Description = "API para la aplicación de streaming de música Púrpura Music.",
+        Contact = new OpenApiContact
+        {
+            Name = "Cristian David Vargas Loaiza",
+            Url = new Uri("https://crisdev-pi.vercel.app")
+        }
+    });
+
+    // Configurar autenticación en Swagger (opcional, si usas JWT)
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Introduce el token en formato 'Bearer {token}'",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+        }
+    };
+
+    options.AddSecurityDefinition("Bearer", securityScheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { securityScheme, new List<string>() }
+    });
+});
+
+// ⚠️ **Mueve esto arriba, antes de `builder.Build();`**
 // Configuración de autenticación JWT.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -42,16 +83,22 @@ var app = builder.Build();
 /// Configuración del pipeline de manejo de solicitudes HTTP.
 /// </summary>
 
-// Habilita OpenAPI solo en entornos de desarrollo.
+// Configurar Swagger en desarrollo
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Púrpura Music API v1");
+        options.RoutePrefix = "api-docs"; // Acceder desde /api-docs
+    });
 }
 
 // Fuerza el uso de HTTPS.
 app.UseHttpsRedirection();
 
-// Habilita autorización.
+// Habilita autenticación y autorización.
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Carga variables de entorno desde un archivo .env.

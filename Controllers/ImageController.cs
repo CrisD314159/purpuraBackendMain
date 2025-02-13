@@ -31,6 +31,8 @@ public class ImageController : ControllerBase
     /// <param name="image">Archivo de imagen a subir.</param>
     /// <returns>URL de la imagen subida.</returns>
     [HttpPost("upload")]
+    [Consumes("multipart/form-data")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public async Task<IActionResult> UploadImage([FromForm] IFormFile image)
     {
         try
