@@ -11,7 +11,7 @@ public class GetSongDTO
   public required string? ImageUrl { get; set; }
   public required string? AudioUrl { get; set; }
   public DateTime? ReleaseDate { get; set; }
-  public required List<GetGenreDTO> Genres { get; set; }
+  public  List<GetGenreDTO>? Genres { get; set; }
   public string? Lyrics { get; set; }
   public int Plays {get; set;}
   public bool? IsOnLibrary {get; set;}

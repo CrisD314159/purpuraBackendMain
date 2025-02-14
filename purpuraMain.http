@@ -217,7 +217,7 @@ GET {{purpuraMain_HostAddress}}/album/getAlbumByInput/gg
 Accept: application/json
 
 ### Obtener un album
-GET {{purpuraMain_HostAddress}}/album/getAlbum/2e465b8d-aa39-4a8e-85a5-ea4daac845e0
+GET {{purpuraMain_HostAddress}}/album/getAlbum/914abed4-02c4-4394-b99b-1f932f6c9829
 Accept: application/json
 
 ### Obtener todos los albumes
@@ -238,7 +238,7 @@ Accept: application/json
 
 
 ### Obtener un artista
-GET {{purpuraMain_HostAddress}}/artist/getArtistProfile/fcc0cce3-13fe-4b0f-b21e-2fffb37a130c
+GET {{purpuraMain_HostAddress}}/artist/getArtistProfile/7132ebc8-2717-4de4-bce5-7182dfa58b20
 Accept: application/json
 
 

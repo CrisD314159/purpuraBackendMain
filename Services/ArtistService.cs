@@ -17,13 +17,31 @@ public static class ArtistService
     {
         try
         {
-            var artist = await dbContext.Artists!.Where(a=> a.Id == id).Select(a => new GetArtistDTO
+            var artistEntity = await dbContext.Artists!.Where(a => a.Id == id).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Artist not found");
+            
+            var artist = new GetArtistDTO
             {
-                 Id = a.Id,
-                 Name = a.Name,
-                 Description = a.Description ?? "",
-                 ImageUrl = a.PictureUrl ?? ""
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Artist not found");
+                Id = artistEntity.Id,
+                Name = artistEntity.Name,
+                Description = artistEntity.Description ?? "",
+                ImageUrl = artistEntity.PictureUrl ?? "",
+                TopSongs = await GetTopArtistSongs(artistEntity.Id, dbContext),
+                Albums = dbContext.Albums != null ? dbContext.Albums.Where(al => al.ArtistId == artistEntity.Id)
+                    .Where(a => a.AlbumType == 0)
+                    .Select(al => new GetLibraryAlbumDTO
+                    {
+                        ArtistId = al.ArtistId,
+                        ArtistName = artistEntity.Name,
+                        Id = al.Id,
+                        Name = al.Name,
+                        PictureUrl = al.PictureUrl,
+                        Description = al.Description ?? "",
+                        ReleaseDate = al.ReleaseDate
+                    })
+                    .OrderByDescending(al => al.ReleaseDate)
+                    .Take(10).ToList() : new List<GetLibraryAlbumDTO>()
+            };
+
 
             return artist;
         }
@@ -138,4 +156,42 @@ public static async Task<List<GetArtistPlaysDTO>> GetMostListenArtists(int offse
         throw;
     }
 }
+
+public static async Task<List<GetSongDTO>> GetTopArtistSongs(string id, PurpuraDbContext dbContext)
+{
+    try
+    {
+        var songsPlays = await dbContext.Songs!
+            .Where(s => s.Artists!.Any(art => art.Id == id))
+            .OrderByDescending(s => dbContext.PlayHistories!.Count(ph => ph.SongId == s.Id))
+            .Take(15)
+            .Select(s => new GetSongDTO
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Artists = s.Artists!.Select(a => new GetPlaylistArtistDTO
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Description = a.Description ?? ""
+                }).ToList(),
+                AlbumId = s.AlbumId ?? "",
+                AlbumName = s.Album!.Name ?? "",
+                Duration = s.Duration,
+                ImageUrl = s.ImageUrl ?? "",
+                AudioUrl = s.AudioUrl ?? "",
+                IsOnLibrary = false,
+                Plays = dbContext.PlayHistories!.Count(ph => ph.SongId == s.Id)
+            })
+            .ToListAsync();
+
+        return songsPlays;
+    }
+    catch (System.Exception e)
+    {
+        Console.WriteLine(e.Message);
+        throw;
+    }
+}
+
 }
