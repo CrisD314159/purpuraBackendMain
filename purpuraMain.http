@@ -238,7 +238,7 @@ Accept: application/json
 
 
 ### Obtener un artista
-GET {{purpuraMain_HostAddress}}/artist/getArtistProfile/99e516b1-592d-4c72-afb9-8a060821844d
+GET {{purpuraMain_HostAddress}}/artist/getArtistProfile/fcc0cce3-13fe-4b0f-b21e-2fffb37a130c
 Accept: application/json
 
 

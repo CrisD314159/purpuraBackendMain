@@ -1,60 +1,36 @@
-# Purpura Music Backend
+## API Endpoints  
 
-This is the backend for the Purpura Music application, built with ASP.NET Core.
+### Authentication  
+- `POST /api/auth/register` – Register a new user  
+- `POST /api/auth/login` – User login and token generation  
 
-## Installation
+### User Management  
+- `GET /api/users/{id}` – Get user profile  
+- `PUT /api/users/{id}` – Update user profile  
+- `DELETE /api/users/{id}` – Delete user account  
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/CrisD314159/purpuraBackendMain
-    ```
-2. Navigate to the project directory:
-    ```sh
-    cd purpuraMusicBack
-    ```
-3. Restore the dependencies:
-    ```sh
-    dotnet restore
-    ```
-4. Build the project:
-    ```sh
-    dotnet build
-    ```
+### Music and Playback  
+- `GET /api/songs` – Get all available songs  
+- `GET /api/songs/{id}` – Get details of a specific song  
+- `GET /api/songs/stream/{id}` – Stream a song  
 
-## Usage
+### Playlists  
+- `GET /api/playlists` – Get user playlists  
+- `POST /api/playlists` – Create a new playlist  
+- `PUT /api/playlists/{id}` – Update playlist details  
+- `DELETE /api/playlists/{id}` – Delete a playlist  
 
-1. Update the [appsettings.json](http://_vscodecontentref_/1) and [appsettings.Development.json](http://_vscodecontentref_/2) files with your configuration.
-2. Run the project:
-    ```sh
-    dotnet run
-    ```
+### Search  
+- `GET /api/search?query={text}` – Search for songs, albums, or artists  
 
-## Project Structure
+## Technologies Used  
+- **Backend**: ASP.NET Core, Node.js  
+- **Database**: PostgreSQL (or your preferred DB)  
+- **Authentication**: JWT  
+- **Frontend Integration**: Next.js (for the frontend of Púrpura Music)  
 
+## Contributing  
+Feel free to submit issues or pull requests. Contributions are welcome!  
 
-## API Endpoints
-
-### User
-
-- **Send Recovery Mail**
-    ```http
-    POST /user/sendRecoveryMail?email={email}
-    ```
-- **Get User by ID**
-    ```http
-    GET /user/{id}
-    ```
-- **Get User by Email**
-    ```http
-    GET /user/getByEmail/{email}
-    ```
-- **Create User**
-    ```http
-    POST /user
-    ```
-- **Update User**
-    ```http
-    PUT /user
-    ```
-
-## Rest of the services will be added soon!!!
+## License  
+This project is licensed under the MIT License.  
