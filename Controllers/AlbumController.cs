@@ -88,4 +88,26 @@ public class AlbumController : ControllerBase
             return BadRequest(new { message = "An unexpected error occurred", success = false });
         }
     }
+
+    /// <summary>
+    /// Obtiene los álbumes más populares del momento.
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("getTopAlbums")]
+    public async Task<ActionResult<List<GetAlbumDTO>>> GetTopAlbums()
+    {
+        try
+        {
+            var albums = await AlbumService.GetTopAlbums(_dbContext);
+            return Ok(albums);
+        }
+        catch (EntityNotFoundException)
+        {
+            return NotFound(new { message = "Albums Not found", success = false });
+        }
+        catch (System.Exception)
+        {
+            return BadRequest(new { message = "An unexpected error occurred", success = false });
+        }
+    }
 }

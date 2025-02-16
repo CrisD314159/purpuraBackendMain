@@ -19,4 +19,5 @@ public class GetAlbumDTO
     public string? Producer {get; set;}
     public AlbumType? AlbumType { get; set; }
     public List<GetSongDTO>? Songs {get; set;}
+    public int TotalPlays { get; set; }
 }

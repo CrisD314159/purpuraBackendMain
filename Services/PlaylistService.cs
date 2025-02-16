@@ -58,9 +58,16 @@ public static class PlaylistServices
             Description = g.Description?? ""
           }).ToList(),
           Lyrics = s.Lyrics ?? "",
+          IsOnLibrary = false
 
         }).ToList() : new List<GetSongDTO>()
       }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
+
+        foreach (var song in playList.Songs)
+        {
+          song.IsOnLibrary = await dbcontext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).AnyAsync(l => l.Songs.Any(so => so.Id == song.Id));
+        }
+            
 
       return playList;
 
@@ -118,7 +125,7 @@ public static class PlaylistServices
     try
     {
       var playlist = await dbContext.Playlists!.FindAsync(addSongDTO.PlaylistId) ?? throw new EntityNotFoundException("Playlist not found");
-      if(playlist.UserId != userId) throw new ValidationException("You are not authorized to add songs to this playlist");
+      if(playlist.UserId != userId || !playlist.Editable) throw new ValidationException("You are not authorized to add songs to this playlist");
       var song = await dbContext.Songs!.FindAsync(addSongDTO.SongId) ?? throw new EntityNotFoundException("Song not found");
       playlist.Songs!.Add(song);
       await dbContext.SaveChangesAsync();

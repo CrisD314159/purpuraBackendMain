@@ -147,5 +147,83 @@ public static class SongService
             throw;
         }
     }
+
+
+    /// <summary>
+    /// Obtiene las canciones más populares del momento.
+    /// </summary>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
+    public static async Task<List<GetSongDTO>> GetTopSongs(PurpuraDbContext dbContext)
+    {
+        try
+        {
+            var songs = await dbContext.Songs!.Select(s => new GetSongDTO
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Artists = s.Artists!.Select(a => new GetPlaylistArtistDTO
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Description = a.Description ?? ""
+                }).ToList(),
+                AlbumId = s.AlbumId!,
+                AlbumName = s.Album!.Name!,
+                Duration = s.Duration,
+                ImageUrl = s.ImageUrl ?? "",
+                AudioUrl = s.AudioUrl ?? "",
+                Genres = s.Genres!.Select(g => new GetGenreDTO
+                {
+                    Id = g.Id,
+                    Name = g.Name,
+                    Description = g.Description ?? ""
+                }).ToList(),
+                Lyrics = s.Lyrics ?? "",
+                Plays = dbContext.PlayHistories!.Where(p => p.SongId == s.Id).Count()
+            }).OrderByDescending(s => s.Plays).Take(10).ToListAsync();
+
+            return songs;
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Registra un reproducción de una canción cuando en el cliente se reproduce
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="songId"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
+    public static async Task<bool> AddSongPlay(string userId, string songId, PurpuraDbContext dbContext )
+    {
+        try
+        {
+            var song = await dbContext.Songs!.FindAsync(songId) ?? throw new EntityNotFoundException("Song not found");
+            var user = await dbContext.Users!.FindAsync(userId) ?? throw new EntityNotFoundException("User not found");
+
+            var playHistory = new PlayHistory
+            {
+                Id = Guid.NewGuid().ToString(),
+                Song = song,
+                User = user,
+                PlayedAt = DateTime.UtcNow
+            };
+
+            dbContext.PlayHistories!.Add(playHistory);
+            await dbContext.SaveChangesAsync();
+
+            return true;
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
+    }
  
 }

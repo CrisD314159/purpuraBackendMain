@@ -220,6 +220,13 @@ Accept: application/json
 GET {{purpuraMain_HostAddress}}/album/getAlbum/914abed4-02c4-4394-b99b-1f932f6c9829
 Accept: application/json
 
+### Obtener un album
+GET {{purpuraMain_HostAddress}}/album/getTopAlbums
+Accept: application/json
+### Obtener un album
+GET {{purpuraMain_HostAddress}}/song/getTopSongs
+Accept: application/json
+
 ### Obtener todos los albumes
 GET {{purpuraMain_HostAddress}}/album/getAlbums?offset=0&limit=10
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiMGUyNWNiMS1kNzY0LTRiNTctYTZiZi03Mjg4Njc5NDU3NzAiLCJlbWFpbCI6Im1hcmlhQGdtYWlsLmNvbSIsImV4cCI6MTczNzU5MzM3NywiaXNzIjoiUHVycHVyYU11c2ljIiwiYXVkIjoiUHVycHVyYU11c2ljIn0.QjWzpUARrG9FpnrXDnEth14ihI9yztYd_VvoKeeQb6M

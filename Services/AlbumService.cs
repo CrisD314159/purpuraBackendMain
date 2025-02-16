@@ -162,4 +162,35 @@ public static class AlbumService
             throw;
         }
     }
+
+    /// <summary>
+    /// Obtiene los álbumes más populares del momento.
+    /// </summary>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
+    public static async Task<List<GetAlbumDTO>> GetTopAlbums(PurpuraDbContext dbContext)
+    {
+        try
+        {
+            var albums = await dbContext.Albums!.Where(a => a.AlbumType == 0).Select(a => new GetAlbumDTO
+            {
+                Id = a.Id,
+                ArtistId = a.ArtistId,
+                ArtistName = a.Artist.Name,
+                Name = a.Name,
+                PictureUrl = a.PictureUrl,
+                Description = a.Description ?? "",
+                TotalPlays = dbContext.PlayHistories!.Where(s => s.Song!.AlbumId == a.Id).Count()
+            }).OrderByDescending(a => a.TotalPlays).Take(10).ToListAsync();
+
+            return albums;
+            
+        }
+        catch (System.Exception)
+        {
+            
+            throw;
+        }
+    }
+
 }
