@@ -161,4 +161,59 @@ public class UserController : ControllerBase
             return BadRequest(new { success = false, message = e.Message });
         }
     }
+
+
+    /// <summary>
+    /// Envia un correo electrónico con un código de recuperación de contraseña.
+    /// </summary>
+    /// <param name="sendRecoverEmail"></param>
+    /// <returns></returns>
+    [HttpPost("sendRecoverEmail")]
+    public async Task<ActionResult> SendRecoverEmail(SendRecoverEmailDTO sendRecoverEmail)
+    {
+        try
+        {
+            await UserService.SendPasswordRecoveryCode(sendRecoverEmail.Email, _dbContext);
+            return Ok("Recover email sent successfully");
+        }
+        catch (NotVerifiedException val)
+        {
+            return BadRequest(new { success = false, message = val.Message });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { success = false, message = e.Message });
+        }
+    }
+
+    /// <summary>
+    /// Cambia la contraseña de un usuario usando un código de verificación previamente enviado.
+    /// </summary>
+    /// <param name="changePassword"></param>
+    /// <returns></returns>
+    [HttpPatch("changePassword")]
+    public async Task<ActionResult> ChangePassword(PasswordChangeDTO changePassword)
+    {
+        try
+        {
+            await UserService.UpdateUserPassword(changePassword, _dbContext);
+            return Ok("Password changed successfully");
+        }
+        catch (ValidationException val)
+        {
+            return BadRequest(new { success = false, message = val.Message });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { success = false, message = e.Message });
+        }
+    }
 }
