@@ -18,6 +18,7 @@ public class Playlist
   public required bool IsPublic { get; set; }
   public required bool Editable { get; set; }
   public DateTime CreatedAt { get; set; }
+  public DateTime LastUpdated { get; set; }
   public ICollection<Song>? Songs { get; set; } =[];
   public ICollection<Library>? Libraries { get; set; } =[];
 

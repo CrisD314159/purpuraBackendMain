@@ -200,7 +200,7 @@ public static class PlaylistServices
     try
     {
       if(!await dbContext.Users!.AnyAsync(u => u.Id == userId)) throw new EntityNotFoundException("User not found");
-      var playLists = await dbContext.Playlists!.Where(p => p.UserId== userId).Select(p=> new GetUserPlayListsDTO{
+      var playLists = await dbContext.Playlists!.Where(p => p.UserId== userId && p.Name !="Purple Day List").Select(p=> new GetUserPlayListsDTO{
         Id = p.Id,
         Name = p.Name,
         IsPublic = p.IsPublic,
@@ -309,6 +309,9 @@ public static class PlaylistServices
       throw new Exception ("An unexpected error occured");
     }
   }
+
+
+  
 
 
 
