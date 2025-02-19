@@ -94,7 +94,7 @@ public static class AlbumService
                 GenreId = a.GenreId,
                 GenreName = a.Genre!.Name,
                 AlbumType = a.AlbumType,
-            }).Skip(offset).Take(limit).ToListAsync() ?? throw new EntityNotFoundException("Album not found");
+            }).Skip(offset).Take(limit).ToListAsync() ?? [];
 
             return album;
         }
@@ -153,7 +153,7 @@ public static class AlbumService
                     }).ToList(),
                     Lyrics = s.Lyrics ?? "",
                 }).ToList() : new List<GetSongDTO>()
-            }).Skip(offset).Take(limit).ToListAsync();
+            }).OrderByDescending(a=> a.Name).Skip(offset).Take(limit).ToListAsync() ?? [];
 
             return albums;
         }

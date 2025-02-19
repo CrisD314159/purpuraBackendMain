@@ -10,6 +10,12 @@ public static class PurpleDaylistService
 
 
 
+/// <summary>
+/// Obtiene la lista de recomendaciones de un usuario (Purple daylist)
+/// </summary>
+/// <param name="userId"></param>
+/// <param name="dbContext"></param>
+/// <returns></returns>
   public static async Task<GetPlayListDTO> GetPurpleDaylist(string userId, PurpuraDbContext dbContext)
   {
     try
@@ -65,6 +71,14 @@ public static class PurpleDaylistService
     }
   }
 
+
+/// <summary>
+/// Actualiza la lista de recomendaciones de un usuario (Purple daylist)
+/// </summary>
+/// <param name="playlistId"></param>
+/// <param name="userId"></param>
+/// <param name="dbContext"></param>
+/// <returns></returns>
   public static async Task<bool> UpdatePurpuraDayList(string playlistId, string userId, PurpuraDbContext dbContext)
   {
     try
@@ -88,6 +102,14 @@ public static class PurpleDaylistService
       throw;
     }
   }
+
+
+  /// <summary>
+  /// Método de apoyo para obtener las canciones recomendadas de un usuario según su historial de reproducciones.
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="dbContext"></param>
+  /// <returns></returns>
  public static async Task<List<Song>> GetUserRecomendations(string userId, PurpuraDbContext dbContext)
 {
     try

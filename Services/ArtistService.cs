@@ -157,6 +157,12 @@ public static async Task<List<GetArtistPlaysDTO>> GetMostListenArtists(int offse
     }
 }
 
+/// <summary>
+/// Obtiene las canciones más escuchadas de un artista.
+/// </summary>
+/// <param name="id"></param>
+/// <param name="dbContext"></param>
+/// <returns></returns>
 public static async Task<List<GetSongDTO>> GetTopArtistSongs(string id, PurpuraDbContext dbContext)
 {
     try
