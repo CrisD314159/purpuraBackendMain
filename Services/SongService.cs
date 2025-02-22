@@ -154,7 +154,7 @@ public static class SongService
     /// </summary>
     /// <param name="dbContext"></param>
     /// <returns></returns>
-    public static async Task<List<GetSongDTO>> GetTopSongs(PurpuraDbContext dbContext)
+    public static async Task<List<GetSongDTO>> GetTopSongs(string userId, PurpuraDbContext dbContext)
     {
         try
         {
@@ -179,9 +179,16 @@ public static class SongService
                     Name = g.Name,
                     Description = g.Description ?? ""
                 }).ToList(),
+                IsOnLibrary = false,
                 Lyrics = s.Lyrics ?? "",
                 Plays = dbContext.PlayHistories!.Where(p => p.SongId == s.Id).Count()
-            }).OrderByDescending(s => s.Plays).Take(10).ToListAsync();
+            }).OrderByDescending(s => s.Plays).Take(10).ToListAsync() ?? [];
+
+            foreach (var song in songs)
+            {
+                song.IsOnLibrary = dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Any( l=> l.Songs.Any(so => so.Id == song.Id));
+                
+            }
 
             return songs;
         }

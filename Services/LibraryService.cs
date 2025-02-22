@@ -22,15 +22,6 @@ public static class LibraryService
                    Id= l.Id,
                    UserId = l.UserId!,
                    UserName = l.User!.FirstName!,
-                   Albums = l.Albums.Select(a=> new GetLibraryAlbumDTO {
-                        Id = a.Id,
-                        Name = a.Name,
-                        Description = a.Description ?? "",
-                        PictureUrl = a.PictureUrl,
-                        ArtistId = a.ArtistId,
-                        ArtistName = a.Artist.Name,
-                        ReleaseDate = a.ReleaseDate,
-                   }).ToList(),
                    Playlists = l.Playlists.Select(p=> new GetLibraryPlaylistDTO
                    {
                     Id = p.Id,
@@ -41,30 +32,6 @@ public static class LibraryService
                     IsPublic = p.IsPublic,
                     ImageUrl = p.ImageUrl
                    }).ToList(),
-                   Songs= l.Songs.Select(s=> new GetSongDTO
-                   {
-                       Id = s.Id,
-                       Name = s.Name,
-                       Artists = s.Artists!.Select(a=> new GetPlaylistArtistDTO
-                       {
-                           Id = a.Id,
-                           Name = a.Name,
-                           Description = a.Description ?? ""
-                       }).ToList(),
-                       AlbumId = s.AlbumId!,
-                       AlbumName = s.Album!.Name!,
-                       Duration = s.Duration,
-                       ImageUrl = s.ImageUrl ?? "",
-                       AudioUrl = s.AudioUrl ?? "",
-                       Genres = s.Genres!.Select(g=> new GetGenreDTO
-                       {
-                           Id = g.Id,
-                           Name = g.Name,
-                           Description = g.Description ?? ""
-                       }).ToList(),
-                       IsOnLibrary= true,
-                       Lyrics = s.Lyrics ?? ""
-                   }).ToList()
                    
                 }
             ).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Library not found");
@@ -151,7 +118,6 @@ public static class LibraryService
             if(library.Songs!.Any(s => s.Id == addRemoveSong.SongId))
             {
                 // Si ya existe la cancion en la biblioteca, se elimina
-                Console.WriteLine("entra");
                 library.Songs.Remove(song);
                 await dbContext.SaveChangesAsync();
                 return true;
@@ -170,7 +136,7 @@ public static class LibraryService
 
  
     /// <summary>
-    /// Añade o elimina un álbum de la biblioteca de un usuario.
+    /// Añade o elimina un álbum de la biblioteca de un usuario (Unused by the moment).
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="addRemoveAlbum"></param>
@@ -202,7 +168,7 @@ public static class LibraryService
     }
 
     /// <summary>
-    /// Añade o elimina una playlist de la biblioteca de un usuario.
+    /// Añade o elimina una playlist de la biblioteca de un usuario (Unused by the moment).
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="addRemovePlayListDTO"></param>

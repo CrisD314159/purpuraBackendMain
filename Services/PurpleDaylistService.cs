@@ -84,11 +84,13 @@ public static class PurpleDaylistService
     try
     {
       var playlist = dbContext.Playlists!.Find(playlistId) ?? throw new EntityNotFoundException("Playlist not found");
+      Console.WriteLine(playlistId);
       if((DateTime.UtcNow.Date - playlist.LastUpdated.Date ) > TimeSpan.FromDays(1))
       {
-        playlist.LastUpdated = DateTime.UtcNow;
+        await ClearPlaylist(playlistId, dbContext);
         var recomendations =  await GetUserRecomendations(userId, dbContext);
-        playlist.Songs =recomendations;
+        playlist.Songs = recomendations;
+        playlist.LastUpdated = DateTime.UtcNow;
         await dbContext.SaveChangesAsync();
         return true;
       }
@@ -139,5 +141,24 @@ public static class PurpleDaylistService
         throw;
     }
 }
+
+
+public static async Task<bool> ClearPlaylist(string playlistId, PurpuraDbContext dbContext)
+{
+    try
+    {
+        
+        var playlist = await dbContext.Playlists!.Include(p => p.Songs).Where(p => p.Id == playlistId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
+        playlist.Songs!.Clear();
+        await dbContext.SaveChangesAsync();
+        return true;
+    }
+    catch (System.Exception e)
+    {
+        Console.WriteLine(e.Message);
+        throw;
+    }
+
+} 
 
 }

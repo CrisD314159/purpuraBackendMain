@@ -13,7 +13,7 @@ public static class ArtistService
     /// <param name="id">ID del artista.</param>
     /// <param name="dbContext">Contexto de base de datos.</param>
     /// <returns>Objeto GetArtistDTO con la información del artista.</returns>
-    public static async Task<GetArtistDTO> GetArtistById(string id, PurpuraDbContext dbContext)
+    public static async Task<GetArtistDTO> GetArtistById(string userId, string id, PurpuraDbContext dbContext)
     {
         try
         {
@@ -25,7 +25,7 @@ public static class ArtistService
                 Name = artistEntity.Name,
                 Description = artistEntity.Description ?? "",
                 ImageUrl = artistEntity.PictureUrl ?? "",
-                TopSongs = await GetTopArtistSongs(artistEntity.Id, dbContext),
+                TopSongs = await GetTopArtistSongs(userId, artistEntity.Id, dbContext),
                 Albums = dbContext.Albums != null ? dbContext.Albums.Where(al => al.ArtistId == artistEntity.Id)
                     .Where(a => a.AlbumType == 0)
                     .Select(al => new GetLibraryAlbumDTO
@@ -70,7 +70,7 @@ public static class ArtistService
                     Name = a.Name,
                     Description = a.Description ?? "",
                     ImageUrl = a.PictureUrl ?? ""
-                }).Skip(offset).Take(limit).ToListAsync() ?? [];
+                }).OrderByDescending(a=> a.Name).Skip(offset).Take(limit).ToListAsync() ?? [];
 
             return artists;
         }
@@ -158,19 +158,17 @@ public static async Task<List<GetArtistPlaysDTO>> GetMostListenArtists(int offse
 }
 
 /// <summary>
-/// Obtiene las canciones más escuchadas de un artista.
+/// Obtiene las canciones más escuchadas de un artista (No tiene endpoint dedicado).
 /// </summary>
 /// <param name="id"></param>
 /// <param name="dbContext"></param>
 /// <returns></returns>
-public static async Task<List<GetSongDTO>> GetTopArtistSongs(string id, PurpuraDbContext dbContext)
+public static async Task<List<GetSongDTO>> GetTopArtistSongs(string userId, string id, PurpuraDbContext dbContext)
 {
     try
     {
         var songsPlays = await dbContext.Songs!
             .Where(s => s.Artists!.Any(art => art.Id == id))
-            .OrderByDescending(s => dbContext.PlayHistories!.Count(ph => ph.SongId == s.Id))
-            .Take(15)
             .Select(s => new GetSongDTO
             {
                 Id = s.Id,
@@ -189,13 +187,20 @@ public static async Task<List<GetSongDTO>> GetTopArtistSongs(string id, PurpuraD
                 IsOnLibrary = false,
                 Plays = dbContext.PlayHistories!.Count(ph => ph.SongId == s.Id)
             })
+            .OrderByDescending(s => dbContext.PlayHistories!.Count(ph => ph.SongId == s.Id))
+            .Take(15)
             .ToListAsync();
+
+        foreach (var song in songsPlays)
+        {
+            song.IsOnLibrary = dbContext.Libraries!.Where (l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Any(l => l.Songs.Any(so=> so.Id == song.Id));
+            
+        }
 
         return songsPlays;
     }
-    catch (System.Exception e)
+    catch (System.Exception)
     {
-        Console.WriteLine(e.Message);
         throw;
     }
 }

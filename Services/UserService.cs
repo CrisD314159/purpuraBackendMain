@@ -25,7 +25,18 @@ public static class UserService
        try
        {
         
-        var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).Join(dbContext.Countries!, user => user.CountryId, country => country.Id, (user, country) => new GetUserDto{ Email = user.Email, FirstName = user.FirstName!, Country= country.Name, Id= user.Id, SurName = user.SurName!, ProfilePicture= user.ProfilePicture, IsVerified= user.State == UserState.ACTIVE, CountryId = country.Id }).FirstOrDefaultAsync(user => user.Id == id) ?? throw new EntityNotFoundException("User does not exist");
+        var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE && u.Id == id)
+        .Select(u => new GetUserDto
+        {
+            Id = u.Id,
+            FirstName = u.FirstName,
+            SurName = u.SurName,
+            Email = u.Email,
+            Country = u.Country!.Name,
+            ProfilePicture = u.ProfilePicture,
+            IsVerified = u.State == UserState.ACTIVE,
+            CountryId = u.Country.Id
+        } ).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
         
         return user;
        }
@@ -37,29 +48,6 @@ public static class UserService
      
     }
 
-    /// <summary>
-    /// Obtiene un usuario por su ID.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="dbContext"></param>
-    /// <returns></returns>
-    private static async Task<User> GetUser(string id, PurpuraDbContext dbContext)
-    {
-       try
-       {
-        
-        var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == id) ?? throw new EntityNotFoundException("User does not exist");
-        
-        return user;
-       }
-       catch (System.Exception)
-       {
-        
-        throw;
-       }
-     
-    }
-   
    /// <summary>
    /// Este metodo crea un usuario, su biblioteca y la playlist de recomendaciones por defecto
    /// </summary>
@@ -189,14 +177,14 @@ public static class UserService
         try
         {
             if(id == null) throw new ValidationException("Id cannot be null");
-            var user = await GetUser(id, dbContext) ?? throw new EntityNotFoundException("User does not exist");
+            var user = await dbContext.Users!.FindAsync(id) ?? throw new EntityNotFoundException("User does not exist");
             user.State = UserState.INACTIVE;
             await dbContext.SaveChangesAsync();
             return true;
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
-            throw new Exception(e.Message);
+            throw ;
         }
      
     }
@@ -218,7 +206,6 @@ public static class UserService
             if(passwordValidator.Validate(passwordDTO).IsValid == false) throw new ValidationException("Password input is not valid");
 
             var user = await dbContext.Users!.Where(u=> u.Email == passwordDTO.Email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
-            if(user.State == UserState.UNVERIFIED) throw new NotVerifiedException("User is not verified");
             if(user.VerifyCode != passwordDTO.Code) throw new ValidationException("Invalid code");
 
             PasswordManipulation passwordManipulation = new();
@@ -232,7 +219,7 @@ public static class UserService
         catch (System.Exception)
         {
             
-            throw new Exception("An error occured while updating the password");
+            throw ;
         }
      
     }
@@ -250,7 +237,6 @@ public static class UserService
         try
         {
             var user = await dbContext.Users!.Where(u=> u.Email == verifyAccountDTO.Email && u.State == UserState.UNVERIFIED).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
-            if(user.State == UserState.ACTIVE) throw new ValidationException("User is already verified");
             if(user.VerifyCode != verifyAccountDTO.Code) throw new ValidationException("Invalid code");
             user.State = UserState.ACTIVE;
             user.VerifyCode = 0;
@@ -260,7 +246,7 @@ public static class UserService
         }
         catch (System.Exception)
         {
-            throw new Exception("An error occured while trying to verify your account");
+            throw;
         }
         
     }
@@ -277,8 +263,7 @@ public static class UserService
     {
         try
         {
-           var user = await dbContext.Users!.Where(u=> u.Email == email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
-            if(user.State == UserState.UNVERIFIED) throw new NotVerifiedException("User is not verified");
+            var user = await dbContext.Users!.Where(u=> u.Email == email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
             int code = new Random().Next(1000, 9999);
             user.VerifyCode = code;
             await dbContext.SaveChangesAsync();
@@ -287,7 +272,7 @@ public static class UserService
         }
         catch (System.Exception)
         {
-            throw new Exception("An error occured while sending the verification code");
+            throw ;
         }
     }
 

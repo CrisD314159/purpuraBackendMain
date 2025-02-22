@@ -1,4 +1,6 @@
 namespace purpuraMain.Controllers;
+
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -25,11 +27,14 @@ public class AlbumController : ControllerBase
     /// <param name="id">Identificador del álbum.</param>
     /// <returns>Un objeto GetAlbumDTO con los detalles del álbum.</returns>
     [HttpGet("getAlbum/{id}")]
+    [AllowAnonymous]
     public async Task<ActionResult<GetAlbumDTO>> GetAlbumById(string id)
     {
         try
         {
-            var album = await AlbumService.GetAlbumById(id, _dbContext);
+            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if(string.IsNullOrEmpty(userId)) userId = "0";
+            var album = await AlbumService.GetAlbumById(userId, id, _dbContext);
             return Ok(album);
         }
         catch (EntityNotFoundException)
@@ -49,6 +54,7 @@ public class AlbumController : ControllerBase
     /// <param name="limit">Número máximo de álbumes a devolver.</param>
     /// <returns>Una lista de objetos GetAlbumDTO con los álbumes encontrados.</returns>
     [HttpGet("getAlbumByInput/{input}")]
+    [AllowAnonymous]
     public async Task<ActionResult<List<GetAlbumDTO>>> GetAlbumByInput(string input, int offset, int limit)
     {
         try
@@ -71,6 +77,7 @@ public class AlbumController : ControllerBase
     /// <param name="limit">Número máximo de álbumes a devolver.</param>
     /// <returns>Una lista de objetos GetAlbumDTO con los álbumes disponibles.</returns>
     [HttpGet("getAlbums")]
+    [AllowAnonymous]
     public async Task<ActionResult<List<GetAlbumDTO>>> GetAlbums(int offset, int limit)
     {
         try
@@ -94,6 +101,7 @@ public class AlbumController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet("getTopAlbums")]
+    [AllowAnonymous]
     public async Task<ActionResult<List<GetAlbumDTO>>> GetTopAlbums()
     {
         try

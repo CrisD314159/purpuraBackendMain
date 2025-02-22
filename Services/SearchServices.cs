@@ -20,8 +20,7 @@ public static class SearchServices
     {
       var results = new GetSearchDTO{
       Songs = await SongService.GetSongByInput(userId, input,0, 20, dbContext),
-      Artists = await ArtistService.GetArtistByName(input, 0, 20, dbContext),
-      Playlists = await PlaylistServices.SearchPlaylist(input, 0, 20, dbContext)
+      Artists = await ArtistService.GetArtistByName(input, 0, 20, dbContext)
     };
 
     return results;

@@ -1,5 +1,6 @@
 namespace purpuraMain.Controllers;
 
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -29,11 +30,14 @@ public class ArtistController : ControllerBase
     /// <param name="id">ID del artista.</param>
     /// <returns>El perfil del artista.</returns>
     [HttpGet("getArtistProfile/{id}")]
+    [AllowAnonymous]
     public async Task<ActionResult<GetArtistDTO>> GetArtistProfile(string id)
     {
         try
         {
-            var artist = await ArtistService.GetArtistById(id, _dbContext);
+            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if(string.IsNullOrEmpty(userId)) userId = "0";
+            var artist = await ArtistService.GetArtistById(userId, id, _dbContext);
             return Ok(artist);
         }
         catch (EntityNotFoundException)
@@ -102,11 +106,14 @@ public class ArtistController : ControllerBase
     /// <param name="id">ID del artista.</param>
     /// <returns>Lista de canciones del artista.</returns>
     [HttpGet("getArtistSongs/{id}")]
+    [AllowAnonymous]
     public async Task<ActionResult<GetArtistDTO>> GetArtistSongs(string id)
     {
         try
         {
-            var artist = await ArtistService.GetArtistById(id, _dbContext);
+            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if(string.IsNullOrEmpty(userId)) userId = "0";
+            var artist = await ArtistService.GetArtistById(userId, id, _dbContext);
             return Ok(artist);
         }
         catch (EntityNotFoundException)

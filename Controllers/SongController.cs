@@ -88,7 +88,7 @@ public class SongController : ControllerBase
     /// <param name="limit">Número máximo de registros a devolver.</param>
     /// <returns>Lista de canciones disponibles.</returns>
     [HttpGet("getSongs")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<List<GetSongDTO>>> GetSongs(int offset, int limit)
     {
         try
@@ -118,12 +118,14 @@ public class SongController : ControllerBase
     /// <param name="limit"></param>
     /// <returns></returns>
     [HttpGet("getTopSongs")]
+    [AllowAnonymous]
     public async Task<ActionResult<List<GetSongDTO>>> GetTopSongs()
     {
         try
         {
-
-            var songs = await SongService.GetTopSongs(_dbContext) 
+            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if(string.IsNullOrEmpty(userId)) userId = "0";
+            var songs = await SongService.GetTopSongs(userId, _dbContext) 
                 ?? throw new EntityNotFoundException("No found songs");
             return Ok(songs);
         }

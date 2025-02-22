@@ -16,11 +16,11 @@ public class User
 
   [MinLength(2)]
   [MaxLength(30)]
-  public string? FirstName { get; set; }
+  public required string FirstName { get; set; }
 
   [MinLength(2)]
   [MaxLength(30)]
-  public string? SurName { get; set; }
+  public required string SurName { get; set; }
 
   public DateTime CreatedAt { get; set; }
 

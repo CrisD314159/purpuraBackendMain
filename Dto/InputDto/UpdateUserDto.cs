@@ -2,9 +2,9 @@ namespace purpuraMain.Dto.InputDto;
 
 public class UpdateUserDto
 {
-    public string? FirstName { get; set; }
-    public string? SurName { get; set; }
-    public int? Country { get; set; }
+    public required string FirstName { get; set; }
+    public required string SurName { get; set; }
+    public required int Country { get; set; }
 
     
 }

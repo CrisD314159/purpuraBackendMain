@@ -80,7 +80,7 @@ public static class PlaylistServices
   }
 
   /// <summary>
-  /// Busca playlists que coincidan con el input del usuario (verifica que sean públicas).
+  /// Busca playlists que coincidan con el input del usuario (verifica que sean públicas) (Unused by the moment).
   /// </summary>
   /// <param name="input"></param>
   /// <param name="offset"></param>
@@ -150,22 +150,22 @@ public static class PlaylistServices
   {
     try
     {
-      var playlist = await dbContext.Playlists!.FindAsync(addSongDTO.PlaylistId) ?? throw new EntityNotFoundException("Playlist not found");
-      if(playlist.UserId != userId) throw new ValidationException("You are not authorized to add songs to this playlist");
+      var playlist = await dbContext.Playlists!.Include(p=> p.Songs).Where(p => p.Id == addSongDTO.PlaylistId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
+      if(playlist.UserId != userId) throw new ValidationException("You are not authorized to remove songs from this playlist");
       var song = await dbContext.Songs!.FindAsync(addSongDTO.SongId) ?? throw new EntityNotFoundException("Song not found");
+      Console.Write(playlist.Songs!.Count);
       playlist.Songs!.Remove(song);
-      await dbContext.SaveChangesAsync();
+       dbContext.SaveChanges();
       return true;
     }
     catch (System.Exception)
     {
-
       throw;
     }
   }
 
   /// <summary>
-  /// Cambia la privacidad de una playlist.
+  /// Cambia la privacidad de una playlist (Unused by now).
   /// </summary>
   /// <param name="userId"></param>
   /// <param name="changePrivacy"></param>
@@ -203,6 +203,7 @@ public static class PlaylistServices
       var playLists = await dbContext.Playlists!.Where(p => p.UserId== userId && p.Name !="Purple Day List").Select(p=> new GetUserPlayListsDTO{
         Id = p.Id,
         Name = p.Name,
+        Description = p.Description,
         IsPublic = p.IsPublic,
         ImageUrl = p.ImageUrl
       }).ToListAsync() ?? [];
@@ -271,8 +272,13 @@ public static class PlaylistServices
       if(!validator.Validate(updatePlaylistDTO).IsValid) throw new ValidationException("Invalid output");
       var playList = await dbContext.Playlists!.FindAsync(updatePlaylistDTO.Id) ?? throw new EntityNotFoundException("Playlist not found");
       if(playList.UserId != userId) throw new ValidationException("You are not authorized to update this playlist");
+      
       playList.Name = updatePlaylistDTO.Name;
       playList.Description = updatePlaylistDTO.Description;
+      if(!string.IsNullOrEmpty(updatePlaylistDTO.ImageUrl))
+      {
+        playList.ImageUrl = updatePlaylistDTO.ImageUrl;
+      }
       await dbContext.SaveChangesAsync();
       return true;
     }
@@ -309,12 +315,5 @@ public static class PlaylistServices
       throw new Exception ("An unexpected error occured");
     }
   }
-
-
-  
-
-
-
-
 
 }

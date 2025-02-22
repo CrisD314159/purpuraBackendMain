@@ -14,7 +14,7 @@ public static class AlbumService
     /// <param name="dbContext">Contexto de base de datos.</param>
     /// <returns>Objeto GetAlbumDTO con la información del álbum.</returns>
     /// <exception cref="EntityNotFoundException">Se lanza si el álbum no es encontrado.</exception>
-    public static async Task<GetAlbumDTO> GetAlbumById(string id, PurpuraDbContext dbContext)
+    public static async Task<GetAlbumDTO> GetAlbumById(string userId, string id, PurpuraDbContext dbContext)
     {
         try
         {
@@ -55,11 +55,22 @@ public static class AlbumService
                         Description = g.Description ?? ""
                     }).ToList(),
                     Lyrics = s.Lyrics ?? "",
+                    IsOnLibrary = false
                 }).ToList() : new List<GetSongDTO>(),
 
             }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Album not found");
 
-            return album;
+
+            if(album != null && album.Songs != null)
+            {
+
+                foreach (var song in album.Songs)
+                {
+                    song.IsOnLibrary = dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Any(l => l.Songs.Any(so => so.Id == song.Id));
+                }
+            }
+
+            return album ?? throw new EntityNotFoundException("Album not found");
         }
         catch (System.Exception)
         {
@@ -153,7 +164,7 @@ public static class AlbumService
                     }).ToList(),
                     Lyrics = s.Lyrics ?? "",
                 }).ToList() : new List<GetSongDTO>()
-            }).OrderByDescending(a=> a.Name).Skip(offset).Take(limit).ToListAsync() ?? [];
+            }).OrderByDescending(a=> a.ReleaseDate).Skip(offset).Take(limit).ToListAsync() ?? [];
 
             return albums;
         }
