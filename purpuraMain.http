@@ -223,6 +223,10 @@ Accept: application/json
 ### Obtener un album
 GET {{purpuraMain_HostAddress}}/album/getTopAlbums
 Accept: application/json
+
+### Obtener un album
+GET http://localhost:8080/album/getTopAlbums
+Accept: application/json
 ### Obtener un album
 GET {{purpuraMain_HostAddress}}/song/getTopSongs
 Accept: application/json
