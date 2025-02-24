@@ -13,12 +13,21 @@ WORKDIR /src
 COPY ["purpuraMain.csproj", "./"]
 RUN dotnet restore
 
-# Copiar el resto de los archivos y compilar en modo Release
+# Copiar el resto del código fuente del proyecto
 COPY . .
+
+# Compilar en modo Release
 RUN dotnet publish -c Release -o /app/publish
 
 # Imagen final con la app lista para ejecutar
 FROM base AS final
 WORKDIR /app
+
+# Copiar la publicación desde la etapa de build
 COPY --from=build /app/publish .
+
+# Copiar la carpeta templates manualmente
+COPY --from=build /src/templates /app/templates
+
+# Comando de inicio de la aplicación
 ENTRYPOINT ["dotnet", "purpuraMain.dll"]
