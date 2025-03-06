@@ -15,9 +15,9 @@ public static class ArtistService
     /// <returns>Objeto GetArtistDTO con la información del artista.</returns>
     public static async Task<GetArtistDTO> GetArtistById(string userId, string id, PurpuraDbContext dbContext)
     {
-        try
-        {
-            var artistEntity = await dbContext.Artists!.Where(a => a.Id == id).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Artist not found");
+       
+            var artistEntity = await dbContext.Artists!.Where(a => a.Id == id).FirstOrDefaultAsync() ?? 
+            throw new EntityNotFoundException(404, new {Message ="Artist not found", Success=false});
             
             var artist = new GetArtistDTO
             {
@@ -44,11 +44,7 @@ public static class ArtistService
 
 
             return artist;
-        }
-        catch (System.Exception)
-        {
-            throw;
-        }
+      
     }
 
     /// <summary>
@@ -61,8 +57,7 @@ public static class ArtistService
     /// <returns>Lista de artistas coincidentes.</returns>
     public static async Task<List<GetArtistDTO>> GetArtistByName(string name, int offset, int limit, PurpuraDbContext dbContext)
     {
-        try
-        {
+       
             var artists = await dbContext.Artists!.Where(a => a.Name.ToLower().Contains(name.ToLower()))
                 .Select(a => new GetArtistDTO
                 {
@@ -73,11 +68,7 @@ public static class ArtistService
                 }).OrderByDescending(a=> a.Name).Skip(offset).Take(limit).ToListAsync() ?? [];
 
             return artists;
-        }
-        catch (System.Exception)
-        {
-            throw;
-        }
+      
     }
 
     /// <summary>
@@ -88,8 +79,7 @@ public static class ArtistService
     /// <returns>Objeto GetArtistDTO con la lista de álbumes del artista.</returns>
     public static async Task<GetArtistDTO> GetArtistAlbums(string id, PurpuraDbContext dbContext)
     {
-        try
-        {
+       
             var artist = await dbContext.Artists!.Where(a=> a.Id == id).Select(a => new GetArtistDTO
             {
                 Id = a.Id,
@@ -107,14 +97,10 @@ public static class ArtistService
                         Description = al.Description ?? "",
                         ReleaseDate = al.ReleaseDate
                     }).Take(10).ToList() : new List<GetLibraryAlbumDTO>()
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Artist not found");
+            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Artist not found", Success=false});
 
             return artist;
-        }
-        catch (System.Exception)
-        {
-            throw;
-        }
+      
     }
 
     /// <summary>

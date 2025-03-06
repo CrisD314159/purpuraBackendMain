@@ -312,3 +312,7 @@ GET {{purpuraMain_HostAddress}}/search/input?search=daft
 GET {{purpuraMain_HostAddress}}/search/input/public?search=daft
 ### refreshToken
 
+
+### refreshToken
+GET {{purpuraMain_HostAddress}}/user/errorh
+### refreshToken

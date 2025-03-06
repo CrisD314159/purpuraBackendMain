@@ -33,21 +33,13 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-            var playList = await PlaylistServices.GetPlaylist(userId, id, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
+            var playList = await PlaylistServices.GetPlaylist(userId, id, _dbContext);
             return Ok(playList);
         }
-        catch (UnauthorizedAccessException ex)
+        catch (System.Exception)
         {
-            return Unauthorized(new { message = ex.Message, success = false });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -61,16 +53,12 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            var playList = await PlaylistServices.SearchPlaylist(input, offset, limit, _dbContext) ?? throw new EntityNotFoundException("Playlist not found");
+            var playList = await PlaylistServices.SearchPlaylist(input, offset, limit, _dbContext);
             return Ok(playList);
         }
-        catch (EntityNotFoundException ex)
+        catch (System.Exception)
         {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -81,7 +69,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
             await PlaylistServices.AddSong(userId, addSongDTO, _dbContext);
             return Ok(new { message = "Song added to playlist", success = true });
         }
@@ -98,7 +86,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
             await PlaylistServices.RemoveSong(userId, addSongDTO, _dbContext);
             return Ok(new { message = "Song removed from playlist", success = true });
         }
@@ -115,7 +103,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
             await PlaylistServices.ChangePlayListState(userId, changePrivacy, _dbContext);
             return Ok(new { message = "Playlist privacy changed", success = true });
         }
@@ -131,7 +119,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
             var playLists = await PlaylistServices.GetUserPlayLists(userId, _dbContext);
             return Ok(playLists);
         }
@@ -148,7 +136,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
             await PlaylistServices.CreatePlayList(userId, createPlayListDTO, _dbContext);
             return Created("", new { message = $"Playlist {createPlayListDTO.Name} created", success = true });
         }
@@ -165,7 +153,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
             await PlaylistServices.UpdatePlayList(userId, updatePlaylist, _dbContext);
             return Ok(new { message = "Playlist updated", success = true });
         }
@@ -182,7 +170,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
             await PlaylistServices.DeletePlayList(userId, deletePlayList, _dbContext);
             return Ok(new { message = "Playlist deleted", success = true });
         }

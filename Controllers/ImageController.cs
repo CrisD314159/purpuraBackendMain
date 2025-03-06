@@ -2,6 +2,7 @@ using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
+using purpuraMain.Exceptions;
 using purpuraMain.Services;
 
 namespace purpuraMain.Controllers;
@@ -55,9 +56,9 @@ public class ImageController : ControllerBase
 
             return Ok(new { success = true, message = "Image uploaded successfully.", url = imageUrl });
         }
-        catch (System.Exception)
+          catch (System.Exception)
         {
-            return StatusCode(500, new { success = false, message = "An unexpected error occurred." });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 }

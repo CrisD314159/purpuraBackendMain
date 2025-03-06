@@ -35,13 +35,9 @@ public class GenreController : ControllerBase
             var topSongs = await GenreService.GetTopSongsByGenre(id, _dbContext);
             return Ok(topSongs);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Genre not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -55,13 +51,9 @@ public class GenreController : ControllerBase
             var genres = await GenreService.GetAllGenres(_dbContext);
             return Ok(genres);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Genres not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -76,13 +68,9 @@ public class GenreController : ControllerBase
             var genre = await GenreService.GetGenreById(id, _dbContext);
             return Ok(genre);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Genre not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 }

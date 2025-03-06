@@ -34,22 +34,13 @@ public class SongController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-            GetSongDTO song = await SongService.GetSongById(userId, id, _dbContext) 
-                ?? throw new EntityNotFoundException("Song not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
+            GetSongDTO song = await SongService.GetSongById(userId, id, _dbContext);
             return Ok(song);
         }
-        catch(UnauthorizedAccessException ex)
+        catch (System.Exception)
         {
-            return Unauthorized(new { message = ex.Message, success = false });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -68,18 +59,14 @@ public class SongController : ControllerBase
             {
                 return BadRequest("Invalid offset or limit");
             }
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-            var songs = await SongService.GetSongByInput(userId, input, offset, limit, _dbContext) 
-                ?? throw new EntityNotFoundException("Song not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? 
+            throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
+            var songs = await SongService.GetSongByInput(userId, input, offset, limit, _dbContext);
             return Ok(songs);
         }
-        catch (EntityNotFoundException ex)
+        catch (System.Exception)
         {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -98,17 +85,12 @@ public class SongController : ControllerBase
                 return BadRequest("Invalid offset or limit");
             }
 
-            var songs = await SongService.GetAllSongs(offset, limit, _dbContext) 
-                ?? throw new EntityNotFoundException("Song not found");
+            var songs = await SongService.GetAllSongs(offset, limit, _dbContext);
             return Ok(songs);
         }
-        catch (EntityNotFoundException ex)
+        catch (System.Exception)
         {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
     /// <summary>
@@ -125,17 +107,12 @@ public class SongController : ControllerBase
         {
             var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if(string.IsNullOrEmpty(userId)) userId = "0";
-            var songs = await SongService.GetTopSongs(userId, _dbContext) 
-                ?? throw new EntityNotFoundException("No found songs");
+            var songs = await SongService.GetTopSongs(userId, _dbContext);
             return Ok(songs);
         }
-        catch (EntityNotFoundException ex)
+        catch (System.Exception)
         {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -154,13 +131,9 @@ public class SongController : ControllerBase
             var songs = await SongService.AddSongPlay(userId, addPlayDTO.SongId, _dbContext);
             return Ok(songs);
         }
-        catch (UnauthorizedAccessException ex)
+        catch (System.Exception)
         {
-            return Unauthorized(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 }

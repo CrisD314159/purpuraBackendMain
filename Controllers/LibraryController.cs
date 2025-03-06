@@ -32,21 +32,13 @@ public class LibraryController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-            GetLibraryDTO library = await LibraryService.GetLibraryById(userId, _dbcontext) ?? throw new EntityNotFoundException("Library not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401, new {Message ="You're not authorized to perform this action"});
+            GetLibraryDTO library = await LibraryService.GetLibraryById(userId, _dbcontext);
             return Ok(library);
         }
-        catch (UnauthorizedAccessException ex)
+        catch (System.Exception)
         {
-            return Unauthorized(ex.Message);
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (System.Exception e)
-        {
-            return BadRequest(e.Message);
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -64,21 +56,13 @@ public class LibraryController : ControllerBase
                 return BadRequest("Invalid offset or limit");
             }
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-            var songs = await LibraryService.GetUserSongs(userId, offset, limit, _dbcontext) ?? throw new EntityNotFoundException("Library not found");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401, new {Message = "You're not authorized to perform this action", Success = false});
+            var songs = await LibraryService.GetUserSongs(userId, offset, limit, _dbcontext);
             return Ok(songs);
         }
-        catch (UnauthorizedAccessException ex)
+         catch (System.Exception)
         {
-            return Unauthorized(new { message = ex.Message, success = false });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (System.Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -121,17 +105,9 @@ public class LibraryController : ControllerBase
             await serviceMethod(userId, dto, _dbcontext);
             return Ok(new { success = true, message = successMessage });
         }
-        catch (UnauthorizedAccessException ex)
+        catch (System.Exception)
         {
-            return Unauthorized(new { message = ex.Message, success = false });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (System.Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 }

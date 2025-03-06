@@ -38,17 +38,9 @@ public class UserController : ControllerBase
             var user = await UserService.GetUserById(userId, _dbContext);
             return Ok(user);
         }
-        catch (ValidationException val)
+        catch (System.Exception)
         {
-            return BadRequest(new { success = false, message = val.Message });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new { success = false, message = ex.Message });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { success = false, message = e.Message });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -62,17 +54,9 @@ public class UserController : ControllerBase
             await UserService.CreateUser(user, _dbContext);
             return CreatedAtAction("GetUser", new { success = true, message = "User created successfully" });
         }
-        catch (ValidationException val)
+        catch (System.Exception)
         {
-            return BadRequest(new { success = false, message = val.Message });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return BadRequest(new { success = false, message = ex.Message });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { success = false, message = e.Message });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -89,21 +73,9 @@ public class UserController : ControllerBase
             await UserService.UpdateUser(userId, user, _dbContext);
             return Ok("User updated successfully");
         }
-        catch (UnauthorizedAccessException ex)
+        catch (System.Exception)
         {
-            return Unauthorized(ex.Message);
-        }
-        catch (ValidationException val)
-        {
-            return BadRequest(new { success = false, message = val.Message });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return BadRequest(new { success = false, message = ex.Message });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { success = false, message = e.Message });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -120,17 +92,9 @@ public class UserController : ControllerBase
             await UserService.DeleteUser(userId, _dbContext);
             return Ok("User deleted successfully");
         }
-        catch (UnauthorizedAccessException ex)
+        catch (System.Exception)
         {
-            return Unauthorized(new { message = ex.Message, success = false });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return BadRequest(new { success = false, message = ex.Message });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { success = false, message = e.Message });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -148,17 +112,9 @@ public class UserController : ControllerBase
             await UserService.VerifyAccount(verifyAccount, _dbContext);
             return Ok("Account verified successfully");
         }
-        catch (ValidationException val)
+        catch (System.Exception)
         {
-            return BadRequest(new { success = false, message = val.Message });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { success = false, message = e.Message });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -176,17 +132,9 @@ public class UserController : ControllerBase
             await UserService.SendPasswordRecoveryCode(sendRecoverEmail.Email, _dbContext);
             return Ok("Recover email sent successfully");
         }
-        catch (NotVerifiedException val)
+        catch (System.Exception)
         {
-            return BadRequest(new { success = false, message = val.Message });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { success = false, message = e.Message });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -203,17 +151,9 @@ public class UserController : ControllerBase
             await UserService.UpdateUserPassword(changePassword, _dbContext);
             return Ok("Password changed successfully");
         }
-        catch (ValidationException val)
+        catch (System.Exception)
         {
-            return BadRequest(new { success = false, message = val.Message });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { success = false, message = e.Message });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
+using purpuraMain.Exceptions;
 using purpuraMain.Services;
 
 namespace purpuraMain.Controllers;
@@ -24,9 +25,9 @@ public class CountryController : ControllerBase
             var countries = await CountryService.GetCountries(_dbContext);
             return Ok(countries);
         }
-        catch (System.Exception)
+          catch (System.Exception)
         {
-            return BadRequest(new {message="An unexpected error occured", success=false});
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 }

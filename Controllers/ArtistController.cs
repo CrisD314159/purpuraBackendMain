@@ -40,13 +40,9 @@ public class ArtistController : ControllerBase
             var artist = await ArtistService.GetArtistById(userId, id, _dbContext);
             return Ok(artist);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Artist Not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -69,13 +65,9 @@ public class ArtistController : ControllerBase
             var artist = await ArtistService.GetArtistByName(name, offset, limit, _dbContext);
             return Ok(artist);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Artists Not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -91,13 +83,9 @@ public class ArtistController : ControllerBase
             var artist = await ArtistService.GetArtistAlbums(id, _dbContext);
             return Ok(artist);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Artist Not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -116,13 +104,9 @@ public class ArtistController : ControllerBase
             var artist = await ArtistService.GetArtistById(userId, id, _dbContext);
             return Ok(artist);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Artist Not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -143,13 +127,9 @@ public class ArtistController : ControllerBase
             var artists = await ArtistService.GetMostListenArtists(offset, limit, _dbContext);
             return Ok(artists);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Artists Not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -171,13 +151,9 @@ public class ArtistController : ControllerBase
             var artists = await ArtistService.GetMostListenArtists(offset, limit, _dbContext);
             return Ok(artists);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Artists Not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 }

@@ -37,13 +37,9 @@ public class AlbumController : ControllerBase
             var album = await AlbumService.GetAlbumById(userId, id, _dbContext);
             return Ok(album);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Album Not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -62,13 +58,9 @@ public class AlbumController : ControllerBase
             var albums = await AlbumService.GetAlbumByInput(input, offset, limit, _dbContext);
             return Ok(albums);
         }
-        catch (EntityNotFoundException)
+         catch (System.Exception)
         {
-            return NotFound(new { message = "Album Not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -86,13 +78,9 @@ public class AlbumController : ControllerBase
             var albums = await AlbumService.GetAllAlbums(offset, limit, _dbContext);
             return Ok(albums);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Albums Not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -109,13 +97,9 @@ public class AlbumController : ControllerBase
             var albums = await AlbumService.GetTopAlbums(_dbContext);
             return Ok(albums);
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Albums Not found", success = false });
-        }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 }

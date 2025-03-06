@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
+using purpuraMain.Exceptions;
 using purpuraMain.Services;
 
 [ApiController]
@@ -25,18 +26,15 @@ public class SearchController : ControllerBase
     try
     {
       if(string.IsNullOrEmpty(search)) throw new Exception("Search is required");
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+      throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
       var results = await SearchServices.GetSearch(userId, search, _dbcontext);
       return Ok(results);
     }
-    catch(UnauthorizedAccessException e){
-      return Unauthorized(new {message = e.Message, success = false});
-    }
-    catch (System.Exception)
-    {
-      
-      return BadRequest(new {message ="An error occured while searching the data", success = false});
-    }
+        catch (System.Exception)
+        {
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
+        }
 
   }
   [HttpGet("input/public")]
@@ -48,14 +46,10 @@ public class SearchController : ControllerBase
       var results = await SearchServices.GetSearch("0", search, _dbcontext);
       return Ok(results);
     }
-    catch(UnauthorizedAccessException e){
-      return Unauthorized(new {message = e.Message, success = false});
-    }
-    catch (System.Exception)
-    {
-      
-      return BadRequest(new {message ="An error occured while searching the data", success = false});
-    }
+        catch (System.Exception)
+        {
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
+        }
 
   }
 

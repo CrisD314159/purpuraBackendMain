@@ -22,8 +22,7 @@ public static class UserService
     /// <returns></returns>
     public static async Task<GetUserDto> GetUserById(string id, PurpuraDbContext dbContext)
     {
-       try
-       {
+
         
         var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE && u.Id == id)
         .Select(u => new GetUserDto
@@ -36,15 +35,10 @@ public static class UserService
             ProfilePicture = u.ProfilePicture,
             IsVerified = u.State == UserState.ACTIVE,
             CountryId = u.Country.Id
-        } ).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
+        } ).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
         
         return user;
-       }
-       catch (System.Exception)
-       {
-        
-        throw ;
-       }
+       
      
     }
 
@@ -57,8 +51,7 @@ public static class UserService
     public static async Task<bool> CreateUser(CreateUserDTO user, PurpuraDbContext dbContext)
     {
         var transaction = await dbContext.Database.BeginTransactionAsync();
-        try
-        {
+   
             UserValidator validator = new ();
             ValidationResult result = validator.Validate(user);
             if (!result.IsValid) throw new ValidationException("User input is not valid");
@@ -123,12 +116,6 @@ public static class UserService
 
 
             return true;
-        }
-        catch (System.Exception)
-        {
-            transaction.Rollback();
-            throw;
-        }
     }
 
 
@@ -142,13 +129,12 @@ public static class UserService
     public static async Task<bool> UpdateUser(string userId, UpdateUserDto user, PurpuraDbContext dbContext)
     {
 
-        try
-        {
+   
             UserUpdateValidator validator = new();
             if(validator.Validate(user).IsValid == false) throw new ValidationException("User input is not valid");
-            var userToUpdate = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == userId) ?? throw new EntityNotFoundException("User does not exist");
+            var userToUpdate = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == userId) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
             if(userToUpdate.State == UserState.UNVERIFIED) throw new ValidationException("User is not verified");
-            var country = await dbContext.Countries!.FindAsync(user.Country) ?? throw new EntityNotFoundException("Country  not found");
+            var country = await dbContext.Countries!.FindAsync(user.Country) ?? throw new EntityNotFoundException(404, new {Message = "Country not found", Success = false});
       
             userToUpdate.FirstName = user.FirstName;
             userToUpdate.SurName = user.SurName;
@@ -156,11 +142,6 @@ public static class UserService
             await dbContext.SaveChangesAsync();
 
             return true;
-        }
-        catch (System.Exception)
-        {
-            throw ;
-        }
    
     }
 
@@ -174,18 +155,12 @@ public static class UserService
     /// <exception cref="Exception"></exception>
     public static async Task<bool> DeleteUser(string id, PurpuraDbContext dbContext)
     {
-        try
-        {
+   
             if(id == null) throw new ValidationException("Id cannot be null");
-            var user = await dbContext.Users!.FindAsync(id) ?? throw new EntityNotFoundException("User does not exist");
+            var user = await dbContext.Users!.FindAsync(id) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
             user.State = UserState.INACTIVE;
             await dbContext.SaveChangesAsync();
             return true;
-        }
-        catch (System.Exception)
-        {
-            throw ;
-        }
      
     }
 
@@ -200,12 +175,11 @@ public static class UserService
     public static async Task<bool> UpdateUserPassword(PasswordChangeDTO passwordDTO, PurpuraDbContext dbContext)
     {
 
-        try
-        {
+   
             var passwordValidator = new PasswordValidation();
             if(passwordValidator.Validate(passwordDTO).IsValid == false) throw new ValidationException("Password input is not valid");
 
-            var user = await dbContext.Users!.Where(u=> u.Email == passwordDTO.Email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
+            var user = await dbContext.Users!.Where(u=> u.Email == passwordDTO.Email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
             if(user.VerifyCode != passwordDTO.Code) throw new ValidationException("Invalid code");
 
             PasswordManipulation passwordManipulation = new();
@@ -215,12 +189,6 @@ public static class UserService
             await MailService.SendPasswordChangeMail(passwordDTO.Email!, user.FirstName!);
             await dbContext.SaveChangesAsync();
             return true;
-        }
-        catch (System.Exception)
-        {
-            
-            throw ;
-        }
      
     }
 
@@ -234,20 +202,14 @@ public static class UserService
     public static async Task<bool> VerifyAccount(VerifyAccountDTO verifyAccountDTO, PurpuraDbContext dbContext)
     {
 
-        try
-        {
-            var user = await dbContext.Users!.Where(u=> u.Email == verifyAccountDTO.Email && u.State == UserState.UNVERIFIED).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
+   
+            var user = await dbContext.Users!.Where(u=> u.Email == verifyAccountDTO.Email && u.State == UserState.UNVERIFIED).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
             if(user.VerifyCode != verifyAccountDTO.Code) throw new ValidationException("Invalid code");
             user.State = UserState.ACTIVE;
             user.VerifyCode = 0;
             await dbContext.SaveChangesAsync();
             await MailService.SendVerifiedAccountMail(verifyAccountDTO.Email!, user.FirstName!);
             return true;
-        }
-        catch (System.Exception)
-        {
-            throw;
-        }
         
     }
 
@@ -261,19 +223,13 @@ public static class UserService
     /// <exception cref="Exception"></exception>
     public static async Task<bool> SendPasswordRecoveryCode(string email, PurpuraDbContext dbContext)
     {
-        try
-        {
-            var user = await dbContext.Users!.Where(u=> u.Email == email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User does not exist");
+   
+            var user = await dbContext.Users!.Where(u=> u.Email == email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
             int code = new Random().Next(1000, 9999);
             user.VerifyCode = code;
             await dbContext.SaveChangesAsync();
             await MailService.SendPasswordRecoveryCodeEmail(email, code.ToString(), user.FirstName!);
             return true;
-        }
-        catch (System.Exception)
-        {
-            throw ;
-        }
     }
 
 

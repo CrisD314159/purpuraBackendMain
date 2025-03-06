@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using purpuraMain.Exceptions.ExceptionFilter;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,18 @@ builder.Services.AddDbContextPool<PurpuraDbContext>(opt =>
 
 // Agrega controladores a la aplicación.
 builder.Services.AddControllers();
+
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<HttpResponseExceptionFilter>();
+    options.Filters.Add<BadRequestExceptionFilter>();
+    options.Filters.Add<EntityNotFoundExceptionFilter>();
+    options.Filters.Add<NotVerifiedExceptionFilter>();
+    options.Filters.Add<NullFieldExceptionFilter>();
+    options.Filters.Add<SessionExpiredExceptionFilter>();
+    options.Filters.Add<UnauthorizedExceptionFilter>();
+
+});
 
 // Agregar OpenAPI (Swagger)
 builder.Services.AddEndpointsApiExplorer();
@@ -96,6 +109,14 @@ if (app.Environment.IsDevelopment())
 
 // Fuerza el uso de HTTPS.
 app.UseHttpsRedirection();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/error");
+}else
+{
+    app.UseExceptionHandler("/error-development");
+}
 
 // Habilita autenticación y autorización.
 app.UseAuthentication();

@@ -14,8 +14,7 @@ public static class GenreService
     /// <returns>Objeto GetGenreDTO con la información del género y sus canciones más populares.</returns>
     public static async Task<GetGenreDTO> GetTopSongsByGenre(string id, PurpuraDbContext dbContext)
     {
-        try
-        {
+      
             var songs = await dbContext.Genres!.Where(g => g.Id == id).Select(g=> new GetGenreDTO
             {
                  Id = g.Id,
@@ -48,15 +47,10 @@ public static class GenreService
                         Plays = dbContext.PlayHistories!.Where(pl => pl.SongId == s.Id).Count()
                         
                     }).OrderBy(s => s.Plays).ToList()
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Genre not found");
+            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Genre not found", Success=false});
             
             return songs;
-        }
-        catch (System.Exception)
-        {
-            
-            throw;
-        }
+
         
     }
 
@@ -68,8 +62,7 @@ public static class GenreService
      public static async Task<List<GetGenreDTO>> GetAllGenres(PurpuraDbContext dbContext)
     {
 
-        try
-        {
+      
             var genres = await dbContext.Genres!.Select(g => new GetGenreDTO
             {
                 Id = g.Id,
@@ -79,35 +72,24 @@ public static class GenreService
             }).ToListAsync() ?? [];
 
             return genres;
-        }
-        catch (System.Exception)
-        {
-            
-            throw;
-        }
+
         
     }
     
      public static async Task<GetGenreDTO> GetGenreById(string id, PurpuraDbContext dbContext)
     {
 
-        try
-        {
+      
             var genres = await dbContext.Genres!.Where(g => g.Id == id).Select(g => new GetGenreDTO
             {
                 Id = g.Id,
                 Name = g.Name,
                 Description = g.Description ?? "",
                 Color = g.Color
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Genre not found");
+            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Genre not found", Success=false});
 
             return genres;
-        }
-        catch (System.Exception)
-        {
-            
-            throw;
-        }
+
         
     }
 }

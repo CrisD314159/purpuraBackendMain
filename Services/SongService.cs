@@ -17,8 +17,7 @@ public static class SongService
     /// <returns></returns>
     public static async Task<GetSongDTO> GetSongById(string userId, string id, PurpuraDbContext dbContext)
     {
-        try
-        {
+
             var isOnLibrary = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).AnyAsync(l => l.Songs.Any(s=> s.Id == id));
             var song = await dbContext.Songs!.Where(s => s.Id == id).Select(s => new GetSongDTO{
                 Id = s.Id,
@@ -45,15 +44,10 @@ public static class SongService
                 IsOnLibrary = isOnLibrary,
 
 
-            }).FirstAsync() ?? throw new EntityNotFoundException("Song not found");
+            }).FirstAsync() ?? throw new EntityNotFoundException(404, new {Message = "Song not found", Success = false});
 
             return song;
-        }
-        catch (System.Exception)
-        {
-            
-            throw;
-        }
+     
         
     }
 
@@ -68,8 +62,7 @@ public static class SongService
     /// <returns></returns>
     public static async Task<List<GetSongDTO>> GetSongByInput(string userId, string input, int offset, int limit, PurpuraDbContext dbContext)
     {
-        try
-        {
+
             string inputLower = input.ToLower();
             var songs = await dbContext.Songs!.Where(s => s.Name.ToLower().Contains(inputLower) || s.Artists!.Any(a=>a.Name.ToLower().Contains(inputLower)) || s.Album!.Name.ToLower().Contains(inputLower)).Select(s => new GetSongDTO{
                 Id = s.Id,
@@ -91,7 +84,7 @@ public static class SongService
                 Lyrics = s.Lyrics ?? "",
                 IsOnLibrary = false,
 
-            }).Skip(offset).Take(limit).ToListAsync() ?? throw new EntityNotFoundException("There are no songs that match the search");
+            }).Skip(offset).Take(limit).ToListAsync() ?? throw new EntityNotFoundException(404, new {Message = "There are no sogs that match the searc", Success = false});
 
             foreach (var song in songs)
             {
@@ -99,12 +92,7 @@ public static class SongService
             }
 
             return songs;
-        }
-        catch (System.Exception)
-        {
-            
-            throw;
-        }
+     
         
     }
 
@@ -117,8 +105,7 @@ public static class SongService
     /// <returns></returns>
     public static async Task<List<GetSongDTO>> GetAllSongs (int offset, int limit, PurpuraDbContext dbContext)
     {
-        try
-        {
+
             var songs = await dbContext.Songs!.Select(s=> new GetSongDTO{
                 Id = s.Id,
                 Name = s.Name,
@@ -140,12 +127,7 @@ public static class SongService
             }).Skip(offset).Take(limit).ToListAsync() ?? [];
 
             return songs;
-        }
-        catch (System.Exception)
-        {
-            
-            throw;
-        }
+     
     }
 
 
@@ -156,8 +138,7 @@ public static class SongService
     /// <returns></returns>
     public static async Task<List<GetSongDTO>> GetTopSongs(string userId, PurpuraDbContext dbContext)
     {
-        try
-        {
+
             var songs = await dbContext.Songs!.Select(s => new GetSongDTO
             {
                 Id = s.Id,
@@ -191,12 +172,7 @@ public static class SongService
             }
 
             return songs;
-        }
-        catch (System.Exception)
-        {
-            
-            throw;
-        }
+     
     }
 
     /// <summary>
@@ -208,10 +184,9 @@ public static class SongService
     /// <returns></returns>
     public static async Task<bool> AddSongPlay(string userId, string songId, PurpuraDbContext dbContext )
     {
-        try
-        {
-            var song = await dbContext.Songs!.FindAsync(songId) ?? throw new EntityNotFoundException("Song not found");
-            var user = await dbContext.Users!.FindAsync(userId) ?? throw new EntityNotFoundException("User not found");
+
+            var song = await dbContext.Songs!.FindAsync(songId) ?? throw new EntityNotFoundException(404, new {Message = "Song not found", Success = false});
+            var user = await dbContext.Users!.FindAsync(userId) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
 
             var playHistory = new PlayHistory
             {
@@ -225,12 +200,7 @@ public static class SongService
             await dbContext.SaveChangesAsync();
 
             return true;
-        }
-        catch (System.Exception)
-        {
-            
-            throw;
-        }
+     
     }
  
 }

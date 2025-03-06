@@ -16,8 +16,7 @@ public static class AlbumService
     /// <exception cref="EntityNotFoundException">Se lanza si el álbum no es encontrado.</exception>
     public static async Task<GetAlbumDTO> GetAlbumById(string userId, string id, PurpuraDbContext dbContext)
     {
-        try
-        {
+       
             var album = await dbContext.Albums!.Where(a => a.Id == id).Select(a => new GetAlbumDTO
             {
                 ArtistId = a.ArtistId,
@@ -58,7 +57,7 @@ public static class AlbumService
                     IsOnLibrary = false
                 }).ToList() : new List<GetSongDTO>(),
 
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Album not found");
+            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Album not found", Success=false});
 
 
             if(album != null && album.Songs != null)
@@ -70,12 +69,8 @@ public static class AlbumService
                 }
             }
 
-            return album ?? throw new EntityNotFoundException("Album not found");
-        }
-        catch (System.Exception)
-        {
-            throw;
-        }
+            return album ?? throw new EntityNotFoundException(404, new {Message ="Album not found", Success=false});
+      
     }
 
     /// <summary>
@@ -88,8 +83,7 @@ public static class AlbumService
     /// <returns>Lista de álbumes que coinciden con la búsqueda.</returns>
     public static async Task<List<GetAlbumDTO>> GetAlbumByInput(string input, int offset, int limit, PurpuraDbContext dbContext)
     {
-        try
-        {
+       
             var album = await dbContext.Albums!.Where(a => a.Name.ToLower().Contains(input.ToLower()) || a.Artist.Name.ToLower().Contains(input.ToLower())).Select(a => new GetAlbumDTO
             {
                 ArtistId = a.ArtistId,
@@ -108,11 +102,7 @@ public static class AlbumService
             }).Skip(offset).Take(limit).ToListAsync() ?? [];
 
             return album;
-        }
-        catch (System.Exception)
-        {
-            throw;
-        }
+      
     }
 
     /// <summary>
@@ -124,8 +114,7 @@ public static class AlbumService
     /// <returns>Lista de álbumes.</returns>
     public static async Task<List<GetAlbumDTO>> GetAllAlbums(int offset, int limit, PurpuraDbContext dbContext)
     {
-        try
-        {
+       
             var albums = await dbContext.Albums!.Where(a => a.AlbumType == 0).Select(a => new GetAlbumDTO
             {
                 ArtistId = a.ArtistId,
@@ -167,11 +156,7 @@ public static class AlbumService
             }).OrderByDescending(a=> a.ReleaseDate).Skip(offset).Take(limit).ToListAsync() ?? [];
 
             return albums;
-        }
-        catch (System.Exception)
-        {
-            throw;
-        }
+      
     }
 
     /// <summary>
@@ -181,8 +166,7 @@ public static class AlbumService
     /// <returns></returns>
     public static async Task<List<GetAlbumDTO>> GetTopAlbums(PurpuraDbContext dbContext)
     {
-        try
-        {
+       
             var albums = await dbContext.Albums!.Where(a => a.AlbumType == 0).Select(a => new GetAlbumDTO
             {
                 Id = a.Id,
@@ -196,12 +180,7 @@ public static class AlbumService
 
             return albums;
             
-        }
-        catch (System.Exception)
-        {
-            
-            throw;
-        }
+        
     }
 
 }

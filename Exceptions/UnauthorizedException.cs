@@ -1,7 +1,9 @@
 namespace purpuraMain.Exceptions;
-public class NullFieldException : Exception
+
+
+public class UnauthorizedException : Exception
 {
-  public NullFieldException(int statusCode, object? value = null) =>
+  public UnauthorizedException(int statusCode, object? value = null) =>
     (Value, StatusCode) = (value, statusCode);
 
 

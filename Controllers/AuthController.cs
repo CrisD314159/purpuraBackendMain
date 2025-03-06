@@ -39,22 +39,14 @@ public class AuthController : ControllerBase
         try
         {
             if (login.Email == null || login.Password == null)
-                throw new BadRequestException("Email or password cannot be null");
+                throw new BadRequestException(400, new {Message = "Email or password cannot be null", Success = false});
 
             var response = await AuthServices.LoginRequest(login.Email, login.Password, _dbContext, _config);
             return Ok(response);
         }
-        catch (NotVerifiedException ex)
-        {
-            return Unauthorized(new {message = ex.Message, success = false}); // Usuario no ha verificado su cuenta
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new {message = ex.Message, success = false});
-        }
         catch (System.Exception)
         {
-            return BadRequest(new {message = "An unexpected error occurred", success = false});
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -67,28 +59,16 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new SessionExpiredException("Invalid token");
-            var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new SessionExpiredException("Invalid token");
-            var email = User.FindFirst(ClaimTypes.Email)?.Value ?? throw new BadRequestException("Invalid token");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
+            var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
+            var email = User.FindFirst(ClaimTypes.Email)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
 
             var token = await AuthServices.RefreshTokenRequest(userId, sessionId, email, _dbContext, _config);
             return Ok(new { success = true, token = token.Token, refreshToken = token.RefreshToken });
         }
-        catch (SessionExpiredException ex)
-        {
-            return Unauthorized(new {message = ex.Message, success = false});
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new {message = ex.Message, success = false});
-        }
-        catch (BadRequestException ex)
-        {
-            return BadRequest(new {message = ex.Message, success = false});
-        }
         catch (System.Exception)
         {
-            return BadRequest(new {message = "An unexpected error occurred", success = false});
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -101,30 +81,18 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new SessionExpiredException("Invalid token");
-            var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new SessionExpiredException("Invalid token");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
+            var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
 
             var response = await AuthServices.LogoutRequest(userId, sessionId, _dbContext);
             if (!response)
-                throw new BadRequestException("An error occurred while logging out");
+                throw new HttpResponseException(500, new{Message = "An error occurred while logging out", Success = false});
 
             return Ok("Logged out successfully");
         }
-        catch (SessionExpiredException ex)
-        {
-            return Unauthorized(new {message = ex.Message, success = false});
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new {message = ex.Message, success = false});
-        }
-        catch (BadRequestException ex)
-        {
-            return BadRequest(new {message = ex.Message, success = false});
-        }
         catch (System.Exception)
         {
-            return BadRequest(new {message = "An unexpected error occurred", success = false});
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 
@@ -137,16 +105,12 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new SessionExpiredException("Invalid token");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
             return Ok(new { success = true, message = "Token is valid" });
-        }
-        catch (SessionExpiredException ex)
-        {
-            return Unauthorized(new { message = ex.Message, success = false });
         }
         catch (System.Exception)
         {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
+            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
         }
     }
 }
