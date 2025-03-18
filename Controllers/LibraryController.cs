@@ -6,6 +6,7 @@ using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 namespace purpuraMain.Controllers;
 
@@ -16,13 +17,13 @@ namespace purpuraMain.Controllers;
 [Authorize]
 public class LibraryController : ControllerBase
 {
-    private readonly PurpuraDbContext _dbcontext;
+    private readonly ILibraryService _libraryService;
 
     /// Constructor del controlador de biblioteca.
     /// <param name="dbcontext">Contexto de la base de datos.</param>
-    public LibraryController(PurpuraDbContext dbcontext)
+    public LibraryController(ILibraryService libraryService)
     {
-        _dbcontext = dbcontext ?? throw new ArgumentNullException(nameof(dbcontext));
+        _libraryService = libraryService;
     }
 
     /// Obtiene la biblioteca del usuario autenticado.
@@ -33,7 +34,7 @@ public class LibraryController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401, new {Message ="You're not authorized to perform this action"});
-            GetLibraryDTO library = await LibraryService.GetLibraryById(userId, _dbcontext);
+            GetLibraryDTO library = await _libraryService.GetLibraryById(userId);
             return Ok(library);
         }
         catch (System.Exception)
@@ -57,7 +58,7 @@ public class LibraryController : ControllerBase
             }
 
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401, new {Message = "You're not authorized to perform this action", Success = false});
-            var songs = await LibraryService.GetUserSongs(userId, offset, limit, _dbcontext);
+            var songs = await _libraryService.GetUserSongs(userId, offset, limit);
             return Ok(songs);
         }
          catch (System.Exception)
@@ -70,14 +71,14 @@ public class LibraryController : ControllerBase
     [HttpPut("addSong")]
     public async Task<ActionResult> AddSong(AddRemoveSongLibraryDTO addSong)
     {
-        return await ModifyLibrary(addSong, LibraryService.AddSongToLibrary, "Song added to library");
+        return await ModifyLibrary(addSong, _libraryService.AddSongToLibrary, "Song added to library");
     }
 
     /// Agrega o elimina una playlist a la biblioteca del usuario.
     [HttpPut("addPlaylist")]
     public async Task<ActionResult> AddPlaylist(AddRemovePlayListDTO addPlaylist)
     {
-        return await ModifyLibrary(addPlaylist, LibraryService.AddPlayListToLibrary, "Playlist added to library");
+        return await ModifyLibrary(addPlaylist, _libraryService.AddPlayListToLibrary, "Playlist added to library");
     }
 
 
@@ -86,23 +87,23 @@ public class LibraryController : ControllerBase
     [HttpPut("addAlbum")]
     public async Task<ActionResult> AddAlbum(AddRemoveAlbumLibraryDTO addAlbum)
     {
-        return await ModifyLibrary(addAlbum, LibraryService.AddAlbumToLibrary, "Album added to library");
+        return await ModifyLibrary(addAlbum, _libraryService.AddAlbumToLibrary, "Album added to library");
     }
 
     /// Elimina un álbum de la biblioteca del usuario.
     [HttpPut("removeAlbum")]
     public async Task<ActionResult> RemoveAlbum(AddRemoveAlbumLibraryDTO removeAlbum)
     {
-        return await ModifyLibrary(removeAlbum, LibraryService.AddAlbumToLibrary, "Album removed from library");
+        return await ModifyLibrary(removeAlbum, _libraryService.AddAlbumToLibrary, "Album removed from library");
     }
 
     /// Método genérico para agregar o eliminar elementos de la biblioteca.
-    private async Task<ActionResult> ModifyLibrary<T>(T dto, Func<string, T, PurpuraDbContext, Task> serviceMethod, string successMessage)
+    private async Task<ActionResult> ModifyLibrary<T>(T dto, Func<string, T, Task> serviceMethod, string successMessage)
     {
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-            await serviceMethod(userId, dto, _dbcontext);
+            await serviceMethod(userId, dto);
             return Ok(new { success = true, message = successMessage });
         }
         catch (System.Exception)

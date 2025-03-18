@@ -6,6 +6,7 @@ using purpuraMain.Dto.InputDto;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 namespace purpuraMain.Controllers;
 
@@ -15,14 +16,14 @@ namespace purpuraMain.Controllers;
 [Route("[controller]")]
 public class SongController : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
+    private readonly ISongService _songService;
 
     /// Constructor del controlador de canciones.
     /// <param name="dbContext">Contexto de base de datos de la aplicación.</param>
     /// <exception cref="ArgumentNullException">Se lanza si el contexto de la base de datos es nulo.</exception>
-    public SongController(PurpuraDbContext dbContext)
+    public SongController(ISongService ISongService)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _songService = ISongService;
     }
 
     /// Obtiene una canción por su identificador.
@@ -35,7 +36,7 @@ public class SongController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            GetSongDTO song = await SongService.GetSongById(userId, id, _dbContext);
+            GetSongDTO song = await _songService.GetSongById(userId, id);
             return Ok(song);
         }
         catch (System.Exception)
@@ -61,7 +62,7 @@ public class SongController : ControllerBase
             }
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? 
             throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            var songs = await SongService.GetSongByInput(userId, input, offset, limit, _dbContext);
+            var songs = await _songService.GetSongByInput(userId, input, offset, limit);
             return Ok(songs);
         }
         catch (System.Exception)
@@ -85,7 +86,7 @@ public class SongController : ControllerBase
                 return BadRequest("Invalid offset or limit");
             }
 
-            var songs = await SongService.GetAllSongs(offset, limit, _dbContext);
+            var songs = await _songService.GetAllSongs(offset, limit);
             return Ok(songs);
         }
         catch (System.Exception)
@@ -107,7 +108,7 @@ public class SongController : ControllerBase
         {
             var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if(string.IsNullOrEmpty(userId)) userId = "0";
-            var songs = await SongService.GetTopSongs(userId, _dbContext);
+            var songs = await _songService.GetTopSongs(userId);
             return Ok(songs);
         }
         catch (System.Exception)
@@ -128,7 +129,7 @@ public class SongController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-            var songs = await SongService.AddSongPlay(userId, addPlayDTO.SongId, _dbContext);
+            var songs = await _songService.AddSongPlay(userId, addPlayDTO.SongId);
             return Ok(songs);
         }
         catch (System.Exception)

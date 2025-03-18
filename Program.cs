@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using purpuraMain.Exceptions.ExceptionFilter;
+using purpuraMain.Services.Interfaces;
+using purpuraMain.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Configuración de la base de datos PostgreSQL usando inyección de dependencias.
 builder.Services.AddDbContextPool<PurpuraDbContext>(opt => 
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//Injección de los servicios de la aplicación
+builder.Services.AddScoped<IAlbumService, AlbumService>();
+builder.Services.AddScoped<IArtistService, ArtistService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICountryService, CountryService>();
+builder.Services.AddScoped<IGenreService, GenreService>();
+builder.Services.AddScoped<ILibraryService, LibraryService>();
+builder.Services.AddScoped<IPlaylistService, PlaylistService>();
+builder.Services.AddScoped<IPurpleDaylistService, PurpleDaylistService>();
+builder.Services.AddScoped<ISongService, SongService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
+
 
 // Agrega controladores a la aplicación.
 builder.Services.AddControllers();
@@ -30,6 +46,7 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<UnauthorizedExceptionFilter>();
 
 });
+
 
 // Agregar OpenAPI (Swagger)
 builder.Services.AddEndpointsApiExplorer();

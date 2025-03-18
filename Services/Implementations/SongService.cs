@@ -1,12 +1,15 @@
-namespace purpuraMain.Services;
+namespace purpuraMain.Services.Implementations;
 using purpuraMain.Model;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
 using Microsoft.EntityFrameworkCore;
 using purpuraMain.Exceptions;
+using purpuraMain.Services.Interfaces;
 
-public static class SongService
+public class SongService(PurpuraDbContext dbContext) : ISongService
 {
+
+    private readonly PurpuraDbContext _dbContext = dbContext;
 
     /// <summary>
     /// Obtiene una canción por su ID.
@@ -15,11 +18,11 @@ public static class SongService
     /// <param name="id"></param>
     /// <param name="dbContext"></param>
     /// <returns></returns>
-    public static async Task<GetSongDTO> GetSongById(string userId, string id, PurpuraDbContext dbContext)
+    public async Task<GetSongDTO> GetSongById(string userId, string id)
     {
 
-            var isOnLibrary = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).AnyAsync(l => l.Songs.Any(s=> s.Id == id));
-            var song = await dbContext.Songs!.Where(s => s.Id == id).Select(s => new GetSongDTO{
+            var isOnLibrary = await _dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).AnyAsync(l => l.Songs.Any(s=> s.Id == id));
+            var song = await _dbContext.Songs!.Where(s => s.Id == id).Select(s => new GetSongDTO{
                 Id = s.Id,
                 Name = s.Name,
                 Artists = s.Artists!.Select(a=> new GetPlaylistArtistDTO{
@@ -58,13 +61,13 @@ public static class SongService
     /// <param name="input"></param>
     /// <param name="offset"></param>
     /// <param name="limit"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
-    public static async Task<List<GetSongDTO>> GetSongByInput(string userId, string input, int offset, int limit, PurpuraDbContext dbContext)
+    public async Task<List<GetSongDTO>> GetSongByInput(string userId, string input, int offset, int limit)
     {
 
             string inputLower = input.ToLower();
-            var songs = await dbContext.Songs!.Where(s => s.Name.ToLower().Contains(inputLower) || s.Artists!.Any(a=>a.Name.ToLower().Contains(inputLower)) || s.Album!.Name.ToLower().Contains(inputLower)).Select(s => new GetSongDTO{
+            var songs = await _dbContext.Songs!.Where(s => s.Name.ToLower().Contains(inputLower) || s.Artists!.Any(a=>a.Name.ToLower().Contains(inputLower)) || s.Album!.Name.ToLower().Contains(inputLower)).Select(s => new GetSongDTO{
                 Id = s.Id,
                 Name = s.Name,
                 Artists = s.Artists!.Select(a=> new GetPlaylistArtistDTO{
@@ -88,7 +91,7 @@ public static class SongService
 
             foreach (var song in songs)
             {
-                song.IsOnLibrary = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).AnyAsync(l => l.Songs.Any(so => so.Id == song.Id));
+                song.IsOnLibrary = await _dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).AnyAsync(l => l.Songs.Any(so => so.Id == song.Id));
             }
 
             return songs;
@@ -101,12 +104,12 @@ public static class SongService
     /// </summary>
     /// <param name="offset"></param>
     /// <param name="limit"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
-    public static async Task<List<GetSongDTO>> GetAllSongs (int offset, int limit, PurpuraDbContext dbContext)
+    public async Task<List<GetSongDTO>> GetAllSongs (int offset, int limit)
     {
 
-            var songs = await dbContext.Songs!.Select(s=> new GetSongDTO{
+            var songs = await _dbContext.Songs!.Select(s=> new GetSongDTO{
                 Id = s.Id,
                 Name = s.Name,
                 Artists = s.Artists!.Select(a=> new GetPlaylistArtistDTO{
@@ -134,12 +137,12 @@ public static class SongService
     /// <summary>
     /// Obtiene las canciones más populares del momento.
     /// </summary>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
-    public static async Task<List<GetSongDTO>> GetTopSongs(string userId, PurpuraDbContext dbContext)
+    public async Task<List<GetSongDTO>> GetTopSongs(string userId)
     {
 
-            var songs = await dbContext.Songs!.Select(s => new GetSongDTO
+            var songs = await _dbContext.Songs!.Select(s => new GetSongDTO
             {
                 Id = s.Id,
                 Name = s.Name,
@@ -162,12 +165,12 @@ public static class SongService
                 }).ToList(),
                 IsOnLibrary = false,
                 Lyrics = s.Lyrics ?? "",
-                Plays = dbContext.PlayHistories!.Where(p => p.SongId == s.Id).Count()
+                Plays = _dbContext.PlayHistories!.Where(p => p.SongId == s.Id).Count()
             }).OrderByDescending(s => s.Plays).Take(10).ToListAsync() ?? [];
 
             foreach (var song in songs)
             {
-                song.IsOnLibrary = dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Any( l=> l.Songs.Any(so => so.Id == song.Id));
+                song.IsOnLibrary = _dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Any( l=> l.Songs.Any(so => so.Id == song.Id));
                 
             }
 
@@ -180,13 +183,13 @@ public static class SongService
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="songId"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
-    public static async Task<bool> AddSongPlay(string userId, string songId, PurpuraDbContext dbContext )
+    public async Task<bool> AddSongPlay(string userId, string songId )
     {
 
-            var song = await dbContext.Songs!.FindAsync(songId) ?? throw new EntityNotFoundException(404, new {Message = "Song not found", Success = false});
-            var user = await dbContext.Users!.FindAsync(userId) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var song = await _dbContext.Songs!.FindAsync(songId) ?? throw new EntityNotFoundException(404, new {Message = "Song not found", Success = false});
+            var user = await _dbContext.Users!.FindAsync(userId) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
 
             var playHistory = new PlayHistory
             {
@@ -196,8 +199,8 @@ public static class SongService
                 PlayedAt = DateTime.UtcNow
             };
 
-            dbContext.PlayHistories!.Add(playHistory);
-            await dbContext.SaveChangesAsync();
+            _dbContext.PlayHistories!.Add(playHistory);
+            await _dbContext.SaveChangesAsync();
 
             return true;
      

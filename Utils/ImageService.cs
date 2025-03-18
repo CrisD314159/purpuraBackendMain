@@ -1,8 +1,8 @@
+namespace purpuraMain.Utils;
 using CloudinaryDotNet;
 using DotNetEnv;
 using CloudinaryDotNet.Actions;
 
-namespace purpuraMain.Services;
 
 public class ImageService
 {

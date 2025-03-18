@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
-using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 
 /// Controlador para gestionar las operaciones relacionadas con los álbumes.
@@ -14,13 +14,13 @@ using purpuraMain.Services;
 [Route("[controller]")]
 public class AlbumController : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
+    private readonly IAlbumService _albumService;
 
     /// Constructor del controlador AlbumController.
     /// <param name="dbContext">Contexto de base de datos para acceder a la información de los álbumes.</param>
-    public AlbumController(PurpuraDbContext dbContext)
+    public AlbumController(IAlbumService albumService)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _albumService = albumService;
     }
 
     /// Obtiene un álbum por su identificador único.
@@ -34,7 +34,7 @@ public class AlbumController : ControllerBase
         {
             var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if(string.IsNullOrEmpty(userId)) userId = "0";
-            var album = await AlbumService.GetAlbumById(userId, id, _dbContext);
+            var album = await _albumService.GetAlbumById(userId, id);
             return Ok(album);
         }
         catch (System.Exception)
@@ -55,7 +55,7 @@ public class AlbumController : ControllerBase
     {
         try
         {
-            var albums = await AlbumService.GetAlbumByInput(input, offset, limit, _dbContext);
+            var albums = await _albumService.GetAlbumByInput(input, offset, limit);
             return Ok(albums);
         }
          catch (System.Exception)
@@ -75,7 +75,7 @@ public class AlbumController : ControllerBase
         try
         {
             if (offset < 0 || limit < 1) return BadRequest("Invalid offset or amount");
-            var albums = await AlbumService.GetAllAlbums(offset, limit, _dbContext);
+            var albums = await _albumService.GetAllAlbums(offset, limit);
             return Ok(albums);
         }
         catch (System.Exception)
@@ -94,7 +94,7 @@ public class AlbumController : ControllerBase
     {
         try
         {
-            var albums = await AlbumService.GetTopAlbums(_dbContext);
+            var albums = await _albumService.GetTopAlbums();
             return Ok(albums);
         }
         catch (System.Exception)

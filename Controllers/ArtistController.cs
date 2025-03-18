@@ -3,10 +3,9 @@ namespace purpuraMain.Controllers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
-using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 /// Controlador para la gestión de artistas en la plataforma.
 /// Proporciona endpoints para obtener información sobre artistas, buscar artistas y recuperar sus álbumes y canciones.
@@ -14,15 +13,15 @@ using purpuraMain.Services;
 [Route("[controller]")]
 public class ArtistController : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
+    private readonly IArtistService _artistService;
 
    
     /// Constructor del controlador de artistas.
     /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
     /// <exception cref="ArgumentNullException">Se lanza si el contexto es nulo.</exception>
-    public ArtistController(PurpuraDbContext dbContext)
+    public ArtistController(IArtistService artistService)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _artistService = artistService;
     }
 
    
@@ -37,7 +36,7 @@ public class ArtistController : ControllerBase
         {
             var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if(string.IsNullOrEmpty(userId)) userId = "0";
-            var artist = await ArtistService.GetArtistById(userId, id, _dbContext);
+            var artist = await _artistService.GetArtistById(userId, id);
             return Ok(artist);
         }
         catch (System.Exception)
@@ -62,7 +61,7 @@ public class ArtistController : ControllerBase
                 return BadRequest("Invalid offset or limit");
             }
 
-            var artist = await ArtistService.GetArtistByName(name, offset, limit, _dbContext);
+            var artist = await _artistService.GetArtistByName(name, offset, limit);
             return Ok(artist);
         }
         catch (System.Exception)
@@ -80,7 +79,7 @@ public class ArtistController : ControllerBase
     {
         try
         {
-            var artist = await ArtistService.GetArtistAlbums(id, _dbContext);
+            var artist = await _artistService.GetArtistAlbums(id);
             return Ok(artist);
         }
         catch (System.Exception)
@@ -101,7 +100,7 @@ public class ArtistController : ControllerBase
         {
             var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if(string.IsNullOrEmpty(userId)) userId = "0";
-            var artist = await ArtistService.GetArtistById(userId, id, _dbContext);
+            var artist = await _artistService.GetArtistById(userId, id);
             return Ok(artist);
         }
         catch (System.Exception)
@@ -124,7 +123,7 @@ public class ArtistController : ControllerBase
             {
                 return BadRequest("Invalid offset or limit");
             }
-            var artists = await ArtistService.GetMostListenArtists(offset, limit, _dbContext);
+            var artists = await _artistService.GetMostListenArtists(offset, limit);
             return Ok(artists);
         }
         catch (System.Exception)
@@ -148,7 +147,7 @@ public class ArtistController : ControllerBase
                 return BadRequest("Invalid offset or limit");
             }
 
-            var artists = await ArtistService.GetMostListenArtists(offset, limit, _dbContext);
+            var artists = await _artistService.GetMostListenArtists(offset, limit);
             return Ok(artists);
         }
         catch (System.Exception)

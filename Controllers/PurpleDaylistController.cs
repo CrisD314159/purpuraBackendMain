@@ -5,6 +5,7 @@ using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 namespace purpuraMain.Controllers;
 
@@ -14,11 +15,11 @@ namespace purpuraMain.Controllers;
 [Authorize]
 public class PurpleDaylistController : ControllerBase
 {
-  private readonly PurpuraDbContext _dbContext;
+  private readonly IPurpleDaylistService _purpleDaylistService;
 
-  public PurpleDaylistController(PurpuraDbContext dbContext)
+  public PurpleDaylistController(IPurpleDaylistService purpleDaylistService)
   {
-    _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    _purpleDaylistService = purpleDaylistService;
   }
 
   [HttpGet("gerPurpleDaylist")]
@@ -28,7 +29,7 @@ public class PurpleDaylistController : ControllerBase
     {
       var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
       throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-      var purpleDaylist = await PurpleDaylistService.GetPurpleDaylist(userId, _dbContext);
+      var purpleDaylist = await _purpleDaylistService.GetPurpleDaylist(userId);
       return Ok(purpleDaylist);
     }
         catch (System.Exception)

@@ -3,6 +3,7 @@ using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 namespace purpuraMain.Controllers;
 
@@ -10,10 +11,10 @@ namespace purpuraMain.Controllers;
 [Route("[controller]")]
 public class CountryController : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
-    public CountryController(PurpuraDbContext dbContext)
+    private readonly ICountryService _countryService;
+    public CountryController(ICountryService countryService)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _countryService = countryService;
     }
 
 
@@ -22,7 +23,7 @@ public class CountryController : ControllerBase
     {
         try
         {
-            var countries = await CountryService.GetCountries(_dbContext);
+            var countries = await _countryService.GetCountries();
             return Ok(countries);
         }
           catch (System.Exception)

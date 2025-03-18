@@ -5,7 +5,7 @@ using purpuraMain.DbContext;
 using purpuraMain.Dto;
 using purpuraMain.Dto.InputDto;
 using purpuraMain.Exceptions;
-using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 namespace purpuraMain.Controllers;
 
@@ -16,16 +16,16 @@ namespace purpuraMain.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
+    private readonly IAuthService _authService;
     private readonly IConfiguration _config;
 
 
     /// Constructor del controlador de autenticación.
     /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
     /// <param name="configuration">Configuración de la aplicación.</param>
-    public AuthController(PurpuraDbContext dbContext, IConfiguration configuration)
+    public AuthController(IAuthService authService, IConfiguration configuration)
     {
-        _dbContext = dbContext;
+        _authService = authService;
         _config = configuration;
     }
 
@@ -41,7 +41,7 @@ public class AuthController : ControllerBase
             if (login.Email == null || login.Password == null)
                 throw new BadRequestException(400, new {Message = "Email or password cannot be null", Success = false});
 
-            var response = await AuthServices.LoginRequest(login.Email, login.Password, _dbContext, _config);
+            var response = await _authService.LoginRequest(login.Email, login.Password, _config);
             return Ok(response);
         }
         catch (System.Exception)
@@ -63,7 +63,7 @@ public class AuthController : ControllerBase
             var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
             var email = User.FindFirst(ClaimTypes.Email)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
 
-            var token = await AuthServices.RefreshTokenRequest(userId, sessionId, email, _dbContext, _config);
+            var token = await _authService.RefreshTokenRequest(userId, sessionId, email, _config);
             return Ok(new { success = true, token = token.Token, refreshToken = token.RefreshToken });
         }
         catch (System.Exception)
@@ -84,7 +84,7 @@ public class AuthController : ControllerBase
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
             var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
 
-            var response = await AuthServices.LogoutRequest(userId, sessionId, _dbContext);
+            var response = await _authService.LogoutRequest(userId, sessionId);
             if (!response)
                 throw new HttpResponseException(500, new{Message = "An error occurred while logging out", Success = false});
 

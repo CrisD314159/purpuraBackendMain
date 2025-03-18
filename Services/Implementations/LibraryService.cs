@@ -1,22 +1,25 @@
-namespace purpuraMain.Services;
+namespace purpuraMain.Services.Implementations;
 using purpuraMain.Model;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using purpuraMain.Services.Interfaces;
 
-public static class LibraryService
+public class LibraryService(PurpuraDbContext dbContext) : ILibraryService
 {
+
+    private readonly PurpuraDbContext _dbContext = dbContext;
     /// <summary>
     /// Obtiene la biblioteca de un usuario por su ID.
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="dbContext"></param>
     /// <returns>Objeto GetLibraryDTO con la información de la librería de un usuario (playlists y canciones) </returns>
-    public static async Task<GetLibraryDTO> GetLibraryById(string userId, PurpuraDbContext dbContext)
+    public async Task<GetLibraryDTO> GetLibraryById(string userId)
     {
   
-            var library = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Select( l=>
+            var library = await _dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Select( l=>
                 new GetLibraryDTO{
                    Id= l.Id,
                    UserId = l.UserId!,
@@ -46,12 +49,12 @@ public static class LibraryService
     /// <param name="userId"></param>
     /// <param name="offset"></param>
     /// <param name="limit"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns>Canciones guardadas por el usuario</returns>
-    public static async Task<GetLibraryDTO> GetUserSongs (string userId, int offset, int limit, PurpuraDbContext dbContext)
+    public async Task<GetLibraryDTO> GetUserSongs (string userId, int offset, int limit)
     {
     
-             var library = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Select( l=>
+             var library = await _dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Select( l=>
                 new GetLibraryDTO{
                    Id= l.Id,
                    UserId = l.UserId!,
@@ -94,22 +97,22 @@ public static class LibraryService
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="addRemoveSong"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
-    public static async Task<bool> AddSongToLibrary(string userId, AddRemoveSongLibraryDTO addRemoveSong, PurpuraDbContext dbContext)
+    public async Task<bool> AddSongToLibrary(string userId, AddRemoveSongLibraryDTO addRemoveSong)
     {
     
-            var library = await dbContext.Libraries!.Include(l=> l.Songs).Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Library not found", Success=false});
-            var song = await dbContext.Songs!.Where(s => s.Id == addRemoveSong.SongId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Song not found", Success=false});
+            var library = await _dbContext.Libraries!.Include(l=> l.Songs).Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Library not found", Success=false});
+            var song = await _dbContext.Songs!.Where(s => s.Id == addRemoveSong.SongId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Song not found", Success=false});
             if(library.Songs!.Any(s => s.Id == addRemoveSong.SongId))
             {
                 // Si ya existe la cancion en la biblioteca, se elimina
                 library.Songs.Remove(song);
-                await dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
                 return true;
             }
             library.Songs.Add(song);
-            await dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
 
             return true;
     
@@ -121,21 +124,21 @@ public static class LibraryService
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="addRemoveAlbum"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
-     public static async Task<bool> AddAlbumToLibrary(string userId, AddRemoveAlbumLibraryDTO addRemoveAlbum, PurpuraDbContext dbContext)
+     public async Task<bool> AddAlbumToLibrary(string userId, AddRemoveAlbumLibraryDTO addRemoveAlbum)
     {
       
-            var library = await dbContext.Libraries!.Include(l=> l.Songs).Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Library not found", Success=false});
-            var album = await dbContext.Albums!.Where(a => a.Id == addRemoveAlbum.AlbumId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Album not found", Success=false});
+            var library = await _dbContext.Libraries!.Include(l=> l.Songs).Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Library not found", Success=false});
+            var album = await _dbContext.Albums!.Where(a => a.Id == addRemoveAlbum.AlbumId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Album not found", Success=false});
             if(library.Albums!.Any(a => a.Id == album.Id))
             {
                 library.Albums.Remove(album);
-                await dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
                 return true;
             }
             library.Albums.Add(album);
-            await dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
 
             return true;
     
@@ -147,21 +150,21 @@ public static class LibraryService
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="addRemovePlayListDTO"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
-      public static async Task<bool> AddPlayListToLibrary(string userId, AddRemovePlayListDTO addRemovePlayListDTO, PurpuraDbContext dbContext)
+      public async Task<bool> AddPlayListToLibrary(string userId, AddRemovePlayListDTO addRemovePlayListDTO)
     {
     
-           var library = await dbContext.Libraries!.Include(l=> l.Songs).Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Library not found", Success=false});
-            var playlist = await dbContext.Playlists!.Where(p => p.Id == addRemovePlayListDTO.PlaylistId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Album not found", Success=false});
+           var library = await _dbContext.Libraries!.Include(l=> l.Songs).Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Library not found", Success=false});
+            var playlist = await _dbContext.Playlists!.Where(p => p.Id == addRemovePlayListDTO.PlaylistId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Album not found", Success=false});
             if(library.Playlists!.Any(p => p.Id == playlist.Id))
             {
                 library.Playlists.Remove(playlist);
-                await dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
                 return true;
             }
             library.Playlists.Add(playlist);
-            await dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
 
             return true;
     

@@ -7,16 +7,17 @@ using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 [ApiController]
 [Route("[controller]")]
 public class SearchController : ControllerBase
 {
 
-  private readonly PurpuraDbContext _dbcontext;
-  public SearchController(PurpuraDbContext dbContext)
+  private readonly ISearchService _searchService;
+  public SearchController(ISearchService searchService)
   {
-    _dbcontext = dbContext;
+    _searchService = searchService;
   }
 
   [HttpGet("input")]
@@ -28,7 +29,7 @@ public class SearchController : ControllerBase
       if(string.IsNullOrEmpty(search)) throw new Exception("Search is required");
       var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
       throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-      var results = await SearchServices.GetSearch(userId, search, _dbcontext);
+      var results = await _searchService.GetSearch(userId, search);
       return Ok(results);
     }
         catch (System.Exception)
@@ -43,7 +44,7 @@ public class SearchController : ControllerBase
     try
     {
       if(string.IsNullOrEmpty(search)) throw new Exception("Search is required");
-      var results = await SearchServices.GetSearch("0", search, _dbcontext);
+      var results = await _searchService.GetSearch("0", search);
       return Ok(results);
     }
         catch (System.Exception)

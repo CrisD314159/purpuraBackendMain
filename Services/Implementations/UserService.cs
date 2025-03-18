@@ -1,4 +1,4 @@
-namespace purpuraMain.Services;
+namespace purpuraMain.Services.Implementations;
 using purpuraMain.Model;
 using purpuraMain.DbContext;
 using FluentValidation;
@@ -11,20 +11,23 @@ using purpuraMain.Dto.OutputDto;
 using System.Data.Common;
 using purpuraMain.Exceptions;
 using System.Reflection.Metadata.Ecma335;
+using purpuraMain.Services.Interfaces;
 
-public static class UserService
+public class UserService (PurpuraDbContext dbContext) : IUserService
 {
+
+    private readonly PurpuraDbContext _dbContext = dbContext;
     /// <summary>
     /// Obtiene un usuario por su ID.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="dbContext"></param>
     /// <returns></returns>
-    public static async Task<GetUserDto> GetUserById(string id, PurpuraDbContext dbContext)
+    public async Task<GetUserDto> GetUserById(string id)
     {
 
         
-        var user = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE && u.Id == id)
+        var user = await _dbContext.Users!.Where(u => u.State != UserState.INACTIVE && u.Id == id)
         .Select(u => new GetUserDto
         {
             Id = u.Id,
@@ -46,17 +49,17 @@ public static class UserService
    /// Este metodo crea un usuario, su biblioteca y la playlist de recomendaciones por defecto
    /// </summary>
    /// <param name="user"></param>
-   /// <param name="dbContext"></param>
+   /// <param name="_dbContext"></param>
    /// <returns></returns>
-    public static async Task<bool> CreateUser(CreateUserDTO user, PurpuraDbContext dbContext)
+    public async Task<bool> CreateUser(CreateUserDTO user)
     {
-        var transaction = await dbContext.Database.BeginTransactionAsync();
+        var transaction = await _dbContext.Database.BeginTransactionAsync();
    
             UserValidator validator = new ();
             ValidationResult result = validator.Validate(user);
             if (!result.IsValid) throw new ValidationException("User input is not valid");
 
-            if (await dbContext.Users!.AnyAsync(u => u.Email == user.Email)) throw new ValidationException("User already exists");
+            if (await _dbContext.Users!.AnyAsync(u => u.Email == user.Email)) throw new ValidationException("User already exists");
 
 
             string id = Guid.NewGuid().ToString();
@@ -81,7 +84,7 @@ public static class UserService
                 VerifyCode = code
             };
 
-            await dbContext.Users!.AddAsync(newUser);
+            await _dbContext.Users!.AddAsync(newUser);
             
 
             // Create a new library and a playlist for the user
@@ -107,9 +110,9 @@ public static class UserService
 
             library.Playlists = [playlist];
 
-            await dbContext.Libraries!.AddAsync(library);
-            await dbContext.Playlists!.AddAsync(playlist);
-            await dbContext.SaveChangesAsync();
+            await _dbContext.Libraries!.AddAsync(library);
+            await _dbContext.Playlists!.AddAsync(playlist);
+            await _dbContext.SaveChangesAsync();
 
             await MailService.SendVerificationEmail(user.Email, code.ToString(), user.FirstName);
             transaction.Commit();
@@ -124,22 +127,22 @@ public static class UserService
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="user"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
-    public static async Task<bool> UpdateUser(string userId, UpdateUserDto user, PurpuraDbContext dbContext)
+    public async Task<bool> UpdateUser(string userId, UpdateUserDto user)
     {
 
    
             UserUpdateValidator validator = new();
             if(validator.Validate(user).IsValid == false) throw new ValidationException("User input is not valid");
-            var userToUpdate = await dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == userId) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var userToUpdate = await _dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == userId) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
             if(userToUpdate.State == UserState.UNVERIFIED) throw new ValidationException("User is not verified");
-            var country = await dbContext.Countries!.FindAsync(user.Country) ?? throw new EntityNotFoundException(404, new {Message = "Country not found", Success = false});
+            var country = await _dbContext.Countries!.FindAsync(user.Country) ?? throw new EntityNotFoundException(404, new {Message = "Country not found", Success = false});
       
             userToUpdate.FirstName = user.FirstName;
             userToUpdate.SurName = user.SurName;
             userToUpdate.Country = country;
-            await dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
 
             return true;
    
@@ -150,16 +153,16 @@ public static class UserService
     /// Este metodo elimina un usuario de forma lógica
     /// </summary>
     /// <param name="id"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static async Task<bool> DeleteUser(string id, PurpuraDbContext dbContext)
+    public async Task<bool> DeleteUser(string id)
     {
    
             if(id == null) throw new ValidationException("Id cannot be null");
-            var user = await dbContext.Users!.FindAsync(id) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var user = await _dbContext.Users!.FindAsync(id) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
             user.State = UserState.INACTIVE;
-            await dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
             return true;
      
     }
@@ -169,17 +172,17 @@ public static class UserService
     /// Este metodo actualiza la contraseña de un usuario
     /// </summary>
     /// <param name="passwordDTO"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static async Task<bool> UpdateUserPassword(PasswordChangeDTO passwordDTO, PurpuraDbContext dbContext)
+    public async Task<bool> UpdateUserPassword(PasswordChangeDTO passwordDTO)
     {
 
    
             var passwordValidator = new PasswordValidation();
             if(passwordValidator.Validate(passwordDTO).IsValid == false) throw new ValidationException("Password input is not valid");
 
-            var user = await dbContext.Users!.Where(u=> u.Email == passwordDTO.Email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var user = await _dbContext.Users!.Where(u=> u.Email == passwordDTO.Email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
             if(user.VerifyCode != passwordDTO.Code) throw new ValidationException("Invalid code");
 
             PasswordManipulation passwordManipulation = new();
@@ -187,7 +190,7 @@ public static class UserService
             user.Password = hashedPassword;
             user.VerifyCode = 0;
             await MailService.SendPasswordChangeMail(passwordDTO.Email!, user.FirstName!);
-            await dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
             return true;
      
     }
@@ -196,18 +199,18 @@ public static class UserService
     /// Este metodo verifica la cuenta de un usuario
     /// </summary>
     /// <param name="verifyAccountDTO"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static async Task<bool> VerifyAccount(VerifyAccountDTO verifyAccountDTO, PurpuraDbContext dbContext)
+    public async Task<bool> VerifyAccount(VerifyAccountDTO verifyAccountDTO)
     {
 
    
-            var user = await dbContext.Users!.Where(u=> u.Email == verifyAccountDTO.Email && u.State == UserState.UNVERIFIED).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var user = await _dbContext.Users!.Where(u=> u.Email == verifyAccountDTO.Email && u.State == UserState.UNVERIFIED).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
             if(user.VerifyCode != verifyAccountDTO.Code) throw new ValidationException("Invalid code");
             user.State = UserState.ACTIVE;
             user.VerifyCode = 0;
-            await dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
             await MailService.SendVerifiedAccountMail(verifyAccountDTO.Email!, user.FirstName!);
             return true;
         
@@ -218,16 +221,16 @@ public static class UserService
     /// Este metodo envia un email con un codigo de verificación para recuperar la contraseña
     /// </summary>
     /// <param name="email"></param>
-    /// <param name="dbContext"></param>
+    /// <param name="_dbContext"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static async Task<bool> SendPasswordRecoveryCode(string email, PurpuraDbContext dbContext)
+    public async Task<bool> SendPasswordRecoveryCode(string email)
     {
    
-            var user = await dbContext.Users!.Where(u=> u.Email == email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var user = await _dbContext.Users!.Where(u=> u.Email == email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
             int code = new Random().Next(1000, 9999);
             user.VerifyCode = code;
-            await dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
             await MailService.SendPasswordRecoveryCodeEmail(email, code.ToString(), user.FirstName!);
             return true;
     }

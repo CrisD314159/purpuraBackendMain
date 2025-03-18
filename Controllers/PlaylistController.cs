@@ -7,6 +7,7 @@ using purpuraMain.Dto.InputDto;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 namespace purpuraMain.Controllers;
 
@@ -18,11 +19,11 @@ namespace purpuraMain.Controllers;
 [Authorize]
 public class PlaylistController : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
+    private readonly IPlaylistService _playlistService;
 
-    public PlaylistController(PurpuraDbContext dbContext)
+    public PlaylistController(IPlaylistService playlistService)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _playlistService = playlistService;
     }
 
     /// Obtiene una playlist por su ID.
@@ -34,7 +35,7 @@ public class PlaylistController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            var playList = await PlaylistServices.GetPlaylist(userId, id, _dbContext);
+            var playList = await _playlistService.GetPlaylist(userId, id);
             return Ok(playList);
         }
         catch (System.Exception)
@@ -53,7 +54,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            var playList = await PlaylistServices.SearchPlaylist(input, offset, limit, _dbContext);
+            var playList = await _playlistService.SearchPlaylist(input, offset, limit);
             return Ok(playList);
         }
         catch (System.Exception)
@@ -70,7 +71,7 @@ public class PlaylistController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            await PlaylistServices.AddSong(userId, addSongDTO, _dbContext);
+            await _playlistService.AddSong(userId, addSongDTO);
             return Ok(new { message = "Song added to playlist", success = true });
         }
         catch (Exception e)
@@ -87,7 +88,7 @@ public class PlaylistController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            await PlaylistServices.RemoveSong(userId, addSongDTO, _dbContext);
+            await _playlistService.RemoveSong(userId, addSongDTO);
             return Ok(new { message = "Song removed from playlist", success = true });
         }
         catch (Exception e)
@@ -104,7 +105,7 @@ public class PlaylistController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            await PlaylistServices.ChangePlayListState(userId, changePrivacy, _dbContext);
+            await _playlistService.ChangePlayListState(userId, changePrivacy);
             return Ok(new { message = "Playlist privacy changed", success = true });
         }
         catch (Exception e)
@@ -120,7 +121,7 @@ public class PlaylistController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            var playLists = await PlaylistServices.GetUserPlayLists(userId, _dbContext);
+            var playLists = await _playlistService.GetUserPlayLists(userId);
             return Ok(playLists);
         }
         catch (Exception e)
@@ -137,7 +138,7 @@ public class PlaylistController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            await PlaylistServices.CreatePlayList(userId, createPlayListDTO, _dbContext);
+            await _playlistService.CreatePlayList(userId, createPlayListDTO);
             return Created("", new { message = $"Playlist {createPlayListDTO.Name} created", success = true });
         }
         catch (Exception e)
@@ -154,7 +155,7 @@ public class PlaylistController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            await PlaylistServices.UpdatePlayList(userId, updatePlaylist, _dbContext);
+            await _playlistService.UpdatePlayList(userId, updatePlaylist);
             return Ok(new { message = "Playlist updated", success = true });
         }
         catch (Exception e)
@@ -171,7 +172,7 @@ public class PlaylistController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            await PlaylistServices.DeletePlayList(userId, deletePlayList, _dbContext);
+            await _playlistService.DeletePlayList(userId, deletePlayList);
             return Ok(new { message = "Playlist deleted", success = true });
         }
         catch (Exception e)

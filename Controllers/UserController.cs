@@ -7,6 +7,7 @@ using purpuraMain.Exceptions;
 using purpuraMain.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using purpuraMain.Services.Interfaces;
 
 namespace purpuraMain.Controllers;
 
@@ -15,14 +16,14 @@ namespace purpuraMain.Controllers;
 [Route("[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
+    private readonly IUserService _userService;
 
 
     /// Constructor del controlador de usuarios.
     /// <param name="dbContext">Contexto de base de datos.</param>
-    public UserController(PurpuraDbContext dbContext)
+    public UserController(IUserService userService)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _userService = userService;
     }
 
 
@@ -35,7 +36,7 @@ public class UserController : ControllerBase
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
                 ?? throw new UnauthorizedAccessException("User not found");
-            var user = await UserService.GetUserById(userId, _dbContext);
+            var user = await _userService.GetUserById(userId);
             return Ok(user);
         }
         catch (System.Exception)
@@ -51,7 +52,7 @@ public class UserController : ControllerBase
     {
         try
         {
-            await UserService.CreateUser(user, _dbContext);
+            await _userService.CreateUser(user);
             return CreatedAtAction("GetUser", new { success = true, message = "User created successfully" });
         }
         catch (System.Exception)
@@ -70,7 +71,7 @@ public class UserController : ControllerBase
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
                 ?? throw new UnauthorizedAccessException("User not found");
-            await UserService.UpdateUser(userId, user, _dbContext);
+            await _userService.UpdateUser(userId, user);
             return Ok("User updated successfully");
         }
         catch (System.Exception)
@@ -89,7 +90,7 @@ public class UserController : ControllerBase
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
                 ?? throw new UnauthorizedAccessException("User not found");
-            await UserService.DeleteUser(userId, _dbContext);
+            await _userService.DeleteUser(userId);
             return Ok("User deleted successfully");
         }
         catch (System.Exception)
@@ -109,7 +110,7 @@ public class UserController : ControllerBase
             {
                 return BadRequest("Email and code are required");
             }
-            await UserService.VerifyAccount(verifyAccount, _dbContext);
+            await _userService.VerifyAccount(verifyAccount);
             return Ok("Account verified successfully");
         }
         catch (System.Exception)
@@ -129,7 +130,7 @@ public class UserController : ControllerBase
     {
         try
         {
-            await UserService.SendPasswordRecoveryCode(sendRecoverEmail.Email, _dbContext);
+            await _userService.SendPasswordRecoveryCode(sendRecoverEmail.Email);
             return Ok("Recover email sent successfully");
         }
         catch (System.Exception)
@@ -148,7 +149,7 @@ public class UserController : ControllerBase
     {
         try
         {
-            await UserService.UpdateUserPassword(changePassword, _dbContext);
+            await _userService.UpdateUserPassword(changePassword);
             return Ok("Password changed successfully");
         }
         catch (System.Exception)

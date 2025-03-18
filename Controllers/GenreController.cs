@@ -7,6 +7,7 @@ using purpuraMain.Dto.InputDto;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 
 /// Controlador para gestionar géneros musicales.
@@ -15,13 +16,13 @@ using purpuraMain.Services;
 [Authorize]
 public class GenreController : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
+    private readonly IGenreService _genreService;
 
     /// Constructor del controlador de géneros.
     /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
-    public GenreController(PurpuraDbContext dbContext)
+    public GenreController(IGenreService genreService)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _genreService = genreService;
     }
 
     /// Obtiene las canciones más populares de un género específico.
@@ -32,7 +33,7 @@ public class GenreController : ControllerBase
     {
         try
         {
-            var topSongs = await GenreService.GetTopSongsByGenre(id, _dbContext);
+            var topSongs = await _genreService.GetTopSongsByGenre(id);
             return Ok(topSongs);
         }
         catch (System.Exception)
@@ -48,7 +49,7 @@ public class GenreController : ControllerBase
     {
         try
         {
-            var genres = await GenreService.GetAllGenres(_dbContext);
+            var genres = await _genreService.GetAllGenres();
             return Ok(genres);
         }
         catch (System.Exception)
@@ -65,7 +66,7 @@ public class GenreController : ControllerBase
     {
         try
         {
-            var genre = await GenreService.GetGenreById(id, _dbContext);
+            var genre = await _genreService.GetGenreById(id);
             return Ok(genre);
         }
         catch (System.Exception)

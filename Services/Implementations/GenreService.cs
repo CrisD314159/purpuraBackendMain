@@ -1,21 +1,24 @@
-namespace purpuraMain.Services;
+namespace purpuraMain.Services.Implementations;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
 using Microsoft.EntityFrameworkCore;
 using purpuraMain.Exceptions;
+using purpuraMain.Services.Interfaces;
 
-public static class GenreService
+public class GenreService(PurpuraDbContext dbContext) : IGenreService
 {
+
+    private readonly PurpuraDbContext _dbContext = dbContext;
     /// <summary>
     /// Obtiene las canciones más populares de un género.
     /// </summary>
     /// <param name="id">ID del género.</param>
     /// <param name="dbContext">Contexto de base de datos.</param>
     /// <returns>Objeto GetGenreDTO con la información del género y sus canciones más populares.</returns>
-    public static async Task<GetGenreDTO> GetTopSongsByGenre(string id, PurpuraDbContext dbContext)
+    public  async Task<GetGenreDTO> GetTopSongsByGenre(string id)
     {
       
-            var songs = await dbContext.Genres!.Where(g => g.Id == id).Select(g=> new GetGenreDTO
+            var songs = await _dbContext.Genres!.Where(g => g.Id == id).Select(g=> new GetGenreDTO
             {
                  Id = g.Id,
                 Name = g.Name,
@@ -44,7 +47,7 @@ public static class GenreService
                             Description = g.Description?? ""
                         }).ToList(),
                         Lyrics = s.Lyrics ?? "",
-                        Plays = dbContext.PlayHistories!.Where(pl => pl.SongId == s.Id).Count()
+                        Plays = _dbContext.PlayHistories!.Where(pl => pl.SongId == s.Id).Count()
                         
                     }).OrderBy(s => s.Plays).ToList()
             }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Genre not found", Success=false});
@@ -57,13 +60,13 @@ public static class GenreService
     /// <summary>
     /// Obtiene todos los géneros disponibles en la plataforma.
     /// </summary>
-    /// <param name="dbContext">Contexto de base de datos.</param>
+    /// <param name="_dbContext">Contexto de base de datos.</param>
     /// <returns>Lista de objetos GetGenreDTO con la información de los géneros.</returns>
-     public static async Task<List<GetGenreDTO>> GetAllGenres(PurpuraDbContext dbContext)
+     public  async Task<List<GetGenreDTO>> GetAllGenres()
     {
 
       
-            var genres = await dbContext.Genres!.Select(g => new GetGenreDTO
+            var genres = await _dbContext.Genres!.Select(g => new GetGenreDTO
             {
                 Id = g.Id,
                 Name = g.Name,
@@ -76,11 +79,11 @@ public static class GenreService
         
     }
     
-     public static async Task<GetGenreDTO> GetGenreById(string id, PurpuraDbContext dbContext)
+     public  async Task<GetGenreDTO> GetGenreById(string id)
     {
 
       
-            var genres = await dbContext.Genres!.Where(g => g.Id == id).Select(g => new GetGenreDTO
+            var genres = await _dbContext.Genres!.Where(g => g.Id == id).Select(g => new GetGenreDTO
             {
                 Id = g.Id,
                 Name = g.Name,

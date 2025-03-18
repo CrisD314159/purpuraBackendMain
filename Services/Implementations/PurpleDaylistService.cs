@@ -1,13 +1,15 @@
+namespace purpuraMain.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Model;
+using purpuraMain.Services.Interfaces;
 
-namespace purpuraMain.Services;
-public static class PurpleDaylistService
+public class PurpleDaylistService(PurpuraDbContext dbContext) : IPurpleDaylistService
 {
 
+  private readonly PurpuraDbContext _dbContext = dbContext;
 
 
 /// <summary>
@@ -16,12 +18,12 @@ public static class PurpleDaylistService
 /// <param name="userId"></param>
 /// <param name="dbContext"></param>
 /// <returns></returns>
-  public static async Task<GetPlayListDTO> GetPurpleDaylist(string userId, PurpuraDbContext dbContext)
+  public async Task<GetPlayListDTO> GetPurpleDaylist(string userId)
   {
 
-      var playlist = await dbContext.Playlists!.Where(p=> p.Name == "Purple Day List" && p.UserId == userId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "Playlist not found", Success = false});
-      await UpdatePurpuraDayList(playlist.Id, userId, dbContext);
-      var entirePlaylist = await dbContext.Playlists!.Where(p => p.Id == playlist.Id).Select(p => new GetPlayListDTO
+      var playlist = await _dbContext.Playlists!.Where(p=> p.Name == "Purple Day List" && p.UserId == userId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "Playlist not found", Success = false});
+      await UpdatePurpuraDayList(playlist.Id, userId);
+      var entirePlaylist = await _dbContext.Playlists!.Where(p => p.Id == playlist.Id).Select(p => new GetPlayListDTO
       {
                 Id = p.Id,
         Name = p.Name,
@@ -58,7 +60,7 @@ public static class PurpleDaylistService
 
         foreach (var song in entirePlaylist.Songs)
         {
-          song.IsOnLibrary = await dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).AnyAsync(l => l.Songs.Any(so => so.Id == song.Id));
+          song.IsOnLibrary = await _dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).AnyAsync(l => l.Songs.Any(so => so.Id == song.Id));
         }
 
       return entirePlaylist;
@@ -71,20 +73,20 @@ public static class PurpleDaylistService
 /// </summary>
 /// <param name="playlistId"></param>
 /// <param name="userId"></param>
-/// <param name="dbContext"></param>
+/// <param name="_dbContext"></param>
 /// <returns></returns>
-  public static async Task<bool> UpdatePurpuraDayList(string playlistId, string userId, PurpuraDbContext dbContext)
+  public async Task<bool> UpdatePurpuraDayList(string playlistId, string userId)
   {
 
-      var playlist = dbContext.Playlists!.Find(playlistId) ?? throw new EntityNotFoundException(404, new {Message = "Playlist not found", Success = false});
+      var playlist = _dbContext.Playlists!.Find(playlistId) ?? throw new EntityNotFoundException(404, new {Message = "Playlist not found", Success = false});
       Console.WriteLine(playlistId);
       if((DateTime.UtcNow.Date - playlist.LastUpdated.Date ) > TimeSpan.FromDays(1))
       {
-        await ClearPlaylist(playlistId, dbContext);
-        var recomendations =  await GetUserRecomendations(userId, dbContext);
+        await ClearPlaylist(playlistId);
+        var recomendations =  await GetUserRecomendations(userId);
         playlist.Songs = recomendations;
         playlist.LastUpdated = DateTime.UtcNow;
-        await dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync();
         return true;
       }
       return false;
@@ -96,13 +98,13 @@ public static class PurpleDaylistService
   /// Método de apoyo para obtener las canciones recomendadas de un usuario según su historial de reproducciones.
   /// </summary>
   /// <param name="userId"></param>
-  /// <param name="dbContext"></param>
+  /// <param name="_dbContext"></param>
   /// <returns></returns>
- public static async Task<List<Song>> GetUserRecomendations(string userId, PurpuraDbContext dbContext)
+ public async Task<List<Song>> GetUserRecomendations(string userId)
 {
 
         // Obtener las canciones reproducidas recientemente y sus géneros
-        var recentListenGenres = await dbContext.PlayHistories!
+        var recentListenGenres = await _dbContext.PlayHistories!
             .Where(p => p.UserId == userId)
             .OrderByDescending(p => p.PlayedAt)
             .Take(10)
@@ -112,7 +114,7 @@ public static class PurpleDaylistService
             .ToListAsync();
 
         // Buscar canciones que tengan al menos un género en la lista obtenida
-        var recomendations = await dbContext.Songs!
+        var recomendations = await _dbContext.Songs!
             .Where(s => s.Genres!.Any(g => recentListenGenres.Contains(g.Id))) // Comparamos con IDs
             .OrderByDescending(s => s.Name)
             .Take(10)
@@ -122,13 +124,13 @@ public static class PurpleDaylistService
 }
 
 
-public static async Task<bool> ClearPlaylist(string playlistId, PurpuraDbContext dbContext)
+public async Task<bool> ClearPlaylist(string playlistId)
 {
 
         
-        var playlist = await dbContext.Playlists!.Include(p => p.Songs).Where(p => p.Id == playlistId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "Playlist not found", Success = false});
+        var playlist = await _dbContext.Playlists!.Include(p => p.Songs).Where(p => p.Id == playlistId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "Playlist not found", Success = false});
         playlist.Songs!.Clear();
-        await dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync();
         return true;
 
 } 
