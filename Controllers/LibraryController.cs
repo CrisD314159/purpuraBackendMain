@@ -31,16 +31,11 @@ public class LibraryController : ControllerBase
     [HttpGet("user")]
     public async Task<ActionResult<GetLibraryDTO>> GetLibrary()
     {
-        try
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401, new {Message ="You're not authorized to perform this action"});
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
             GetLibraryDTO library = await _libraryService.GetLibraryById(userId);
             return Ok(library);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
     /// Obtiene las canciones de la biblioteca del usuario con paginación.
@@ -50,21 +45,15 @@ public class LibraryController : ControllerBase
     [HttpGet("user/songs")]
     public async Task<ActionResult<GetLibraryDTO>> GetUserSongs(int offset, int limit)
     {
-        try
-        {
             if (offset < 0 || limit < 1)
             {
                 return BadRequest("Invalid offset or limit");
             }
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401, new {Message = "You're not authorized to perform this action", Success = false});
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
             var songs = await _libraryService.GetUserSongs(userId, offset, limit);
             return Ok(songs);
-        }
-         catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
     /// Agrega o elimina una canción a la biblioteca del usuario.
@@ -100,15 +89,10 @@ public class LibraryController : ControllerBase
     /// Método genérico para agregar o eliminar elementos de la biblioteca.
     private async Task<ActionResult> ModifyLibrary<T>(T dto, Func<string, T, Task> serviceMethod, string successMessage)
     {
-        try
-        {
+
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
             await serviceMethod(userId, dto);
             return Ok(new { success = true, message = successMessage });
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 }

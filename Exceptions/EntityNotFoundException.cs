@@ -1,12 +1,7 @@
 namespace purpuraMain.Exceptions;
 
-public class EntityNotFoundException : Exception
+public class EntityNotFoundException(string message) : Exception
 {
-     public EntityNotFoundException(int statusCode, object? value = null) =>
-    (Value, StatusCode) = (value, statusCode);
-
-
-
-    public object? Value{get ;}
-    public int StatusCode {get;}
+    public override string Message{get ;} = message;
+    public int StatusCode {get;} = 401;
 }

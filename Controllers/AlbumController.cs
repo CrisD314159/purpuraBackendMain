@@ -30,17 +30,10 @@ public class AlbumController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<GetAlbumDTO>> GetAlbumById(string id)
     {
-        try
-        {
-            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(string.IsNullOrEmpty(userId)) userId = "0";
-            var album = await _albumService.GetAlbumById(userId, id);
-            return Ok(album);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+        var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if(string.IsNullOrEmpty(userId)) userId = "0";
+        var album = await _albumService.GetAlbumById(userId, id);
+        return Ok(album);
     }
 
 
@@ -53,15 +46,10 @@ public class AlbumController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<List<GetAlbumDTO>>> GetAlbumByInput(string input, int offset, int limit)
     {
-        try
-        {
+ 
             var albums = await _albumService.GetAlbumByInput(input, offset, limit);
             return Ok(albums);
-        }
-         catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+   
     }
 
     /// Obtiene una lista de álbumes con paginación.
@@ -72,16 +60,11 @@ public class AlbumController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<List<GetAlbumDTO>>> GetAlbums(int offset, int limit)
     {
-        try
-        {
+
             if (offset < 0 || limit < 1) return BadRequest("Invalid offset or amount");
             var albums = await _albumService.GetAllAlbums(offset, limit);
             return Ok(albums);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
     /// <summary>
@@ -92,14 +75,9 @@ public class AlbumController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<List<GetAlbumDTO>>> GetTopAlbums()
     {
-        try
-        {
+
             var albums = await _albumService.GetTopAlbums();
             return Ok(albums);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 }

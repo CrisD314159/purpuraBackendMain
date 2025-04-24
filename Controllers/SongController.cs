@@ -33,16 +33,11 @@ public class SongController : ControllerBase
     [Authorize]
     public async Task<ActionResult<GetSongDTO>> GetSong(string id)
     {
-        try
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
             GetSongDTO song = await _songService.GetSongById(userId, id);
             return Ok(song);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
     /// Busca canciones según un criterio de entrada.
@@ -54,21 +49,16 @@ public class SongController : ControllerBase
     [Authorize]
     public async Task<ActionResult<List<GetSongDTO>>> GetSongByInput(string input, int offset, int limit)
     {
-        try
-        {
+
             if (offset < 0 || limit < 1)
             {
                 return BadRequest("Invalid offset or limit");
             }
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? 
-            throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
+            throw new UnauthorizedException("You're not authorized to perform this action");
             var songs = await _songService.GetSongByInput(userId, input, offset, limit);
             return Ok(songs);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
     /// Obtiene una lista paginada de canciones.
@@ -79,8 +69,7 @@ public class SongController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<List<GetSongDTO>>> GetSongs(int offset, int limit)
     {
-        try
-        {
+ 
             if (offset < 0 || limit < 1)
             {
                 return BadRequest("Invalid offset or limit");
@@ -88,11 +77,6 @@ public class SongController : ControllerBase
 
             var songs = await _songService.GetAllSongs(offset, limit);
             return Ok(songs);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
     }
     /// <summary>
     /// Obtiene una lista de canciones más populares.
@@ -104,17 +88,12 @@ public class SongController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<List<GetSongDTO>>> GetTopSongs()
     {
-        try
-        {
+
             var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if(string.IsNullOrEmpty(userId)) userId = "0";
             var songs = await _songService.GetTopSongs(userId);
             return Ok(songs);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+        
     }
 
     /// <summary>
@@ -126,15 +105,10 @@ public class SongController : ControllerBase
     [Authorize]
     public async Task<ActionResult<List<GetSongDTO>>> AddPlay(AddPlayDTO addPlayDTO)
     {
-        try
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-            var songs = await _songService.AddSongPlay(userId, addPlayDTO.SongId);
-            return Ok(songs);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+        var songs = await _songService.AddSongPlay(userId, addPlayDTO.SongId);
+        return Ok(songs);
+
     }
 }

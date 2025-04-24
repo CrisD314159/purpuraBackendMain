@@ -32,17 +32,12 @@ public class UserController : ControllerBase
     [Authorize]
     public async Task<ActionResult<GetUserDto>> GetUser()
     {
-        try
-        {
+
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
                 ?? throw new UnauthorizedAccessException("User not found");
             var user = await _userService.GetUserById(userId);
             return Ok(user);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+   
     }
 
 
@@ -50,15 +45,10 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> CreateUser(CreateUserDTO user)
     {
-        try
-        {
+
             await _userService.CreateUser(user);
             return CreatedAtAction("GetUser", new { success = true, message = "User created successfully" });
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
 
@@ -67,17 +57,12 @@ public class UserController : ControllerBase
     [Authorize]
     public async Task<ActionResult> UpdateUser(UpdateUserDto user)
     {
-        try
-        {
+
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
                 ?? throw new UnauthorizedAccessException("User not found");
             await _userService.UpdateUser(userId, user);
             return Ok("User updated successfully");
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
 
@@ -86,17 +71,12 @@ public class UserController : ControllerBase
     [Authorize]
     public async Task<ActionResult> DeleteUser()
     {
-        try
-        {
+
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
                 ?? throw new UnauthorizedAccessException("User not found");
             await _userService.DeleteUser(userId);
             return Ok("User deleted successfully");
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
 
@@ -104,19 +84,14 @@ public class UserController : ControllerBase
     [HttpPut("verifyAccount")]
     public async Task<ActionResult> VerifyAccount(VerifyAccountDTO verifyAccount)
     {
-        try
-        {
+
             if (verifyAccount.Email == null || verifyAccount.Code == 0)
             {
                 return BadRequest("Email and code are required");
             }
             await _userService.VerifyAccount(verifyAccount);
             return Ok("Account verified successfully");
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
 
@@ -128,15 +103,10 @@ public class UserController : ControllerBase
     [HttpPost("sendRecoverEmail")]
     public async Task<ActionResult> SendRecoverEmail(SendRecoverEmailDTO sendRecoverEmail)
     {
-        try
-        {
+
             await _userService.SendPasswordRecoveryCode(sendRecoverEmail.Email);
             return Ok("Recover email sent successfully");
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
     /// <summary>
@@ -147,14 +117,10 @@ public class UserController : ControllerBase
     [HttpPatch("changePassword")]
     public async Task<ActionResult> ChangePassword(PasswordChangeDTO changePassword)
     {
-        try
-        {
+
             await _userService.UpdateUserPassword(changePassword);
             return Ok("Password changed successfully");
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+        
+
     }
 }

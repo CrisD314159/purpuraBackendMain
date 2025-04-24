@@ -47,7 +47,7 @@ public class SongService(PurpuraDbContext dbContext) : ISongService
                 IsOnLibrary = isOnLibrary,
 
 
-            }).FirstAsync() ?? throw new EntityNotFoundException(404, new {Message = "Song not found", Success = false});
+            }).FirstAsync() ?? throw new EntityNotFoundException("Song not found");
 
             return song;
      
@@ -87,7 +87,7 @@ public class SongService(PurpuraDbContext dbContext) : ISongService
                 Lyrics = s.Lyrics ?? "",
                 IsOnLibrary = false,
 
-            }).Skip(offset).Take(limit).ToListAsync() ?? throw new EntityNotFoundException(404, new {Message = "There are no sogs that match the searc", Success = false});
+            }).Skip(offset).Take(limit).ToListAsync() ?? throw new EntityNotFoundException("There are no sogs that match the search");
 
             foreach (var song in songs)
             {
@@ -188,8 +188,8 @@ public class SongService(PurpuraDbContext dbContext) : ISongService
     public async Task<bool> AddSongPlay(string userId, string songId )
     {
 
-            var song = await _dbContext.Songs!.FindAsync(songId) ?? throw new EntityNotFoundException(404, new {Message = "Song not found", Success = false});
-            var user = await _dbContext.Users!.FindAsync(userId) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var song = await _dbContext.Songs!.FindAsync(songId) ?? throw new EntityNotFoundException("Song not found");
+            var user = await _dbContext.Users!.FindAsync(userId) ?? throw new EntityNotFoundException("User not found");
 
             var playHistory = new PlayHistory
             {

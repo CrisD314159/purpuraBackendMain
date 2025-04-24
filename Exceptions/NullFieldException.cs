@@ -1,11 +1,7 @@
 namespace purpuraMain.Exceptions;
-public class NullFieldException : Exception
+public class NullFieldException(string message) : Exception
 {
-  public NullFieldException(int statusCode, object? value = null) =>
-    (Value, StatusCode) = (value, statusCode);
 
-
-
-    public object? Value{get ;}
-    public int StatusCode {get;}
+    public override string Message{get ;} = message;
+    public int StatusCode {get;} = 400;
 }

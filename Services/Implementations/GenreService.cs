@@ -50,7 +50,7 @@ public class GenreService(PurpuraDbContext dbContext) : IGenreService
                         Plays = _dbContext.PlayHistories!.Where(pl => pl.SongId == s.Id).Count()
                         
                     }).OrderBy(s => s.Plays).ToList()
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Genre not found", Success=false});
+            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Genre not found");
             
             return songs;
 
@@ -89,7 +89,7 @@ public class GenreService(PurpuraDbContext dbContext) : IGenreService
                 Name = g.Name,
                 Description = g.Description ?? "",
                 Color = g.Color
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Genre not found", Success=false});
+            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Genre not found");
 
             return genres;
 

@@ -21,7 +21,7 @@ public class PurpleDaylistService(PurpuraDbContext dbContext) : IPurpleDaylistSe
   public async Task<GetPlayListDTO> GetPurpleDaylist(string userId)
   {
 
-      var playlist = await _dbContext.Playlists!.Where(p=> p.Name == "Purple Day List" && p.UserId == userId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "Playlist not found", Success = false});
+      var playlist = await _dbContext.Playlists!.Where(p=> p.Name == "Purple Day List" && p.UserId == userId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
       await UpdatePurpuraDayList(playlist.Id, userId);
       var entirePlaylist = await _dbContext.Playlists!.Where(p => p.Id == playlist.Id).Select(p => new GetPlayListDTO
       {
@@ -56,7 +56,7 @@ public class PurpleDaylistService(PurpuraDbContext dbContext) : IPurpleDaylistSe
           IsOnLibrary = false
 
         }).ToList() : new List<GetSongDTO>()
-      }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "Playlist not found", Success = false});
+      }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
 
         foreach (var song in entirePlaylist.Songs)
         {
@@ -78,7 +78,7 @@ public class PurpleDaylistService(PurpuraDbContext dbContext) : IPurpleDaylistSe
   public async Task<bool> UpdatePurpuraDayList(string playlistId, string userId)
   {
 
-      var playlist = _dbContext.Playlists!.Find(playlistId) ?? throw new EntityNotFoundException(404, new {Message = "Playlist not found", Success = false});
+      var playlist = await _dbContext.Playlists!.FindAsync(playlistId) ?? throw new EntityNotFoundException("Playlist not found");
       Console.WriteLine(playlistId);
       if((DateTime.UtcNow.Date - playlist.LastUpdated.Date ) > TimeSpan.FromDays(1))
       {
@@ -128,7 +128,7 @@ public async Task<bool> ClearPlaylist(string playlistId)
 {
 
         
-        var playlist = await _dbContext.Playlists!.Include(p => p.Songs).Where(p => p.Id == playlistId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "Playlist not found", Success = false});
+        var playlist = await _dbContext.Playlists!.Include(p => p.Songs).Where(p => p.Id == playlistId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
         playlist.Songs!.Clear();
         await _dbContext.SaveChangesAsync();
         return true;

@@ -20,7 +20,7 @@ public class ArtistService(PurpuraDbContext dbContext) : IArtistService
     {
        
             var artistEntity = await _dbContext.Artists!.Where(a => a.Id == id).FirstOrDefaultAsync() ?? 
-            throw new EntityNotFoundException(404, new {Message ="Artist not found", Success=false});
+            throw new EntityNotFoundException("Artist not found");
             
             var artist = new GetArtistDTO
             {
@@ -42,7 +42,7 @@ public class ArtistService(PurpuraDbContext dbContext) : IArtistService
                         ReleaseDate = al.ReleaseDate
                     })
                     .OrderByDescending(al => al.ReleaseDate)
-                    .Take(10).ToList() : new List<GetLibraryAlbumDTO>()
+                    .Take(10).ToList() : []
             };
 
 
@@ -100,7 +100,7 @@ public class ArtistService(PurpuraDbContext dbContext) : IArtistService
                         Description = al.Description ?? "",
                         ReleaseDate = al.ReleaseDate
                     }).Take(10).ToList() : new List<GetLibraryAlbumDTO>()
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Artist not found", Success=false});
+            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Artist not found");
 
             return artist;
       

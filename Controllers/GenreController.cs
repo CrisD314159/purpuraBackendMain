@@ -31,15 +31,10 @@ public class GenreController : ControllerBase
     [HttpGet("getTopSongs/{id}")]
     public async Task<ActionResult<GetGenreDTO>> GetTopSongs(string id)
     {
-        try
-        {
+
             var topSongs = await _genreService.GetTopSongsByGenre(id);
             return Ok(topSongs);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
     /// Obtiene todos los géneros disponibles en la plataforma.
@@ -47,15 +42,10 @@ public class GenreController : ControllerBase
     [HttpGet("getAll")]
     public async Task<ActionResult<List<GetGenreDTO>>> GetAllGenres()
     {
-        try
-        {
+
             var genres = await _genreService.GetAllGenres();
             return Ok(genres);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
     /// Obtiene la información de un género específico por su ID.
@@ -64,14 +54,9 @@ public class GenreController : ControllerBase
     [HttpGet("getGenre/{id}")]
     public async Task<ActionResult<GetGenreDTO>> GetGenreById(string id)
     {
-        try
-        {
+
             var genre = await _genreService.GetGenreById(id);
             return Ok(genre);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 }

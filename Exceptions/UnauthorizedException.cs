@@ -1,13 +1,8 @@
 namespace purpuraMain.Exceptions;
 
 
-public class UnauthorizedException : Exception
+public class UnauthorizedException(string message) : Exception
 {
-  public UnauthorizedException(int statusCode, object? value = null) =>
-    (Value, StatusCode) = (value, statusCode);
-
-
-
-    public object? Value{get ;}
-    public int StatusCode {get;}
+    public override string Message{get ;} =  message;
+    public int StatusCode {get;} = 401;
 }

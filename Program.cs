@@ -37,13 +37,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddControllers(options =>
 {
-    options.Filters.Add<HttpResponseExceptionFilter>();
-    options.Filters.Add<BadRequestExceptionFilter>();
-    options.Filters.Add<EntityNotFoundExceptionFilter>();
-    options.Filters.Add<NotVerifiedExceptionFilter>();
-    options.Filters.Add<NullFieldExceptionFilter>();
-    options.Filters.Add<SessionExpiredExceptionFilter>();
-    options.Filters.Add<UnauthorizedExceptionFilter>();
+    options.Filters.Add<GlobalExceptionFilter>();
 
 });
 

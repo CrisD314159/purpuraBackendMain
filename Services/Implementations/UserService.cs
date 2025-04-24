@@ -38,7 +38,7 @@ public class UserService (PurpuraDbContext dbContext) : IUserService
             ProfilePicture = u.ProfilePicture,
             IsVerified = u.State == UserState.ACTIVE,
             CountryId = u.Country.Id
-        } ).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+        } ).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User not found");
         
         return user;
        
@@ -135,9 +135,9 @@ public class UserService (PurpuraDbContext dbContext) : IUserService
    
             UserUpdateValidator validator = new();
             if(validator.Validate(user).IsValid == false) throw new ValidationException("User input is not valid");
-            var userToUpdate = await _dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == userId) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var userToUpdate = await _dbContext.Users!.Where(u => u.State != UserState.INACTIVE).FirstOrDefaultAsync(u => u.Id == userId) ?? throw new EntityNotFoundException("User not found");
             if(userToUpdate.State == UserState.UNVERIFIED) throw new ValidationException("User is not verified");
-            var country = await _dbContext.Countries!.FindAsync(user.Country) ?? throw new EntityNotFoundException(404, new {Message = "Country not found", Success = false});
+            var country = await _dbContext.Countries!.FindAsync(user.Country) ?? throw new EntityNotFoundException("Country not found");
       
             userToUpdate.FirstName = user.FirstName;
             userToUpdate.SurName = user.SurName;
@@ -160,7 +160,7 @@ public class UserService (PurpuraDbContext dbContext) : IUserService
     {
    
             if(id == null) throw new ValidationException("Id cannot be null");
-            var user = await _dbContext.Users!.FindAsync(id) ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var user = await _dbContext.Users!.FindAsync(id) ?? throw new EntityNotFoundException("User not found");
             user.State = UserState.INACTIVE;
             await _dbContext.SaveChangesAsync();
             return true;
@@ -182,7 +182,7 @@ public class UserService (PurpuraDbContext dbContext) : IUserService
             var passwordValidator = new PasswordValidation();
             if(passwordValidator.Validate(passwordDTO).IsValid == false) throw new ValidationException("Password input is not valid");
 
-            var user = await _dbContext.Users!.Where(u=> u.Email == passwordDTO.Email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var user = await _dbContext.Users!.Where(u=> u.Email == passwordDTO.Email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User not found");
             if(user.VerifyCode != passwordDTO.Code) throw new ValidationException("Invalid code");
 
             PasswordManipulation passwordManipulation = new();
@@ -206,7 +206,7 @@ public class UserService (PurpuraDbContext dbContext) : IUserService
     {
 
    
-            var user = await _dbContext.Users!.Where(u=> u.Email == verifyAccountDTO.Email && u.State == UserState.UNVERIFIED).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var user = await _dbContext.Users!.Where(u=> u.Email == verifyAccountDTO.Email && u.State == UserState.UNVERIFIED).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User not found");
             if(user.VerifyCode != verifyAccountDTO.Code) throw new ValidationException("Invalid code");
             user.State = UserState.ACTIVE;
             user.VerifyCode = 0;
@@ -227,7 +227,7 @@ public class UserService (PurpuraDbContext dbContext) : IUserService
     public async Task<bool> SendPasswordRecoveryCode(string email)
     {
    
-            var user = await _dbContext.Users!.Where(u=> u.Email == email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message = "User not found", Success = false});
+            var user = await _dbContext.Users!.Where(u=> u.Email == email && u.State == UserState.ACTIVE).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User not found");
             int code = new Random().Next(1000, 9999);
             user.VerifyCode = code;
             await _dbContext.SaveChangesAsync();

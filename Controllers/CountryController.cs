@@ -21,14 +21,8 @@ public class CountryController : ControllerBase
     [HttpGet("getAll")]
     public async Task<ActionResult<List<GetCountriesDTO>>> GetAllCountries()
     {
-        try
-        {
-            var countries = await _countryService.GetCountries();
-            return Ok(countries);
-        }
-          catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+        var countries = await _countryService.GetCountries();
+        return Ok(countries);
+
     }
 }

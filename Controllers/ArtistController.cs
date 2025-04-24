@@ -32,17 +32,11 @@ public class ArtistController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<GetArtistDTO>> GetArtistProfile(string id)
     {
-        try
-        {
-            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+             var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if(string.IsNullOrEmpty(userId)) userId = "0";
             var artist = await _artistService.GetArtistById(userId, id);
             return Ok(artist);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
    
@@ -54,8 +48,7 @@ public class ArtistController : ControllerBase
     [HttpGet("searchArtists")]
     public async Task<ActionResult<List<GetArtistDTO>>> GetArtistByName(string name, int offset, int limit)
     {
-        try
-        {
+
             if (offset < 0 || limit < 1)
             {
                 return BadRequest("Invalid offset or limit");
@@ -63,11 +56,7 @@ public class ArtistController : ControllerBase
 
             var artist = await _artistService.GetArtistByName(name, offset, limit);
             return Ok(artist);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
    
@@ -77,18 +66,13 @@ public class ArtistController : ControllerBase
     [HttpGet("getArtistAlbums/{id}")]
     public async Task<ActionResult<GetArtistDTO>> GetArtistAlbums(string id)
     {
-        try
-        {
+
             var artist = await _artistService.GetArtistAlbums(id);
             return Ok(artist);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
-   
+
     /// Obtiene las canciones de un artista por su ID.
     /// <param name="id">ID del artista.</param>
     /// <returns>Lista de canciones del artista.</returns>
@@ -96,17 +80,12 @@ public class ArtistController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<GetArtistDTO>> GetArtistSongs(string id)
     {
-        try
-        {
+
             var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if(string.IsNullOrEmpty(userId)) userId = "0";
             var artist = await _artistService.GetArtistById(userId, id);
             return Ok(artist);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
    
@@ -117,19 +96,14 @@ public class ArtistController : ControllerBase
     [HttpGet("getArtists")]
     public async Task<ActionResult<List<GetArtistDTO>>> GetArtists(int offset, int limit)
     {
-        try
-        {
+
             if (offset < 0 || limit < 1)
             {
                 return BadRequest("Invalid offset or limit");
             }
             var artists = await _artistService.GetMostListenArtists(offset, limit);
             return Ok(artists);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
    
@@ -140,8 +114,7 @@ public class ArtistController : ControllerBase
     [HttpGet("getMostListenArtists")]
     public async Task<ActionResult<List<GetArtistPlaysDTO>>> GetMostListenArtists(int offset, int limit)
     {
-        try
-        {
+
             if (offset < 0 || limit < 1)
             {
                 return BadRequest("Invalid offset or limit");
@@ -149,10 +122,6 @@ public class ArtistController : ControllerBase
 
             var artists = await _artistService.GetMostListenArtists(offset, limit);
             return Ok(artists);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 }

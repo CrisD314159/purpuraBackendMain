@@ -38,8 +38,7 @@ public class ImageController : ControllerBase
     [ApiExplorerSettings(IgnoreApi = true)]
     public async Task<IActionResult> UploadImage([FromForm] IFormFile image)
     {
-        try
-        {
+
             if (image == null || image.Length == 0)
             {
                 return BadRequest(new { success = false, message = "No image provided." });
@@ -56,10 +55,6 @@ public class ImageController : ControllerBase
             }
 
             return Ok(new { success = true, message = "Image uploaded successfully.", url = imageUrl });
-        }
-          catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+  
     }
 }

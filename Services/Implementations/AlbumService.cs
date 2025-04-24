@@ -61,7 +61,7 @@ public class AlbumService(PurpuraDbContext dbContext) : IAlbumService
                     IsOnLibrary = false
                 }).ToList() : new List<GetSongDTO>(),
 
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException(404, new {Message ="Album not found", Success=false});
+            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Album not found");
 
 
             if(album != null && album.Songs != null)
@@ -73,7 +73,7 @@ public class AlbumService(PurpuraDbContext dbContext) : IAlbumService
                 }
             }
 
-            return album ?? throw new EntityNotFoundException(404, new {Message ="Album not found", Success=false});
+            return album ?? throw new EntityNotFoundException("Album not found");
       
     }
 

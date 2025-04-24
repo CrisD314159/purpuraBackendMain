@@ -36,18 +36,13 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginRequestDTO login)
     {
-        try
-        {
+
             if (login.Email == null || login.Password == null)
-                throw new BadRequestException(400, new {Message = "Email or password cannot be null", Success = false});
+                throw new BadRequestException("Email or password cannot be null");
 
             var response = await _authService.LoginRequest(login.Email, login.Password, _config);
             return Ok(response);
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
 
@@ -57,19 +52,14 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<ActionResult<LoginResponseDTO>> RefreshToken()
     {
-        try
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            var email = User.FindFirst(ClaimTypes.Email)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
+            var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
+            var email = User.FindFirst(ClaimTypes.Email)?.Value ?? throw new UnauthorizedException(" You're not authorized to perform this action");
 
             var token = await _authService.RefreshTokenRequest(userId, sessionId, email, _config);
             return Ok(new { success = true, token = token.Token, refreshToken = token.RefreshToken });
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
 
@@ -79,21 +69,15 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<ActionResult<object>> Logout()
     {
-        try
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
-            var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
+            var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
 
             var response = await _authService.LogoutRequest(userId, sessionId);
             if (!response)
-                throw new HttpResponseException(500, new{Message = "An error occurred while logging out", Success = false});
+                throw new BadRequestException("An error occurred while logging out");
 
             return Ok("Logged out successfully");
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 
 
@@ -103,14 +87,9 @@ public class AuthController : ControllerBase
     [Authorize]
     public ActionResult<object> CheckToken()
     {
-        try
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(401 , new {Message = " You're not authorized to perform this action"});
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
             return Ok(new { success = true, message = "Token is valid" });
-        }
-        catch (System.Exception)
-        {
-            throw new HttpResponseException(500, new {Message="An unexpected error occured", Success = false});
-        }
+
     }
 }
