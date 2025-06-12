@@ -170,7 +170,6 @@ public async Task<List<GetSongDTO>> GetTopArtistSongs(string userId, string id)
                 }).ToList(),
                 AlbumId = s.AlbumId ?? "",
                 AlbumName = s.Album!.Name ?? "",
-                Duration = s.Duration,
                 ImageUrl = s.ImageUrl ?? "",
                 AudioUrl = s.AudioUrl ?? "",
                 IsOnLibrary = false,

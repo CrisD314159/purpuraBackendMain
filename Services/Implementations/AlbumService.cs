@@ -48,7 +48,6 @@ public class AlbumService(PurpuraDbContext dbContext) : IAlbumService
                     }).ToList() : new List<GetPlaylistArtistDTO>(),
                     AlbumId = s.AlbumId!,
                     AlbumName = s.Album!.Name!,
-                    Duration = s.Duration,
                     ImageUrl = s.ImageUrl ?? "",
                     AudioUrl = s.AudioUrl ?? "",
                     Genres = s.Genres!.Select(g => new GetGenreDTO
@@ -146,7 +145,6 @@ public class AlbumService(PurpuraDbContext dbContext) : IAlbumService
                     }).ToList() : new List<GetPlaylistArtistDTO>(),
                     AlbumId = s.AlbumId!,
                     AlbumName = s.Album!.Name!,
-                    Duration = s.Duration,
                     ImageUrl = s.ImageUrl ?? "",
                     AudioUrl = s.AudioUrl ?? "",
                     Genres = s.Genres!.Select(g => new GetGenreDTO

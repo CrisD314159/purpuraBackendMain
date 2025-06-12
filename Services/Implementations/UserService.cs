@@ -13,10 +13,12 @@ using purpuraMain.Exceptions;
 using System.Reflection.Metadata.Ecma335;
 using purpuraMain.Services.Interfaces;
 
-public class UserService (PurpuraDbContext dbContext) : IUserService
+public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> createuserValidator) : IUserService
 {
 
     private readonly PurpuraDbContext _dbContext = dbContext;
+
+    private readonly IValidator<CreateUserDTO> _createuserValidator = createuserValidator;
     /// <summary>
     /// Obtiene un usuario por su ID.
     /// </summary>
@@ -26,7 +28,7 @@ public class UserService (PurpuraDbContext dbContext) : IUserService
     public async Task<GetUserDto> GetUserById(string id)
     {
 
-        
+
         var user = await _dbContext.Users!.Where(u => u.State != UserState.INACTIVE && u.Id == id)
         .Select(u => new GetUserDto
         {
@@ -38,11 +40,11 @@ public class UserService (PurpuraDbContext dbContext) : IUserService
             ProfilePicture = u.ProfilePicture,
             IsVerified = u.State == UserState.ACTIVE,
             CountryId = u.Country.Id
-        } ).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User not found");
-        
+        }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("User not found");
+
         return user;
-       
-     
+
+
     }
 
    /// <summary>
@@ -54,10 +56,7 @@ public class UserService (PurpuraDbContext dbContext) : IUserService
     public async Task<bool> CreateUser(CreateUserDTO user)
     {
         var transaction = await _dbContext.Database.BeginTransactionAsync();
-   
-            UserValidator validator = new ();
-            ValidationResult result = validator.Validate(user);
-            if (!result.IsValid) throw new ValidationException("User input is not valid");
+            _createuserValidator.ValidateAndThrow(user);
 
             if (await _dbContext.Users!.AnyAsync(u => u.Email == user.Email)) throw new ValidationException("User already exists");
 
