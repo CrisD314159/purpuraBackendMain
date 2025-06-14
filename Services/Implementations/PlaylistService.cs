@@ -9,11 +9,24 @@ using purpuraMain.Validations;
 using System.ComponentModel.DataAnnotations;
 using CloudinaryDotNet.Actions;
 using purpuraMain.Services.Interfaces;
+using AutoMapper.QueryableExtensions;
+using AutoMapper;
+using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 
-public class PlaylistService(PurpuraDbContext dbContext) : IPlaylistService
+public class PlaylistService(PurpuraDbContext dbContext, IMapper mapper, ILibraryService libraryService
+, IValidator<CreatePlayListDTO> createValidator, IValidator<UpdatePlaylistDTO> updateValidator, UserManager<User> userManager,
+IUserService userService
+) : IPlaylistService
 {
 
   private readonly PurpuraDbContext _dbcontext = dbContext;
+  private readonly IMapper _mapper = mapper;
+  private readonly ILibraryService _libraryService = libraryService;
+  private readonly IUserService _userService = userService;
+  private readonly IValidator<CreatePlayListDTO> _createValidator = createValidator;
+  private readonly IValidator<UpdatePlaylistDTO> _updatePlaylistDTO = updateValidator;
+  private readonly UserManager<User> _userManager = userManager;
 
   /// <summary>
   /// Obtiene la información de una playlist verificando primero si es del usuario que la solicita.
@@ -22,57 +35,22 @@ public class PlaylistService(PurpuraDbContext dbContext) : IPlaylistService
   /// <param name="playListId"></param>
   /// <param name="dbcontext"></param>
   /// <returns></returns>
-  public async Task<GetPlayListDTO> GetPlaylist(string userId, string playListId)
+  public async Task<GetPlayListDTO> GetPlaylist(string userId, Guid playListId)
   {
 
-      //Esto es para verificar si el usuario que hace la petición puede ver la playlist
-      if( await _dbcontext.Playlists!.AnyAsync(p => p.Id == playListId && p.UserId != userId && p.IsPublic == false)) throw new EntityNotFoundException("Playlist not found");
-      var playList = await
-      _dbcontext.Playlists!.Where(p => p.Id == playListId)
-      .Select(p => new GetPlayListDTO
-      {
-        Id = p.Id,
-        Name = p.Name,
-        Description = p.Description,
-        UserName = p.User!.FirstName!,
-        IsPublic = p.IsPublic,
-        ImageUrl = p.ImageUrl,
-        Songs = p.Songs != null ? p.Songs.Select(s=> new GetSongDTO
-        {
-          Id = s.Id,
-          Name = s.Name,
-          Artists = s.Artists != null ? s.Artists.Select(a => new GetPlaylistArtistDTO
-          {
-            Id = a.Id,
-            Name = a.Name,
-            Description = a.Description??""
-          }).ToList() : new List<GetPlaylistArtistDTO>(),
-          AlbumId = s.AlbumId!,
-          AlbumName = s.Album!.Name!,
-          Duration = s.Duration,
-          ImageUrl = s.ImageUrl?? "",
-          AudioUrl = s.AudioUrl?? "",
-          Genres = s.Genres!.Select(g => new GetGenreDTO
-          {
-            Id = g.Id,
-            Name = g.Name,
-            Description = g.Description?? ""
-          }).ToList(),
-          Lyrics = s.Lyrics ?? "",
-          IsOnLibrary = false
+    //Esto es para verificar si el usuario que hace la petición puede ver la playlist
+    if (await _dbcontext.Playlists.AnyAsync(p => p.Id == playListId && p.UserId != userId && p.IsPublic == false)) throw new EntityNotFoundException("Playlist not found");
+    var playList = await
+    _dbcontext.Playlists!.Where(p => p.Id == playListId && p.UserId == userId)
+    .ProjectTo<GetPlayListDTO>(_mapper.ConfigurationProvider)
+    .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
 
-        }).ToList() : new List<GetSongDTO>()
-      }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
+    await _libraryService.CheckSongsOnLibraryWithUser(playList.Songs, userId);
 
-        foreach (var song in playList.Songs)
-        {
-          song.IsOnLibrary = await _dbcontext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).AnyAsync(l => l.Songs.Any(so => so.Id == song.Id));
-        }
-            
 
-      return playList;
+    return playList;
 
- 
+
   }
 
   /// <summary>
@@ -86,20 +64,11 @@ public class PlaylistService(PurpuraDbContext dbContext) : IPlaylistService
   public async Task<List<GetLibraryPlaylistDTO>> SearchPlaylist(string input, int offset, int limit)
   {
 
-      var playList = await
-      _dbcontext.Playlists!.Where(p => p.Name.ToLower().Contains(input.ToLower()) && p.IsPublic)
-      .Select(p=> new GetLibraryPlaylistDTO
-      {
-        Id =p.Id,
-        ImageUrl = p.ImageUrl,
-        IsPublic =p.IsPublic,
-        Description = p.Description ?? "",
-        Name = p.Name,
-        UserId =p.UserId!,
-        UserName = p.User!.FirstName!
-      }).Skip(offset).Take(limit).ToListAsync() ?? [];
+    var playList = await _dbcontext.Playlists.Where(p => p.Name.Contains(input, StringComparison.OrdinalIgnoreCase) && p.IsPublic)
+    .ProjectTo<GetLibraryPlaylistDTO>(_mapper.ConfigurationProvider)
+    .Skip(offset).Take(limit).ToListAsync();
 
-      return playList;
+    return playList;
     
   }
 
@@ -110,15 +79,14 @@ public class PlaylistService(PurpuraDbContext dbContext) : IPlaylistService
   /// <param name="addSongDTO"></param>
   /// <param name="_dbcontext"></param>
   /// <returns></returns>
-  public async Task<bool> AddSong(string userId, AddRemoveSongDTO addSongDTO)
+  public async Task AddSong(string userId, AddRemoveSongDTO addSongDTO)
   {
 
-      var playlist = await _dbcontext.Playlists!.FindAsync(addSongDTO.PlaylistId) ?? throw new EntityNotFoundException("Playlist not found");
-      if(playlist.UserId != userId || !playlist.Editable) throw new UnauthorizedException("You are not authorized to add songs to this playlist");
-      var song = await _dbcontext.Songs!.FindAsync(addSongDTO.SongId) ?? throw new EntityNotFoundException("Song not found");
-      playlist.Songs!.Add(song);
-      await _dbcontext.SaveChangesAsync();
-      return true;
+    var playlist = await _dbcontext.Playlists.FindAsync(addSongDTO.PlaylistId) ?? throw new EntityNotFoundException("Playlist not found");
+    if(playlist.UserId != userId) throw new UnauthorizedException("You are not authorized to add songs to this playlist");
+    var song = await _dbcontext.Songs.FindAsync(addSongDTO.SongId) ?? throw new EntityNotFoundException("Song not found");
+    playlist.Songs.Add(song);
+    await _dbcontext.SaveChangesAsync();
  
   }
 
@@ -130,16 +98,19 @@ public class PlaylistService(PurpuraDbContext dbContext) : IPlaylistService
   /// <param name="addSongDTO"></param>
   /// <param name="_dbcontext"></param>
   /// <returns></returns>
-  public async Task<bool> RemoveSong(string userId, AddRemoveSongDTO addSongDTO)
+  public async Task RemoveSong(string userId, AddRemoveSongDTO addSongDTO)
   {
 
-      var playlist = await _dbcontext.Playlists!.Include(p=> p.Songs).Where(p => p.Id == addSongDTO.PlaylistId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
-      if(playlist.UserId != userId) throw new UnauthorizedException("You are not authorized to remove songs from this playlist");
-      var song = await _dbcontext.Songs!.FindAsync(addSongDTO.SongId) ?? throw new EntityNotFoundException("Song not found");
-      Console.Write(playlist.Songs!.Count);
-      playlist.Songs!.Remove(song);
-       _dbcontext.SaveChanges();
-      return true;
+      var playlist = await _dbcontext.Playlists.Include(p => p.Songs).Where(p => p.Id == addSongDTO.PlaylistId).FirstOrDefaultAsync()
+      ?? throw new EntityNotFoundException("Playlist not found");
+      
+      if (playlist.UserId != userId) throw new UnauthorizedException("You are not authorized to remove songs from this playlist");
+
+      var song = await _dbcontext.Songs.FindAsync(addSongDTO.SongId)
+      ?? throw new EntityNotFoundException("Song not found");
+
+      playlist.Songs.Remove(song);
+      await _dbcontext.SaveChangesAsync();
 
   }
 
@@ -150,14 +121,13 @@ public class PlaylistService(PurpuraDbContext dbContext) : IPlaylistService
   /// <param name="changePrivacy"></param>
   /// <param name="_dbcontext"></param>
   /// <returns></returns>
-  public async Task<bool> ChangePlayListState(string userId, ChangePrivacyPlaylistDto changePrivacy)
+  public async Task ChangePlayListState(string userId, ChangePrivacyPlaylistDto changePrivacy)
   {
 
-      var playList = await _dbcontext.Playlists!.FindAsync(changePrivacy.Id) ?? throw new EntityNotFoundException("Playlist not found");
+      var playList = await _dbcontext.Playlists.FindAsync(changePrivacy.PlaylistId) ?? throw new EntityNotFoundException("Playlist not found");
       if(playList.UserId != userId) throw new UnauthorizedException("You are not authorized to change the privacy of this playlist");
       playList.IsPublic = !playList.IsPublic;
       await _dbcontext.SaveChangesAsync();
-      return true;
 
   }
 
@@ -169,15 +139,9 @@ public class PlaylistService(PurpuraDbContext dbContext) : IPlaylistService
   /// <returns></returns>
   public async Task<List<GetUserPlayListsDTO>> GetUserPlayLists(string userId)
   {
-
-      if(!await _dbcontext.Users!.AnyAsync(u => u.Id == userId)) throw new EntityNotFoundException("User not found");
-      var playLists = await _dbcontext.Playlists!.Where(p => p.UserId== userId && p.Name !="Purple Day List").Select(p=> new GetUserPlayListsDTO{
-        Id = p.Id,
-        Name = p.Name,
-        Description = p.Description,
-        IsPublic = p.IsPublic,
-        ImageUrl = p.ImageUrl
-      }).ToListAsync() ?? [];
+    var playLists = await _dbcontext.Playlists!.Where(p => p.UserId == userId && p.Name != "Purple Day List")
+    .ProjectTo<GetUserPlayListsDTO>(_mapper.ConfigurationProvider)
+    .ToListAsync();
 
     return playLists;
   }
@@ -190,29 +154,36 @@ public class PlaylistService(PurpuraDbContext dbContext) : IPlaylistService
   /// <param name="createPlayListDTO"></param>
   /// <param name="_dbcontext"></param>
   /// <returns></returns>
-  public async Task<bool> CreatePlayList(string userId, CreatePlayListDTO createPlayListDTO)
+  public async Task CreatePlayList(string userId, CreatePlayListDTO createPlayListDTO)
   {
 
-      PlayListValidation validator = new();
-      if(!validator.Validate(createPlayListDTO).IsValid) throw new ValidationException("Invalid output");
-      var library = await _dbcontext.Libraries!.Where(l=> l.UserId == userId).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Library not found");
-      if(await _dbcontext.Playlists!.AnyAsync(p => p.Name == createPlayListDTO.Name && p.UserId == userId)) throw new BadRequestException("There is already a playlist with that name on your library");
+    _createValidator.ValidateAndThrow(createPlayListDTO);
 
-      var playList = new Playlist
-      {
-        Id = Guid.NewGuid().ToString(),
-        Name = createPlayListDTO.Name,
-        Description = createPlayListDTO.Description ?? "",
-        UserId = userId,
-        ImageUrl = createPlayListDTO.ImageUrl ?? "https://res.cloudinary.com/dw43hgf5p/image/upload/v1735657347/qheqts3xhcejrmwu5hur.jpg",
-        IsPublic = true,
-        Editable = true,
-        CreatedAt = DateTime.UtcNow
-      };
-      await _dbcontext.Playlists!.AddAsync(playList);
-      library.Playlists.Add(playList);
-      await _dbcontext.SaveChangesAsync();
-      return true;
+    if (await _dbcontext.Playlists.AnyAsync(p => p.Name == createPlayListDTO.Name && p.UserId == userId))
+      throw new BadRequestException("There is already a playlist with that name on your library");
+
+    var user = await _userService.VerifyAndReturnValidUser(userId);
+
+    var library = await _dbcontext.Libraries.Where(l => l.UserId == userId)
+    .FirstOrDefaultAsync()
+    ?? throw new EntityNotFoundException("Library not found");
+
+
+    var playList = new Playlist
+    {
+      Name = createPlayListDTO.Name,
+      Description = createPlayListDTO.Description ?? "",
+      UserId = userId,
+      User = user,
+      ImageUrl = createPlayListDTO.ImageUrl ?? "https://res.cloudinary.com/dw43hgf5p/image/upload/v1735657347/qheqts3xhcejrmwu5hur.jpg",
+      IsPublic = true,
+      Editable = true,
+      CreatedAt = DateTime.UtcNow
+    };
+
+    await _dbcontext.Playlists.AddAsync(playList);
+    library.Playlists.Add(playList);
+    await _dbcontext.SaveChangesAsync();
 
   }
 
@@ -224,23 +195,19 @@ public class PlaylistService(PurpuraDbContext dbContext) : IPlaylistService
   /// <param name="updatePlaylistDTO"></param>
   /// <param name="_dbcontext"></param>
   /// <returns></returns>
-  public async Task<bool> UpdatePlayList(string userId, UpdatePlaylistDTO updatePlaylistDTO)
+  public async Task UpdatePlayList(string userId, UpdatePlaylistDTO updatePlaylistDTO)
   {
-
-      PlayListUpdateValidation validator = new();
-      if(!validator.Validate(updatePlaylistDTO).IsValid) throw new ValidationException("Invalid output");
-      var playList = await _dbcontext.Playlists!.FindAsync(updatePlaylistDTO.Id) ?? throw new EntityNotFoundException("Playlist not found");
-      if(playList.UserId != userId) throw new UnauthorizedException("You're not authorized to update this playlist");
+    _updatePlaylistDTO.ValidateAndThrow(updatePlaylistDTO);
+    var playList = await _dbcontext.Playlists.Where(p => p.Id == updatePlaylistDTO.Id && p.UserId == userId)
+    .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
       
-      playList.Name = updatePlaylistDTO.Name;
-      playList.Description = updatePlaylistDTO.Description;
-      if(!string.IsNullOrEmpty(updatePlaylistDTO.ImageUrl))
-      {
-        playList.ImageUrl = updatePlaylistDTO.ImageUrl;
-      }
-      await _dbcontext.SaveChangesAsync();
-      return true;
-
+    playList.Name = updatePlaylistDTO.Name;
+    playList.Description = updatePlaylistDTO.Description ?? "";
+    if(!string.IsNullOrEmpty(updatePlaylistDTO.ImageUrl))
+    {
+      playList.ImageUrl = updatePlaylistDTO.ImageUrl;
+    }
+    await _dbcontext.SaveChangesAsync();
   }
 
 
@@ -252,14 +219,13 @@ public class PlaylistService(PurpuraDbContext dbContext) : IPlaylistService
   /// <param name="_dbcontext"></param>
   /// <returns></returns>
   /// <exception cref="Exception"></exception>
-  public async Task<bool> DeletePlayList(string userId, DeletePlayListDTO deletePlaylist)
+  public async Task DeletePlayList(string userId, DeletePlayListDTO deletePlaylist)
   {
 
-      var playList = await _dbcontext.Playlists!.FindAsync(deletePlaylist.Id) ?? throw new EntityNotFoundException("Playlist not found");
-      if(playList.UserId != userId) throw new UnauthorizedException("You're not authorized to delete this playlist");
-      _dbcontext.Playlists!.Remove(playList);
+      var playList = await _dbcontext.Playlists.Where(p => p.Id == deletePlaylist.Id && p.UserId == userId)
+      .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
+      _dbcontext.Playlists.Remove(playList);
       await _dbcontext.SaveChangesAsync();
-      return true;
   }
 
 }

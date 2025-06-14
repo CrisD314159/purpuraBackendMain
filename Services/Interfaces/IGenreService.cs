@@ -7,7 +7,7 @@ namespace purpuraMain.Services.Interfaces;
 public interface IGenreService
 {
 
-  Task<GetGenreDTO> GetTopSongsByGenre(string id);
+  Task<GetGenreDTO> GetTopSongsByGenre(string id, string userId);
 
   Task<List<GetGenreDTO>> GetAllGenres();
     

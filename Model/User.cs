@@ -8,14 +8,6 @@ namespace purpuraMain.Model;
 public class User : IdentityUser
 {
 
-  [MinLength(8)]
-  public required string Password { get; set; }
-
-  [MinLength(2)]
-  [MaxLength(30)]
-  public required string Name { get; set; }
-
-
   public DateTime CreatedAt { get; set; }
 
   public int CountryId { get; set; }

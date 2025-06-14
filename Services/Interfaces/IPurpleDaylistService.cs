@@ -8,7 +8,6 @@ namespace purpuraMain.Services.Interfaces;
 public interface IPurpleDaylistService
 {
   Task<GetPlayListDTO> GetPurpleDaylist(string userId);
-  Task<bool> UpdatePurpuraDayList(string playlistId, string userId);
+  Task UpdatePurpuraDayList(string userId);
   Task<List<Song>> GetUserRecomendations(string userId);
-  Task<bool> ClearPlaylist(string playlistId);
 }

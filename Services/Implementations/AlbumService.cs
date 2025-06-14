@@ -5,10 +5,16 @@ using purpuraMain.Dto.OutputDto;
 using Microsoft.EntityFrameworkCore;
 using purpuraMain.Exceptions;
 using purpuraMain.Services.Interfaces;
+using AutoMapper.QueryableExtensions;
+using AutoMapper;
+using System.Threading.Tasks;
 
-public class AlbumService(PurpuraDbContext dbContext) : IAlbumService
+public class AlbumService(PurpuraDbContext dbContext, IMapper mapper, ILibraryService libraryService) : IAlbumService
 {
     private readonly PurpuraDbContext _dbContext = dbContext;
+    private readonly IMapper _mapper = mapper;
+
+    private readonly ILibraryService _libraryService = libraryService;
 
 
     /// <summary>
@@ -18,63 +24,20 @@ public class AlbumService(PurpuraDbContext dbContext) : IAlbumService
     /// <param name="dbContext">Contexto de base de datos.</param>
     /// <returns>Objeto GetAlbumDTO con la información del álbum.</returns>
     /// <exception cref="EntityNotFoundException">Se lanza si el álbum no es encontrado.</exception>
-    public async Task<GetAlbumDTO> GetAlbumById(string userId, string id)
+    public async Task<GetAlbumDTO> GetAlbumById(string userId, string albumId)
     {
-       
-            var album = await _dbContext.Albums!.Where(a => a.Id == id).Select(a => new GetAlbumDTO
-            {
-                ArtistId = a.ArtistId,
-                ArtistName = a.Artist.Name,
-                Id = a.Id,
-                Name = a.Name,
-                PictureUrl = a.PictureUrl,
-                Description = a.Description ?? "",
-                ReleaseDate = a.ReleaseDate,
-                Producer = a.ProducerName ?? "",
-                RecordLabel = a.RecordLabel ?? "",
-                Writer = a.WriterName ?? "",
-                GenreId = a.GenreId,
-                GenreName = a.Genre!.Name,
-                AlbumType = a.AlbumType,
-                Songs = _dbContext.Songs != null ? _dbContext.Songs.Where(s => s.AlbumId == a.Id).Select(s => new GetSongDTO
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    Artists = s.Artists != null ? s.Artists.Select(a => new GetPlaylistArtistDTO
-                    {
-                        Id = a.Id,
-                        Name = a.Name,
-                        Description = a.Description ?? ""
-                    }).ToList() : new List<GetPlaylistArtistDTO>(),
-                    AlbumId = s.AlbumId!,
-                    AlbumName = s.Album!.Name!,
-                    ImageUrl = s.ImageUrl ?? "",
-                    AudioUrl = s.AudioUrl ?? "",
-                    Genres = s.Genres!.Select(g => new GetGenreDTO
-                    {
-                        Id = g.Id,
-                        Name = g.Name,
-                        Description = g.Description ?? ""
-                    }).ToList(),
-                    Lyrics = s.Lyrics ?? "",
-                    IsOnLibrary = false
-                }).ToList() : new List<GetSongDTO>(),
 
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Album not found");
+        var album = await _dbContext.Albums.Where(a => a.Id == albumId)
+        .ProjectTo<GetAlbumDTO>(_mapper.ConfigurationProvider)
+        .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Album not found");
 
+        await _libraryService.CheckSongsOnLibraryWithUser(album.Songs, userId);
 
-            if(album != null && album.Songs != null)
-            {
+        return album;
 
-                foreach (var song in album.Songs)
-                {
-                    song.IsOnLibrary = _dbContext.Libraries!.Where(l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Any(l => l.Songs.Any(so => so.Id == song.Id));
-                }
-            }
-
-            return album ?? throw new EntityNotFoundException("Album not found");
-      
     }
+
+ 
 
     /// <summary>
     /// Busca álbumes por una cadena de entrada.
@@ -86,26 +49,15 @@ public class AlbumService(PurpuraDbContext dbContext) : IAlbumService
     /// <returns>Lista de álbumes que coinciden con la búsqueda.</returns>
     public async Task<List<GetAlbumDTO>> GetAlbumByInput(string input, int offset, int limit)
     {
-       
-            var album = await _dbContext.Albums!.Where(a => a.Name.ToLower().Contains(input.ToLower()) || a.Artist.Name.ToLower().Contains(input.ToLower())).Select(a => new GetAlbumDTO
-            {
-                ArtistId = a.ArtistId,
-                ArtistName = a.Artist.Name,
-                Id = a.Id,
-                Name = a.Name,
-                PictureUrl = a.PictureUrl,
-                Description = a.Description ?? "",
-                ReleaseDate = a.ReleaseDate,
-                Producer = a.ProducerName ?? "",
-                RecordLabel = a.RecordLabel ?? "",
-                Writer = a.WriterName ?? "",
-                GenreId = a.GenreId,
-                GenreName = a.Genre!.Name,
-                AlbumType = a.AlbumType,
-            }).Skip(offset).Take(limit).ToListAsync() ?? [];
 
-            return album;
-      
+        var albums = await _dbContext.Albums.Where(a => a.Name.Contains(input, StringComparison.OrdinalIgnoreCase) || a.Artist.Name.Contains(input, StringComparison.OrdinalIgnoreCase))
+        .ProjectTo<GetAlbumDTO>(_mapper.ConfigurationProvider)
+        .Skip(offset)
+        .Take(limit)
+        .ToListAsync();
+
+        return albums;
+
     }
 
     /// <summary>
@@ -117,47 +69,13 @@ public class AlbumService(PurpuraDbContext dbContext) : IAlbumService
     /// <returns>Lista de álbumes.</returns>
     public async Task<List<GetAlbumDTO>> GetAllAlbums(int offset, int limit)
     {
-       
-            var albums = await _dbContext.Albums!.Where(a => a.AlbumType == 0).Select(a => new GetAlbumDTO
-            {
-                ArtistId = a.ArtistId,
-                ArtistName = a.Artist.Name,
-                Id = a.Id,
-                Name = a.Name,
-                PictureUrl = a.PictureUrl,
-                Description = a.Description ?? "",
-                ReleaseDate = a.ReleaseDate,
-                Producer = a.ProducerName ?? "",
-                RecordLabel = a.RecordLabel ?? "",
-                Writer = a.WriterName ?? "",
-                GenreId = a.GenreId,
-                GenreName = a.Genre!.Name,
-                AlbumType = a.AlbumType,
-                Songs = _dbContext.Songs != null ? _dbContext.Songs.Where(s => s.AlbumId == a.Id).Select(s => new GetSongDTO
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    Artists = s.Artists != null ? s.Artists.Select(a => new GetPlaylistArtistDTO
-                    {
-                        Id = a.Id,
-                        Name = a.Name,
-                        Description = a.Description ?? ""
-                    }).ToList() : new List<GetPlaylistArtistDTO>(),
-                    AlbumId = s.AlbumId!,
-                    AlbumName = s.Album!.Name!,
-                    ImageUrl = s.ImageUrl ?? "",
-                    AudioUrl = s.AudioUrl ?? "",
-                    Genres = s.Genres!.Select(g => new GetGenreDTO
-                    {
-                        Id = g.Id,
-                        Name = g.Name,
-                        Description = g.Description ?? ""
-                    }).ToList(),
-                    Lyrics = s.Lyrics ?? "",
-                }).ToList() : new List<GetSongDTO>()
-            }).OrderByDescending(a=> a.ReleaseDate).Skip(offset).Take(limit).ToListAsync() ?? [];
 
-            return albums;
+        var albums = await _dbContext.Albums
+        .Where(a => a.AlbumType == 0)
+        .ProjectTo<GetAlbumDTO>(_mapper.ConfigurationProvider)
+        .OrderByDescending(a => a.Name).Skip(offset).Take(limit).ToListAsync();
+
+        return albums;
       
     }
 
@@ -168,8 +86,7 @@ public class AlbumService(PurpuraDbContext dbContext) : IAlbumService
     /// <returns></returns>
     public async Task<List<GetAlbumDTO>> GetTopAlbums()
     {
-       
-            var albums = await _dbContext.Albums!.Where(a => a.AlbumType == 0).Select(a => new GetAlbumDTO
+            var albums = await _dbContext.Albums.Where(a => a.AlbumType == 0).Select(a => new GetAlbumDTO
             {
                 Id = a.Id,
                 ArtistId = a.ArtistId,
@@ -180,9 +97,7 @@ public class AlbumService(PurpuraDbContext dbContext) : IAlbumService
                 TotalPlays = _dbContext.PlayHistories!.Where(s => s.Song!.AlbumId == a.Id).Count()
             }).OrderByDescending(a => a.TotalPlays).Take(10).ToListAsync();
 
-            return albums;
-            
-        
+            return albums;  
     }
 
 }

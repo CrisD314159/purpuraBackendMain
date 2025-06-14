@@ -5,49 +5,32 @@ using purpuraMain.DbContext;
 using Microsoft.EntityFrameworkCore;
 using purpuraMain.Exceptions;
 using purpuraMain.Services.Interfaces;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
-public class ArtistService(PurpuraDbContext dbContext) : IArtistService
+public class ArtistService(PurpuraDbContext dbContext, IMapper mapper, ILibraryService libraryService) : IArtistService
 {
 
     private readonly PurpuraDbContext _dbContext = dbContext;
+
+    private readonly ILibraryService _libraryService = libraryService;
+    private readonly IMapper _mapper = mapper;
     /// <summary>
     /// Obtiene un artista por su ID.
     /// </summary>
     /// <param name="id">ID del artista.</param>
     /// <param name="dbContext">Contexto de base de datos.</param>
     /// <returns>Objeto GetArtistDTO con la información del artista.</returns>
-    public async Task<GetArtistDTO> GetArtistById(string userId, string id)
+    public async Task<GetArtistDTO> GetArtistById(string userId, string artistId)
     {
-       
-            var artistEntity = await _dbContext.Artists!.Where(a => a.Id == id).FirstOrDefaultAsync() ?? 
-            throw new EntityNotFoundException("Artist not found");
-            
-            var artist = new GetArtistDTO
-            {
-                Id = artistEntity.Id,
-                Name = artistEntity.Name,
-                Description = artistEntity.Description ?? "",
-                ImageUrl = artistEntity.PictureUrl ?? "",
-                TopSongs = await GetTopArtistSongs(userId, artistEntity.Id),
-                Albums = _dbContext.Albums != null ? _dbContext.Albums.Where(al => al.ArtistId == artistEntity.Id)
-                    .Where(a => a.AlbumType == 0)
-                    .Select(al => new GetLibraryAlbumDTO
-                    {
-                        ArtistId = al.ArtistId,
-                        ArtistName = artistEntity.Name,
-                        Id = al.Id,
-                        Name = al.Name,
-                        PictureUrl = al.PictureUrl,
-                        Description = al.Description ?? "",
-                        ReleaseDate = al.ReleaseDate
-                    })
-                    .OrderByDescending(al => al.ReleaseDate)
-                    .Take(10).ToList() : []
-            };
+        var artist = await _dbContext.Artists.Where(a => a.Id == artistId)
+        .Include(a => a.Albums)
+        .ProjectTo<GetArtistDTO>(_mapper.ConfigurationProvider)
+        .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Artist not found");
 
+        artist.TopSongs = await GetTopArtistSongs(userId, artist.Id);
 
-            return artist;
-      
+        return artist; 
     }
 
     /// <summary>
@@ -61,16 +44,19 @@ public class ArtistService(PurpuraDbContext dbContext) : IArtistService
     public async Task<List<GetArtistDTO>> GetArtistByName(string name, int offset, int limit)
     {
        
-            var artists = await _dbContext.Artists!.Where(a => a.Name.ToLower().Contains(name.ToLower()))
-                .Select(a => new GetArtistDTO
-                {
-                    Id = a.Id,
-                    Name = a.Name,
-                    Description = a.Description ?? "",
-                    ImageUrl = a.PictureUrl ?? ""
-                }).OrderByDescending(a=> a.Name).Skip(offset).Take(limit).ToListAsync() ?? [];
+        var artists = await _dbContext.Artists.Where(a => a.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+            .Select(a => new GetArtistDTO
+            {
+                Id = a.Id,
+                Name = a.Name,
+                Description = a.Description,
+                PictureUrl = a.PictureUrl
+            }).OrderByDescending(a => a.Name)
+            .Skip(offset)
+            .Take(limit)
+            .ToListAsync();
 
-            return artists;
+        return artists;
       
     }
 
@@ -82,28 +68,13 @@ public class ArtistService(PurpuraDbContext dbContext) : IArtistService
     /// <returns>Objeto GetArtistDTO con la lista de álbumes del artista.</returns>
     public async Task<GetArtistDTO> GetArtistAlbums(string id)
     {
-       
-            var artist = await _dbContext.Artists!.Where(a=> a.Id == id).Select(a => new GetArtistDTO
-            {
-                Id = a.Id,
-                Name = a.Name,
-                Description = a.Description ?? "",
-                ImageUrl = a.PictureUrl ?? "",
-                Albums = _dbContext.Albums != null ? _dbContext.Albums.Where(al => al.ArtistId == a.Id)
-                    .Select(al => new GetLibraryAlbumDTO
-                    {
-                        ArtistId = al.ArtistId,
-                        ArtistName = a.Name,
-                        Id = al.Id,
-                        Name = al.Name,
-                        PictureUrl = al.PictureUrl,
-                        Description = al.Description ?? "",
-                        ReleaseDate = al.ReleaseDate
-                    }).Take(10).ToList() : new List<GetLibraryAlbumDTO>()
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Artist not found");
+    
+        var artist = await _dbContext.Artists.Where(a => a.Id == id)
+        .ProjectTo<GetArtistDTO>(_mapper.ConfigurationProvider)
+        .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Artist not found");
 
-            return artist;
-      
+        return artist;
+    
     }
 
     /// <summary>
@@ -115,35 +86,28 @@ public class ArtistService(PurpuraDbContext dbContext) : IArtistService
     /// <returns>Lista de artistas más escuchados.</returns>
 public async Task<List<GetArtistPlaysDTO>> GetMostListenArtists(int offset, int limit)
 {
-    try
-    {
-        var artistPlays = await _dbContext.Artists!
-            .Select(a => new
-            {
-                Artist = a,
-                Plays = _dbContext.PlayHistories!
-                    .Count(pl => pl.Song!.Artists!.Any(ar => ar.Id == a.Id))
-            })
-            .OrderByDescending(a => a.Plays) // Ordenamos antes de paginar
-            .Skip(offset)
-            .Take(limit)
-            .ToListAsync();
-
-        // Mapear a DTO después de ejecutar la consulta
-        var artists = artistPlays.Select(a => new GetArtistPlaysDTO
+    var artistPlays = await _dbContext.Artists
+        .Select(a => new
         {
-            Id = a.Artist.Id,
-            Name = a.Artist.Name,
-            ImageUrl = a.Artist.PictureUrl ?? "",
-            Plays = a.Plays
-        }).ToList();
+            Artist = a,
+            Plays = _dbContext.PlayHistories
+                .Count(pl => pl.Song!.Artists!.Any(ar => ar.Id == a.Id))
+        })
+        .OrderByDescending(a => a.Plays)
+        .Skip(offset)
+        .Take(limit)
+        .ToListAsync();
 
-        return artists;
-    }
-    catch (System.Exception)
+    // Mapear a DTO después de ejecutar la consulta
+    var artists = artistPlays.Select(a => new GetArtistPlaysDTO
     {
-        throw;
-    }
+        Id = a.Artist.Id,
+        Name = a.Artist.Name,
+        ImageUrl = a.Artist.PictureUrl ?? "",
+        Plays = a.Plays
+    }).ToList();
+
+    return artists;
 }
 
 /// <summary>
@@ -152,45 +116,21 @@ public async Task<List<GetArtistPlaysDTO>> GetMostListenArtists(int offset, int 
 /// <param name="id"></param>
 /// <param name="_dbContext"></param>
 /// <returns></returns>
-public async Task<List<GetSongDTO>> GetTopArtistSongs(string userId, string id)
+public async Task<List<GetSongDTO>> GetTopArtistSongs(string userId, string artistId)
 {
-    try
-    {
-        var songsPlays = await _dbContext.Songs!
-            .Where(s => s.Artists!.Any(art => art.Id == id))
-            .Select(s => new GetSongDTO
-            {
-                Id = s.Id,
-                Name = s.Name,
-                Artists = s.Artists!.Select(a => new GetPlaylistArtistDTO
-                {
-                    Id = a.Id,
-                    Name = a.Name,
-                    Description = a.Description ?? ""
-                }).ToList(),
-                AlbumId = s.AlbumId ?? "",
-                AlbumName = s.Album!.Name ?? "",
-                ImageUrl = s.ImageUrl ?? "",
-                AudioUrl = s.AudioUrl ?? "",
-                IsOnLibrary = false,
-                Plays = _dbContext.PlayHistories!.Count(ph => ph.SongId == s.Id)
-            })
-            .OrderByDescending(s => _dbContext.PlayHistories!.Count(ph => ph.SongId == s.Id))
-            .Take(15)
-            .ToListAsync();
 
-        foreach (var song in songsPlays)
-        {
-            song.IsOnLibrary = _dbContext.Libraries!.Where (l => l.UserId == userId && l.User!.State == UserState.ACTIVE).Any(l => l.Songs.Any(so=> so.Id == song.Id));
-            
-        }
+    var artistSongs = await _dbContext.Songs.Where(s => s.Artists.Any(a => a.Id == artistId))
+    .ProjectTo<GetSongDTO>(_mapper.ConfigurationProvider)
+    .OrderByDescending(s => _dbContext.PlayHistories!.Count(ph => ph.SongId == s.Id))
+    .Take(15)
+    .ToListAsync();
 
-        return songsPlays;
-    }
-    catch (System.Exception)
-    {
-        throw;
-    }
+    await _libraryService.CheckSongsOnLibraryWithUser(artistSongs, userId);
+
+
+    return artistSongs;
+    
+
 }
 
 }

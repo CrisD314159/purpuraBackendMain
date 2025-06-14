@@ -2,9 +2,9 @@ namespace purpuraMain.Model;
 
 public class Library
 {
-  public required string Id { get; set; }
-  public  string? UserId { get; set; }
-  public User? User { get; set; }
+  public Guid Id { get; set; } = Guid.NewGuid();
+  public required string UserId { get; set; }
+  public required User User { get; set; }
 
   public ICollection<Playlist> Playlists { get; set; } = [];
   public ICollection<Song> Songs { get; set; } = [];

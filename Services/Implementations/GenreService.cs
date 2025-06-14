@@ -4,57 +4,48 @@ using purpuraMain.Dto.OutputDto;
 using Microsoft.EntityFrameworkCore;
 using purpuraMain.Exceptions;
 using purpuraMain.Services.Interfaces;
+using AutoMapper.QueryableExtensions;
+using AutoMapper;
 
-public class GenreService(PurpuraDbContext dbContext) : IGenreService
+public class GenreService(PurpuraDbContext dbContext, IMapper mapper, ILibraryService libraryService) : IGenreService
 {
-
     private readonly PurpuraDbContext _dbContext = dbContext;
+    private readonly IMapper _mapper = mapper;
+    private readonly ILibraryService _libraryService = libraryService;
     /// <summary>
     /// Obtiene las canciones más populares de un género.
     /// </summary>
     /// <param name="id">ID del género.</param>
     /// <param name="dbContext">Contexto de base de datos.</param>
     /// <returns>Objeto GetGenreDTO con la información del género y sus canciones más populares.</returns>
-    public  async Task<GetGenreDTO> GetTopSongsByGenre(string id)
+    public  async Task<GetGenreDTO> GetTopSongsByGenre(string genreId, string userId)
     {
-      
-            var songs = await _dbContext.Genres!.Where(g => g.Id == id).Select(g=> new GetGenreDTO
-            {
-                 Id = g.Id,
-                Name = g.Name,
-                Description = g.Description ?? "",
-                Color = g.Color,
-                Songs = g.Songs.Select(
-                    s=> new GetSongDTO
-                    {
-                        Id = s.Id,
-                        Name = s.Name,
-                        Artists = s.Artists != null ? s.Artists.Select(a => new GetPlaylistArtistDTO
-                        {
-                            Id = a.Id,
-                            Name = a.Name,
-                            Description = a.Description??""
-                        }).ToList() : new List<GetPlaylistArtistDTO>(),
-                        AlbumId = s.AlbumId!,
-                        AlbumName = s.Album!.Name!,
-                        Duration = s.Duration,
-                        ImageUrl = s.ImageUrl?? "",
-                        AudioUrl = s.AudioUrl?? "",
-                        Genres = s.Genres!.Select(g => new GetGenreDTO
-                        {
-                            Id = g.Id,
-                            Name = g.Name,
-                            Description = g.Description?? ""
-                        }).ToList(),
-                        Lyrics = s.Lyrics ?? "",
-                        Plays = _dbContext.PlayHistories!.Where(pl => pl.SongId == s.Id).Count()
-                        
-                    }).OrderBy(s => s.Plays).ToList()
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Genre not found");
-            
-            return songs;
 
-        
+        var genreInfoTopSongs = await _dbContext.Genres.Where(g => g.Id == genreId)
+        .ProjectTo<GetGenreDTO>(_mapper.ConfigurationProvider)
+        .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Genre not found");
+
+        // Obtener los id de las 10 canciones más reproducidas del género
+        var topSongIds = await _dbContext.PlayHistories
+            .Where(ph => ph.Song!.Genres.Any(g => g.Id == genreId))
+            .GroupBy(ph => ph.SongId)
+            .OrderByDescending(g => g.Count())
+            .Select(g => g.Key)
+            .Take(10)
+            .ToListAsync();
+
+        //Traer los datos completos de esas canciones
+        var topSongs = await _dbContext.Songs
+            .Where(s => topSongIds.Contains(s.Id))
+            .ProjectTo<GetSongDTO>(_mapper.ConfigurationProvider)
+            .ToListAsync();
+
+        await _libraryService.CheckSongsOnLibraryWithUser(topSongs, userId);
+
+        genreInfoTopSongs.Songs = topSongs;
+            
+        return genreInfoTopSongs;
+ 
     }
 
     /// <summary>
@@ -65,34 +56,30 @@ public class GenreService(PurpuraDbContext dbContext) : IGenreService
      public  async Task<List<GetGenreDTO>> GetAllGenres()
     {
 
-      
-            var genres = await _dbContext.Genres!.Select(g => new GetGenreDTO
-            {
-                Id = g.Id,
-                Name = g.Name,
-                Description = g.Description ?? "",
-                Color = g.Color
-            }).ToListAsync() ?? [];
+    
+        var genres = await _dbContext.Genres.Select(g => new GetGenreDTO
+        {
+            Id = g.Id,
+            Name = g.Name,
+            Description = g.Description ?? "",
+            Color = g.Color
+        }).ToListAsync();
 
-            return genres;
+        return genres;
 
         
     }
     
      public  async Task<GetGenreDTO> GetGenreById(string id)
     {
+        var genres = await _dbContext.Genres!.Where(g => g.Id == id).Select(g => new GetGenreDTO
+        {
+            Id = g.Id,
+            Name = g.Name,
+            Description = g.Description,
+            Color = g.Color
+        }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Genre not found");
 
-      
-            var genres = await _dbContext.Genres!.Where(g => g.Id == id).Select(g => new GetGenreDTO
-            {
-                Id = g.Id,
-                Name = g.Name,
-                Description = g.Description ?? "",
-                Color = g.Color
-            }).FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Genre not found");
-
-            return genres;
-
-        
+        return genres;
     }
 }
