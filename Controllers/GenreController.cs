@@ -1,5 +1,6 @@
 namespace purpuraMain.Controllers;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -29,10 +30,12 @@ public class GenreController : ControllerBase
     /// <param name="id">ID del género.</param>
     /// <returns>Lista de canciones más populares dentro del género especificado.</returns>
     [HttpGet("getTopSongs/{id}")]
-    public async Task<ActionResult<GetGenreDTO>> GetTopSongs(string id)
+    [AllowAnonymous]
+    public async Task<IActionResult> GetTopSongs(string id)
     {
-
-            var topSongs = await _genreService.GetTopSongsByGenre(id);
+        var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if(string.IsNullOrEmpty(userId)) userId = "0";
+            var topSongs = await _genreService.GetTopSongsByGenre(id, userId);
             return Ok(topSongs);
 
     }
@@ -40,11 +43,11 @@ public class GenreController : ControllerBase
     /// Obtiene todos los géneros disponibles en la plataforma.
     /// <returns>Lista de géneros musicales.</returns>
     [HttpGet("getAll")]
-    public async Task<ActionResult<List<GetGenreDTO>>> GetAllGenres()
+    public async Task<IActionResult> GetAllGenres()
     {
 
-            var genres = await _genreService.GetAllGenres();
-            return Ok(genres);
+        var genres = await _genreService.GetAllGenres();
+        return Ok(genres);
 
     }
 
@@ -52,11 +55,11 @@ public class GenreController : ControllerBase
     /// <param name="id">ID del género.</param>
     /// <returns>Datos del género especificado.</returns>
     [HttpGet("getGenre/{id}")]
-    public async Task<ActionResult<GetGenreDTO>> GetGenreById(string id)
+    public async Task<IActionResult> GetGenreById(string id)
     {
 
-            var genre = await _genreService.GetGenreById(id);
-            return Ok(genre);
+        var genre = await _genreService.GetGenreById(id);
+        return Ok(genre);
 
     }
 }

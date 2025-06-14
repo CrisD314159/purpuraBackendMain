@@ -9,33 +9,27 @@ using purpuraMain.Services.Interfaces;
 
 /// Controlador para la gestión de artistas en la plataforma.
 /// Proporciona endpoints para obtener información sobre artistas, buscar artistas y recuperar sus álbumes y canciones.
+/// Constructor del controlador de artistas.
+/// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
+/// <exception cref="ArgumentNullException">Se lanza si el contexto es nulo.</exception>
 [ApiController]
 [Route("[controller]")]
-public class ArtistController : ControllerBase
+public class ArtistController(IArtistService artistService) : ControllerBase
 {
-    private readonly IArtistService _artistService;
+    private readonly IArtistService _artistService = artistService;
 
-   
-    /// Constructor del controlador de artistas.
-    /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
-    /// <exception cref="ArgumentNullException">Se lanza si el contexto es nulo.</exception>
-    public ArtistController(IArtistService artistService)
-    {
-        _artistService = artistService;
-    }
 
-   
-    /// Obtiene el perfil de un artista por su ID.
-    /// <param name="id">ID del artista.</param>
-    /// <returns>El perfil del artista.</returns>
-    [HttpGet("getArtistProfile/{id}")]
+  /// Obtiene el perfil de un artista por su ID.
+  /// <param name="id">ID del artista.</param>
+  /// <returns>El perfil del artista.</returns>
+  [HttpGet("getArtistProfile/{id}")]
     [AllowAnonymous]
-    public async Task<ActionResult<GetArtistDTO>> GetArtistProfile(string id)
+    public async Task<IActionResult> GetArtistProfile(string id)
     {
-             var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(string.IsNullOrEmpty(userId)) userId = "0";
-            var artist = await _artistService.GetArtistById(userId, id);
-            return Ok(artist);
+        var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if(string.IsNullOrEmpty(userId)) userId = "0";
+        var artist = await _artistService.GetArtistById(userId, id);
+        return Ok(artist);
 
     }
 
@@ -46,16 +40,16 @@ public class ArtistController : ControllerBase
     /// <param name="limit">Cantidad de artistas a recuperar.</param>
     /// <returns>Lista de artistas coincidentes.</returns>
     [HttpGet("searchArtists")]
-    public async Task<ActionResult<List<GetArtistDTO>>> GetArtistByName(string name, int offset, int limit)
+    public async Task<IActionResult> GetArtistByName(string name, int offset, int limit)
     {
 
-            if (offset < 0 || limit < 1)
-            {
-                return BadRequest("Invalid offset or limit");
-            }
+        if (offset < 0 || limit < 1)
+        {
+        return BadRequest("Invalid offset or limit");
+        }
 
-            var artist = await _artistService.GetArtistByName(name, offset, limit);
-            return Ok(artist);
+        var artist = await _artistService.GetArtistByName(name, offset, limit);
+        return Ok(artist);
 
     }
 
@@ -64,11 +58,11 @@ public class ArtistController : ControllerBase
     /// <param name="id">ID del artista.</param>
     /// <returns>Lista de álbumes del artista.</returns>
     [HttpGet("getArtistAlbums/{id}")]
-    public async Task<ActionResult<GetArtistDTO>> GetArtistAlbums(string id)
+    public async Task<IActionResult> GetArtistAlbums(string id)
     {
 
-            var artist = await _artistService.GetArtistAlbums(id);
-            return Ok(artist);
+        var artist = await _artistService.GetArtistAlbums(id);
+        return Ok(artist);
 
     }
 
@@ -78,13 +72,13 @@ public class ArtistController : ControllerBase
     /// <returns>Lista de canciones del artista.</returns>
     [HttpGet("getArtistSongs/{id}")]
     [AllowAnonymous]
-    public async Task<ActionResult<GetArtistDTO>> GetArtistSongs(string id)
+    public async Task<IActionResult> GetArtistSongs(string id)
     {
 
-            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(string.IsNullOrEmpty(userId)) userId = "0";
-            var artist = await _artistService.GetArtistById(userId, id);
-            return Ok(artist);
+        var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if(string.IsNullOrEmpty(userId)) userId = "0";
+        var artist = await _artistService.GetArtistById(userId, id);
+        return Ok(artist);
 
     }
 
@@ -94,15 +88,15 @@ public class ArtistController : ControllerBase
     /// <param name="limit">Cantidad de artistas a recuperar.</param>
     /// <returns>Lista de artistas.</returns>
     [HttpGet("getArtists")]
-    public async Task<ActionResult<List<GetArtistDTO>>> GetArtists(int offset, int limit)
+    public async Task<IActionResult> GetArtists(int offset, int limit)
     {
 
-            if (offset < 0 || limit < 1)
-            {
-                return BadRequest("Invalid offset or limit");
-            }
-            var artists = await _artistService.GetMostListenArtists(offset, limit);
-            return Ok(artists);
+        if (offset < 0 || limit < 1)
+        {
+        return BadRequest("Invalid offset or limit");
+        }
+        var artists = await _artistService.GetMostListenArtists(offset, limit);
+        return Ok(artists);
 
     }
 
@@ -112,7 +106,7 @@ public class ArtistController : ControllerBase
     /// <param name="limit">Cantidad de artistas a recuperar.</param>
     /// <returns>Lista de los artistas más escuchados.</returns>
     [HttpGet("getMostListenArtists")]
-    public async Task<ActionResult<List<GetArtistPlaysDTO>>> GetMostListenArtists(int offset, int limit)
+    public async Task<IActionResult> GetMostListenArtists(int offset, int limit)
     {
 
             if (offset < 0 || limit < 1)

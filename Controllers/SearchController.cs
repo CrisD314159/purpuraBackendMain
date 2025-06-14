@@ -11,32 +11,28 @@ using purpuraMain.Services.Interfaces;
 
 [ApiController]
 [Route("[controller]")]
-public class SearchController : ControllerBase
+public class SearchController(ISearchService searchService) : ControllerBase
 {
 
-  private readonly ISearchService _searchService;
-  public SearchController(ISearchService searchService)
-  {
-    _searchService = searchService;
-  }
+  private readonly ISearchService _searchService = searchService;
 
   [HttpGet("input")]
   [Authorize]
   public async Task<ActionResult<GetSearchDTO>> SearchInput (string search)
   {
-      if(string.IsNullOrEmpty(search)) throw new BadRequestException("Search is required");
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-      throw new UnauthorizedException(" You're not authorized to perform this action");
-      var results = await _searchService.GetSearch(userId, search);
-      return Ok(results);
+    if(string.IsNullOrEmpty(search)) throw new BadRequestException("Search is required");
+    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+    throw new UnauthorizedException(" You're not authorized to perform this action");
+    var results = await _searchService.GetSearch(userId, search);
+    return Ok(results);
   }
   [HttpGet("input/public")]
   public async Task<ActionResult<GetSearchDTO>> SearchInputPublic (string search)
   {
 
-      if(string.IsNullOrEmpty(search)) throw new BadRequestException("Search is required");
-      var results = await _searchService.GetSearch("0", search);
-      return Ok(results);
+    if(string.IsNullOrEmpty(search)) throw new BadRequestException("Search is required");
+    var results = await _searchService.GetSearch("0", search);
+    return Ok(results);
 
 
   }

@@ -25,7 +25,7 @@ public static class MailService
         html = html.Replace("{{VerificationCode}}", verificationCode);
         messageMail.From.Add(new MailboxAddress("Purpura Music", "purpuramusic1@gmail.com"));
         messageMail.To.Add(new MailboxAddress(name, email));
-        messageMail.Subject = "Aquí está tu código de verificación de Purpura Music";
+        messageMail.Subject = "Here's your verification code for Purpura Music";
         messageMail.Body = new TextPart("html") { Text = html };
         
         return await SendEmail(messageMail);
@@ -37,12 +37,13 @@ public static class MailService
     public static async Task<bool> SendPasswordRecoveryCodeEmail(string email, string verificationCode, string name)
     { 
         var messageMail = new MimeMessage();
+        var linkCode = $"https://purpura-music.vercel.app/changePassword?token={verificationCode}";
         var html = File.ReadAllText("./templates/paswordChangeCodeTemplate.html");
         html = html.Replace("{{Name}}", name);
-        html = html.Replace("{{VerificationCode}}", verificationCode);
+        html = html.Replace("{{VerificationCode}}", linkCode);
         messageMail.From.Add(new MailboxAddress("Purpuramusic", "purpuramusic1@gmail.com"));
         messageMail.To.Add(new MailboxAddress(name, email));
-        messageMail.Subject = "Aquí está tu código de recuperación de Purpura Music";
+        messageMail.Subject = "Here's your recovery code for Purpura Music";
         messageMail.Body = new TextPart("html") { Text = html };
         
         return await SendEmail(messageMail);
@@ -58,7 +59,7 @@ public static class MailService
         html = html.Replace("{{Name}}", name);
         messageMail.From.Add(new MailboxAddress("Purpuramusic", "purpuramusic1@gmail.com"));
         messageMail.To.Add(new MailboxAddress(name, email));
-        messageMail.Subject = "Gracias por verificar tu cuenta en Purpura Music";
+        messageMail.Subject = "Thanks for verify your account on Purpura Music";
         messageMail.Body = new TextPart("html") { Text = html };
         
         return await SendEmail(messageMail);
@@ -74,7 +75,7 @@ public static class MailService
         html = html.Replace("{{Name}}", name);
         messageMail.From.Add(new MailboxAddress("Purpuramusic", "purpuramusic1@gmail.com"));
         messageMail.To.Add(new MailboxAddress(name, email));
-        messageMail.Subject = "Tu contraseña ha sido cambiada en Purpura Music";
+        messageMail.Subject = "Your password has been changed on Purpura Music";
         messageMail.Body = new TextPart("html") { Text = html };
         
         return await SendEmail(messageMail);

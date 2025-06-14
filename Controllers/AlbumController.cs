@@ -10,25 +10,20 @@ using purpuraMain.Services.Interfaces;
 
 
 /// Controlador para gestionar las operaciones relacionadas con los álbumes.
+/// Constructor del controlador AlbumController.
+/// <param name="dbContext">Contexto de base de datos para acceder a la información de los álbumes.</param>
 [ApiController]
 [Route("[controller]")]
-public class AlbumController : ControllerBase
+public class AlbumController(IAlbumService albumService) : ControllerBase
 {
-    private readonly IAlbumService _albumService;
+    private readonly IAlbumService _albumService = albumService;
 
-    /// Constructor del controlador AlbumController.
-    /// <param name="dbContext">Contexto de base de datos para acceder a la información de los álbumes.</param>
-    public AlbumController(IAlbumService albumService)
-    {
-        _albumService = albumService;
-    }
-
-    /// Obtiene un álbum por su identificador único.
-    /// <param name="id">Identificador del álbum.</param>
-    /// <returns>Un objeto GetAlbumDTO con los detalles del álbum.</returns>
-    [HttpGet("getAlbum/{id}")]
+  /// Obtiene un álbum por su identificador único.
+  /// <param name="id">Identificador del álbum.</param>
+  /// <returns>Un objeto GetAlbumDTO con los detalles del álbum.</returns>
+  [HttpGet("getAlbum/{id}")]
     [AllowAnonymous]
-    public async Task<ActionResult<GetAlbumDTO>> GetAlbumById(string id)
+    public async Task<IActionResult> GetAlbumById(string id)
     {
         var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if(string.IsNullOrEmpty(userId)) userId = "0";
@@ -44,11 +39,11 @@ public class AlbumController : ControllerBase
     /// <returns>Una lista de objetos GetAlbumDTO con los álbumes encontrados.</returns>
     [HttpGet("getAlbumByInput/{input}")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<GetAlbumDTO>>> GetAlbumByInput(string input, int offset, int limit)
+    public async Task<IActionResult> GetAlbumByInput(string input, int offset, int limit)
     {
  
-            var albums = await _albumService.GetAlbumByInput(input, offset, limit);
-            return Ok(albums);
+        var albums = await _albumService.GetAlbumByInput(input, offset, limit);
+        return Ok(albums);
    
     }
 
@@ -58,12 +53,12 @@ public class AlbumController : ControllerBase
     /// <returns>Una lista de objetos GetAlbumDTO con los álbumes disponibles.</returns>
     [HttpGet("getAlbums")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<GetAlbumDTO>>> GetAlbums(int offset, int limit)
+    public async Task<IActionResult> GetAlbums(int offset, int limit)
     {
 
-            if (offset < 0 || limit < 1) return BadRequest("Invalid offset or amount");
-            var albums = await _albumService.GetAllAlbums(offset, limit);
-            return Ok(albums);
+        if (offset < 0 || limit < 1) return BadRequest("Invalid offset or amount");
+        var albums = await _albumService.GetAllAlbums(offset, limit);
+        return Ok(albums);
 
     }
 
@@ -73,11 +68,11 @@ public class AlbumController : ControllerBase
     /// <returns></returns>
     [HttpGet("getTopAlbums")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<GetAlbumDTO>>> GetTopAlbums()
+    public async Task<IActionResult> GetTopAlbums()
     {
 
-            var albums = await _albumService.GetTopAlbums();
-            return Ok(albums);
+        var albums = await _albumService.GetTopAlbums();
+        return Ok(albums);
 
     }
 }

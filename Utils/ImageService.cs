@@ -6,7 +6,7 @@ using CloudinaryDotNet.Actions;
 
 public class ImageService
 {
-  Cloudinary _cloudinary;
+  private readonly Cloudinary _cloudinary;
 
   // Constructor donde se inicializa la variable _cloudinary con la API Key de Cloudinary.
   public ImageService()

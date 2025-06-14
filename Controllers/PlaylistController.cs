@@ -17,25 +17,21 @@ namespace purpuraMain.Controllers;
 [ApiController]
 [Route("[controller]")]
 [Authorize]
-public class PlaylistController : ControllerBase
+public class PlaylistController(IPlaylistService playlistService) : ControllerBase
 {
-    private readonly IPlaylistService _playlistService;
+    private readonly IPlaylistService _playlistService = playlistService;
 
-    public PlaylistController(IPlaylistService playlistService)
-    {
-        _playlistService = playlistService;
-    }
-
-    /// Obtiene una playlist por su ID.
-    /// <param name="id">ID de la playlist.</param>
-    /// <returns>Datos de la playlist.</returns>
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GetPlayListDTO>> GetPlaylist(string id)
+  /// Obtiene una playlist por su ID.
+  /// <param name="id">ID de la playlist.</param>
+  /// <returns>Datos de la playlist.</returns>
+  [HttpGet("{id}")]
+    public async Task<IActionResult> GetPlaylist(Guid id)
     {
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(" You're not authorized to perform this action");
-            var playList = await _playlistService.GetPlaylist(userId, id);
-            return Ok(playList);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? throw new UnauthorizedException(" You're not authorized to perform this action");
+        var playList = await _playlistService.GetPlaylist(userId, id);
+        return Ok(playList);
         
     }
 
@@ -45,94 +41,101 @@ public class PlaylistController : ControllerBase
     /// <param name="limit">Número de elementos a devolver.</param>
     /// <returns>Lista de playlists encontradas.</returns>
     [HttpGet("search/{input}")]
-    public async Task<ActionResult<List<GetLibraryPlaylistDTO>>> SearchPlaylist(string input, [FromQuery] int offset, [FromQuery] int limit)
+    public async Task<IActionResult> SearchPlaylist(string input, [FromQuery] int offset, [FromQuery] int limit)
     {
 
-            var playList = await _playlistService.SearchPlaylist(input, offset, limit);
-            return Ok(playList);
+        var playList = await _playlistService.SearchPlaylist(input, offset, limit);
+        return Ok(playList);
 
     }
 
     /// Agrega una canción a una playlist.
     /// <param name="addSongDTO">Datos de la canción y la playlist.</param>
     [HttpPut("addSong")]
-    public async Task<ActionResult> AddSong(AddRemoveSongDTO addSongDTO)
+    public async Task<IActionResult> AddSong(AddRemoveSongDTO addSongDTO)
     {
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException(" You're not authorized to perform this action");
-            await _playlistService.AddSong(userId, addSongDTO);
-            return Ok(new { message = "Song added to playlist", success = true });
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? throw new UnauthorizedException(" You're not authorized to perform this action");
+        await _playlistService.AddSong(userId, addSongDTO);
+        return Ok(new { message = "Song added to playlist", success = true });
  
     }
 
     /// Elimina una canción de una playlist.
     /// <param name="addSongDTO">Datos de la canción y la playlist.</param>
     [HttpPut("removeSong")]
-    public async Task<ActionResult> RemoveSong(AddRemoveSongDTO addSongDTO)
+    public async Task<IActionResult> RemoveSong(AddRemoveSongDTO addSongDTO)
     {
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-            await _playlistService.RemoveSong(userId, addSongDTO);
-            return Ok(new { message = "Song removed from playlist", success = true });
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        await _playlistService.RemoveSong(userId, addSongDTO);
+        return Ok(new { message = "Song removed from playlist", success = true });
 
     }
 
     /// Cambia la privacidad de una playlist.
     /// <param name="changePrivacy">Datos de la playlist y la privacidad.</param>
     [HttpPut("changePrivacy")]
-    public async Task<ActionResult> ChangePlaylistPrivacy(ChangePrivacyPlaylistDto changePrivacy)
+    public async Task<IActionResult> ChangePlaylistPrivacy(ChangePrivacyPlaylistDto changePrivacy)
     {
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-            await _playlistService.ChangePlayListState(userId, changePrivacy);
-            return Ok(new { message = "Playlist privacy changed", success = true });
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        await _playlistService.ChangePlayListState(userId, changePrivacy);
+        return Ok(new { message = "Playlist privacy changed", success = true });
 
     }
 
     /// Obtiene las playlists del usuario autenticado.
     [HttpGet("getPlaylists/user")]
-    public async Task<ActionResult<List<GetUserPlayListsDTO>>> GetUserPlaylists()
+    public async Task<IActionResult> GetUserPlaylists()
     {
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-            var playLists = await _playlistService.GetUserPlayLists(userId);
-            return Ok(playLists);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        var playLists = await _playlistService.GetUserPlayLists(userId);
+        return Ok(playLists);
 
     }
 
     /// Crea una nueva playlist.
     /// <param name="createPlayListDTO">Datos de la nueva playlist.</param>
     [HttpPost]
-    public async Task<ActionResult> CreatePlayList(CreatePlayListDTO createPlayListDTO)
+    public async Task<IActionResult> CreatePlayList(CreatePlayListDTO createPlayListDTO)
     {
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-            await _playlistService.CreatePlayList(userId, createPlayListDTO);
-            return Created("", new { message = $"Playlist {createPlayListDTO.Name} created", success = true });
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        await _playlistService.CreatePlayList(userId, createPlayListDTO);
+        return Created("", new { message = $"Playlist {createPlayListDTO.Name} created", success = true });
 
     }
 
     /// Actualiza una playlist existente.
     /// <param name="updatePlaylist">Datos de la playlist a actualizar.</param>
     [HttpPut]
-    public async Task<ActionResult> UpdatePlaylist(UpdatePlaylistDTO updatePlaylist)
+    public async Task<IActionResult> UpdatePlaylist(UpdatePlaylistDTO updatePlaylist)
     {
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-            await _playlistService.UpdatePlayList(userId, updatePlaylist);
-            return Ok(new { message = "Playlist updated", success = true });
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        await _playlistService.UpdatePlayList(userId, updatePlaylist);
+        return Ok(new { message = "Playlist updated", success = true });
 
     }
 
     /// Elimina una playlist.
     /// <param name="deletePlayList">Datos de la playlist a eliminar.</param>
     [HttpDelete]
-    public async Task<ActionResult> DeletePlayList(DeletePlayListDTO deletePlayList)
+    public async Task<IActionResult> DeletePlayList(DeletePlayListDTO deletePlayList)
     {
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-            await _playlistService.DeletePlayList(userId, deletePlayList);
-            return Ok(new { message = "Playlist deleted", success = true });
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        await _playlistService.DeletePlayList(userId, deletePlayList);
+        return Ok(new { message = "Playlist deleted", success = true });
 
     }
 }

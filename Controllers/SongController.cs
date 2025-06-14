@@ -12,31 +12,26 @@ namespace purpuraMain.Controllers;
 
 
 /// Controlador para gestionar las operaciones relacionadas con las canciones.
+/// Constructor del controlador de canciones.
+/// <param name="dbContext">Contexto de base de datos de la aplicación.</param>
+/// <exception cref="ArgumentNullException">Se lanza si el contexto de la base de datos es nulo.</exception>
 [ApiController]
 [Route("[controller]")]
-public class SongController : ControllerBase
+public class SongController(ISongService ISongService) : ControllerBase
 {
-    private readonly ISongService _songService;
+    private readonly ISongService _songService = ISongService;
 
-    /// Constructor del controlador de canciones.
-    /// <param name="dbContext">Contexto de base de datos de la aplicación.</param>
-    /// <exception cref="ArgumentNullException">Se lanza si el contexto de la base de datos es nulo.</exception>
-    public SongController(ISongService ISongService)
-    {
-        _songService = ISongService;
-    }
-
-    /// Obtiene una canción por su identificador.
-    /// <param name="id">Identificador de la canción.</param>
-    /// <returns>Devuelve los detalles de la canción si se encuentra.</returns>
-    [HttpGet("getSong/{id}")]
+  /// Obtiene una canción por su identificador.
+  /// <param name="id">Identificador de la canción.</param>
+  /// <returns>Devuelve los detalles de la canción si se encuentra.</returns>
+  [HttpGet("getSong/{id}")]
     [Authorize]
-    public async Task<ActionResult<GetSongDTO>> GetSong(string id)
+    public async Task<IActionResult> GetSong(string id)
     {
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-            GetSongDTO song = await _songService.GetSongById(userId, id);
-            return Ok(song);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        GetSongDTO song = await _songService.GetSongById(userId, id);
+        return Ok(song);
 
     }
 
@@ -47,17 +42,17 @@ public class SongController : ControllerBase
     /// <returns>Lista de canciones coincidentes.</returns>
     [HttpGet("search/songs")]
     [Authorize]
-    public async Task<ActionResult<List<GetSongDTO>>> GetSongByInput(string input, int offset, int limit)
+    public async Task<IActionResult> GetSongByInput(string input, int offset, int limit)
     {
 
-            if (offset < 0 || limit < 1)
-            {
-                return BadRequest("Invalid offset or limit");
-            }
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? 
-            throw new UnauthorizedException("You're not authorized to perform this action");
-            var songs = await _songService.GetSongByInput(userId, input, offset, limit);
-            return Ok(songs);
+        if (offset < 0 || limit < 1)
+        {
+            return BadRequest("Invalid offset or limit");
+        }
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? 
+        throw new UnauthorizedException("You're not authorized to perform this action");
+        var songs = await _songService.GetSongByInput(userId, input, offset, limit);
+        return Ok(songs);
 
     }
 
@@ -67,16 +62,16 @@ public class SongController : ControllerBase
     /// <returns>Lista de canciones disponibles.</returns>
     [HttpGet("getSongs")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<GetSongDTO>>> GetSongs(int offset, int limit)
+    public async Task<IActionResult> GetSongs(int offset, int limit)
     {
  
-            if (offset < 0 || limit < 1)
-            {
-                return BadRequest("Invalid offset or limit");
-            }
+        if (offset < 0 || limit < 1)
+        {
+            return BadRequest("Invalid offset or limit");
+        }
 
-            var songs = await _songService.GetAllSongs(offset, limit);
-            return Ok(songs);
+        var songs = await _songService.GetAllSongs(offset, limit);
+        return Ok(songs);
     }
     /// <summary>
     /// Obtiene una lista de canciones más populares.
@@ -86,13 +81,13 @@ public class SongController : ControllerBase
     /// <returns></returns>
     [HttpGet("getTopSongs")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<GetSongDTO>>> GetTopSongs()
+    public async Task<IActionResult> GetTopSongs()
     {
 
-            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(string.IsNullOrEmpty(userId)) userId = "0";
-            var songs = await _songService.GetTopSongs(userId);
-            return Ok(songs);
+        var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if(string.IsNullOrEmpty(userId)) userId = "0";
+        var songs = await _songService.GetTopSongs(userId);
+        return Ok(songs);
         
     }
 
@@ -103,7 +98,7 @@ public class SongController : ControllerBase
     /// <returns></returns>
     [HttpPost("addPlay")]
     [Authorize]
-    public async Task<ActionResult<List<GetSongDTO>>> AddPlay(AddPlayDTO addPlayDTO)
+    public async Task<IActionResult> AddPlay(AddPlayDTO addPlayDTO)
     {
 
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");

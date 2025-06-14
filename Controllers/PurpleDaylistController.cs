@@ -13,17 +13,12 @@ namespace purpuraMain.Controllers;
 [ApiController]
 [Route("[controller]")]
 [Authorize]
-public class PurpleDaylistController : ControllerBase
+public class PurpleDaylistController(IPurpleDaylistService purpleDaylistService) : ControllerBase
 {
-  private readonly IPurpleDaylistService _purpleDaylistService;
-
-  public PurpleDaylistController(IPurpleDaylistService purpleDaylistService)
-  {
-    _purpleDaylistService = purpleDaylistService;
-  }
+  private readonly IPurpleDaylistService _purpleDaylistService = purpleDaylistService;
 
   [HttpGet("gerPurpleDaylist")]
-  public async Task<ActionResult<GetPlayListDTO>> GetPurpleDaylist()
+  public async Task<IActionResult> GetPurpleDaylist()
   {
 
       var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??

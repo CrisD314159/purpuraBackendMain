@@ -12,36 +12,28 @@ namespace purpuraMain.Controllers;
 
 /// Controlador de autenticación para manejar el inicio de sesión, 
 /// la renovación de tokens y el cierre de sesión de los usuarios.
+/// Constructor del controlador de autenticación.
+/// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
+/// <param name="configuration">Configuración de la aplicación.</param>
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
-    private readonly IAuthService _authService;
-    private readonly IConfiguration _config;
+    private readonly IAuthService _authService = authService;
 
 
-    /// Constructor del controlador de autenticación.
-    /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
-    /// <param name="configuration">Configuración de la aplicación.</param>
-    public AuthController(IAuthService authService, IConfiguration configuration)
-    {
-        _authService = authService;
-        _config = configuration;
-    }
-
-
-    /// Inicia sesión con email y contraseña.
-    /// <param name="login">Datos del usuario para autenticación.</param>
-    /// <returns>Un token de acceso y un refresh token si la autenticación es exitosa.</returns>
-    [HttpPost("login")]
-    public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginRequestDTO login)
+  /// Inicia sesión con email y contraseña.
+  /// <param name="login">Datos del usuario para autenticación.</param>
+  /// <returns>Un token de acceso y un refresh token si la autenticación es exitosa.</returns>
+  [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequestDTO login)
     {
 
-            if (login.Email == null || login.Password == null)
-                throw new BadRequestException("Email or password cannot be null");
+        if (login.Email == null || login.Password == null)
+            throw new BadRequestException("Email or password cannot be null");
 
-            var response = await _authService.LoginRequest(login.Email, login.Password, _config);
-            return Ok(response);
+        var response = await _authService.LoginRequest(login.Email, login.Password);
+        return Ok(response);
 
     }
 
@@ -50,15 +42,15 @@ public class AuthController : ControllerBase
     /// <returns>Nuevo token de acceso y refresh token.</returns>
     [HttpPut("refresh/token")]
     [Authorize]
-    public async Task<ActionResult<LoginResponseDTO>> RefreshToken()
+    public async Task<IActionResult> RefreshToken()
     {
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-            var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-            var email = User.FindFirst(ClaimTypes.Email)?.Value ?? throw new UnauthorizedException(" You're not authorized to perform this action");
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        var email = User.FindFirst(ClaimTypes.Email)?.Value ?? throw new UnauthorizedException(" You're not authorized to perform this action");
 
-            var token = await _authService.RefreshTokenRequest(userId, sessionId, email, _config);
-            return Ok(new { success = true, token = token.Token, refreshToken = token.RefreshToken });
+        var token = await _authService.RefreshTokenRequest(userId, sessionId, email);
+        return Ok(new { success = true, token = token.Token, refreshToken = token.RefreshToken });
 
     }
 
@@ -67,16 +59,15 @@ public class AuthController : ControllerBase
     /// <returns>Mensaje confirmando el cierre de sesión.</returns>
     [HttpDelete("logout")]
     [Authorize]
-    public async Task<ActionResult<object>> Logout()
+    public async Task<IActionResult> Logout()
     {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-            var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
 
-            var response = await _authService.LogoutRequest(userId, sessionId);
-            if (!response)
-                throw new BadRequestException("An error occurred while logging out");
+        await _authService.LogoutRequest(userId, sessionId);
 
-            return Ok("Logged out successfully");
+
+        return Ok("Logged out successfully");
 
     }
 
@@ -88,8 +79,8 @@ public class AuthController : ControllerBase
     public ActionResult<object> CheckToken()
     {
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-            return Ok(new { success = true, message = "Token is valid" });
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        return Ok(new { success = true, message = "Token is valid" });
 
     }
 }
