@@ -29,18 +29,18 @@ public class MapperProfile : Profile
     .ForMember(dest => dest.TopSongs, opt => opt.Ignore());
 
     CreateMap<Library, GetLibraryDTO>()
-    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Name))
+    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
     .ForMember(dest => dest.Playlists, opt => opt.Ignore())
     .ForMember(dest => dest.Songs, opt => opt.Ignore());
 
     CreateMap<Playlist, GetLibraryPlaylistDTO>()
-    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Name));
+    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
 
     CreateMap<Playlist, GetPlayListDTO>()
-    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Name));
+    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
 
     CreateMap<Playlist, GetUserPlayListsDTO>()
-    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Name));
+    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
 
     CreateMap<User, GetUserDto>()
     .ForMember(dest => dest.IsVerified, opt => opt.MapFrom(src => src.State == UserState.ACTIVE));

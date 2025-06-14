@@ -59,7 +59,7 @@ public class SongService(PurpuraDbContext dbContext, IMapper mapper, ILibrarySer
         .ProjectTo<GetSongDTO>(_mapper.ConfigurationProvider)
         .Skip(offset).Take(limit).ToListAsync();
 
-        await _libraryService.CheckSongsOnLibraryWithUser(songs, userId);
+        if(userId != "0") await _libraryService.CheckSongsOnLibraryWithUser(songs, userId);
 
         return songs;
        
@@ -141,21 +141,24 @@ public class SongService(PurpuraDbContext dbContext, IMapper mapper, ILibrarySer
     public async Task<bool> AddSongPlay(string userId, string songId )
     {
 
-            var song = await _dbContext.Songs.FindAsync(songId) ?? throw new EntityNotFoundException("Song not found");
-            var user = await _dbContext.Users.FindAsync(userId) ?? throw new EntityNotFoundException("User not found");
+        var user = await _dbContext.Users.FindAsync(userId)
+        ?? throw new EntityNotFoundException("User not found");
+        
+        var song = await _dbContext.Songs.FindAsync(songId)
+        ?? throw new EntityNotFoundException("Song not found");
 
-            var playHistory = new PlayHistory
-            {
-                Id = Guid.NewGuid().ToString(),
-                Song = song,
-                User = user,
-                PlayedAt = DateTime.UtcNow
-            };
+        var playHistory = new PlayHistory
+        {
+            Id = Guid.NewGuid().ToString(),
+            Song = song,
+            User = user,
+            PlayedAt = DateTime.UtcNow
+        };
 
-            _dbContext.PlayHistories!.Add(playHistory);
-            await _dbContext.SaveChangesAsync();
+        _dbContext.PlayHistories!.Add(playHistory);
+        await _dbContext.SaveChangesAsync();
 
-            return true;
+        return true;
      
     }
  

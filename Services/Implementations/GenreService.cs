@@ -40,7 +40,7 @@ public class GenreService(PurpuraDbContext dbContext, IMapper mapper, ILibrarySe
             .ProjectTo<GetSongDTO>(_mapper.ConfigurationProvider)
             .ToListAsync();
 
-        await _libraryService.CheckSongsOnLibraryWithUser(topSongs, userId);
+        if(userId != "0") await _libraryService.CheckSongsOnLibraryWithUser(topSongs, userId);
 
         genreInfoTopSongs.Songs = topSongs;
             

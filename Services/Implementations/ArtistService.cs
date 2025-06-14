@@ -125,7 +125,7 @@ public async Task<List<GetSongDTO>> GetTopArtistSongs(string userId, string arti
     .Take(15)
     .ToListAsync();
 
-    await _libraryService.CheckSongsOnLibraryWithUser(artistSongs, userId);
+    if(userId != "0") await _libraryService.CheckSongsOnLibraryWithUser(artistSongs, userId);
 
 
     return artistSongs;

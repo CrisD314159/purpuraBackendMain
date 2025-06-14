@@ -30,8 +30,8 @@ public class AlbumService(PurpuraDbContext dbContext, IMapper mapper, ILibrarySe
         var album = await _dbContext.Albums.Where(a => a.Id == albumId)
         .ProjectTo<GetAlbumDTO>(_mapper.ConfigurationProvider)
         .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Album not found");
-
-        await _libraryService.CheckSongsOnLibraryWithUser(album.Songs, userId);
+        
+        if(userId != "0") await _libraryService.CheckSongsOnLibraryWithUser(album.Songs, userId);
 
         return album;
 

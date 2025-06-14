@@ -32,7 +32,7 @@ public class PurpleDaylistService(PurpuraDbContext dbContext, IMapper mapper, IL
     .ProjectTo<GetPlayListDTO>(_mapper.ConfigurationProvider)
     .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
 
-    await _libraryService.CheckSongsOnLibraryWithUser(purpleDaylist.Songs, userId);
+    if(userId != "0") await _libraryService.CheckSongsOnLibraryWithUser(purpleDaylist.Songs, userId);
 
     return purpleDaylist;
   }
