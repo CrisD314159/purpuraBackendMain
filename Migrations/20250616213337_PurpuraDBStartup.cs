@@ -7,25 +7,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace purpuraMain.Migrations
 {
     /// <inheritdoc />
-    public partial class NewAppModel : Migration
+    public partial class PurpuraDBStartup : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Admins",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    Password = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Admins", x => x.Id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "AdminSessions",
                 columns: table => new
@@ -44,7 +30,7 @@ namespace purpuraMain.Migrations
                 name: "Artists",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
                     PictureUrl = table.Column<string>(type: "text", nullable: false)
@@ -78,6 +64,7 @@ namespace purpuraMain.Migrations
                     State = table.Column<int>(type: "integer", nullable: false),
                     ProfilePicture = table.Column<string>(type: "text", nullable: false),
                     VerificationCode = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<int>(type: "integer", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -102,9 +89,9 @@ namespace purpuraMain.Migrations
                 name: "Genres",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
                     Color = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -279,13 +266,15 @@ namespace purpuraMain.Migrations
                 name: "Albums",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Disclaimer = table.Column<string>(type: "text", nullable: true),
                     PictureUrl = table.Column<string>(type: "text", nullable: false),
-                    ArtistId = table.Column<string>(type: "text", nullable: false),
+                    ArtistId = table.Column<Guid>(type: "uuid", nullable: false),
                     ReleaseDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    GenreId = table.Column<string>(type: "text", nullable: false),
+                    DateAdded = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    GenreId = table.Column<Guid>(type: "uuid", nullable: false),
                     WriterName = table.Column<string>(type: "text", nullable: true),
                     ProducerName = table.Column<string>(type: "text", nullable: true),
                     RecordLabel = table.Column<string>(type: "text", nullable: true),
@@ -336,7 +325,7 @@ namespace purpuraMain.Migrations
                 name: "AlbumLibrary",
                 columns: table => new
                 {
-                    AlbumsId = table.Column<string>(type: "text", nullable: false),
+                    AlbumsId = table.Column<Guid>(type: "uuid", nullable: false),
                     LibrariesId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -360,12 +349,15 @@ namespace purpuraMain.Migrations
                 name: "Songs",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    AlbumId = table.Column<string>(type: "text", nullable: false),
-                    Lyrics = table.Column<string>(type: "text", nullable: false),
+                    AlbumId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Disclaimer = table.Column<string>(type: "text", nullable: true),
+                    Lyrics = table.Column<string>(type: "text", nullable: true),
                     AudioUrl = table.Column<string>(type: "text", nullable: false),
-                    ImageUrl = table.Column<string>(type: "text", nullable: false)
+                    ImageUrl = table.Column<string>(type: "text", nullable: false),
+                    DateAdded = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    GenreId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -376,14 +368,20 @@ namespace purpuraMain.Migrations
                         principalTable: "Albums",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Songs_Genres_GenreId",
+                        column: x => x.GenreId,
+                        principalTable: "Genres",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "ArtistSong",
                 columns: table => new
                 {
-                    ArtistsId = table.Column<string>(type: "text", nullable: false),
-                    SongsId = table.Column<string>(type: "text", nullable: false)
+                    ArtistsId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SongsId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -403,35 +401,11 @@ namespace purpuraMain.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "GenreSong",
-                columns: table => new
-                {
-                    GenresId = table.Column<string>(type: "text", nullable: false),
-                    SongsId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_GenreSong", x => new { x.GenresId, x.SongsId });
-                    table.ForeignKey(
-                        name: "FK_GenreSong_Genres_GenresId",
-                        column: x => x.GenresId,
-                        principalTable: "Genres",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_GenreSong_Songs_SongsId",
-                        column: x => x.SongsId,
-                        principalTable: "Songs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "LibrarySong",
                 columns: table => new
                 {
                     LibrariesId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SongsId = table.Column<string>(type: "text", nullable: false)
+                    SongsId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -456,7 +430,7 @@ namespace purpuraMain.Migrations
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: true),
-                    SongId = table.Column<string>(type: "text", nullable: true),
+                    SongId = table.Column<Guid>(type: "uuid", nullable: true),
                     PlayedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     PlayCount = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -480,7 +454,7 @@ namespace purpuraMain.Migrations
                 columns: table => new
                 {
                     PlaylistsId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SongsId = table.Column<string>(type: "text", nullable: false)
+                    SongsId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -563,11 +537,6 @@ namespace purpuraMain.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_GenreSong_SongsId",
-                table: "GenreSong",
-                column: "SongsId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Libraries_UserId",
                 table: "Libraries",
                 column: "UserId");
@@ -606,14 +575,16 @@ namespace purpuraMain.Migrations
                 name: "IX_Songs_AlbumId",
                 table: "Songs",
                 column: "AlbumId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Songs_GenreId",
+                table: "Songs",
+                column: "GenreId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Admins");
-
             migrationBuilder.DropTable(
                 name: "AdminSessions");
 
@@ -637,9 +608,6 @@ namespace purpuraMain.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
-
-            migrationBuilder.DropTable(
-                name: "GenreSong");
 
             migrationBuilder.DropTable(
                 name: "LibraryPlaylist");

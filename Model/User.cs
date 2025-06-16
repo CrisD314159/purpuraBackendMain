@@ -15,7 +15,8 @@ public class User : IdentityUser
   public UserState State { get; set; }
 
   [Url]
-  public required string ProfilePicture { get; set; } 
+  public required string ProfilePicture { get; set; }
   public required string VerificationCode { get; set; }
+    public required UserRole Role { get; set; }
 
 }

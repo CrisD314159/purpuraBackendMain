@@ -1,13 +1,16 @@
 using purpuraMain.DbContext;
 using purpuraMain.Dto;
+using purpuraMain.Dto.InputDto;
 
 namespace purpuraMain.Services.Interfaces;
 
 public interface IAuthService
 {
-  Task<LoginResponseDTO> LoginRequest (string email, string password);
+  Task<LoginResponseDTO> LoginRequest(string email, string password);
 
-  Task<LoginResponseDTO> RefreshTokenRequest (string userId, string sessionId, string email);
+  Task<LoginResponseDTO> RefreshTokenRequest(RefreshTokenDTO refreshTokenDTO);
 
-  Task LogoutRequest (string userId, string sessionId);
+  Task LogoutRequest(RefreshTokenDTO refreshTokenDTO);
+
+  Task<string> GenerateSession(string userId, string email);
 }

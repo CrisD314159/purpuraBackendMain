@@ -1,8 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.IdentityModel.Tokens;
 using purpuraMain.DbContext;
+using purpuraMain.Exceptions;
 using purpuraMain.Model;
 
 namespace purpuraMain.Authentication;
@@ -16,115 +18,80 @@ public class JWTManagement{
   /// <param name="email"></param>
   /// <param name="configuration"></param>
   /// <returns></returns>
-  public static string GenerateAccessToken(string userId, string email, IConfiguration configuration){
+  public static string GenerateAccessToken(string userId, string email, IConfiguration configuration, UserRole userRole, bool generateRefresh
+  , string? sessionId
+  )
+  {
     // Claims del token o información que se quiere guardar en el token
-    var claims = new []
+    var claims = new List<Claim>
     {
-      new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-      new Claim(ClaimTypes.Email, email)
+      new(ClaimTypes.NameIdentifier, userId.ToString()),
+      new(ClaimTypes.Email, email),
+      new(ClaimTypes.Role, userRole.ToString())
     };
 
+    if (!string.IsNullOrEmpty(sessionId))
+    {
+      claims.Add(new(ClaimTypes.SerialNumber, sessionId));
+    }
+
     // Clave de seguridad para firmar el token y el algoritmo con que se firma
-    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]!));
-    var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+    var key = generateRefresh ? configuration["Jwt:RefreshKey"] : configuration["Jwt:Key"];
+
+    if (string.IsNullOrEmpty(key))
+    {
+      throw new BadRequestException("Invalid Access Key");
+    }
+
+    var tokenKey =  new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+    var credentials = new SigningCredentials(tokenKey, SecurityAlgorithms.HmacSha256);
+
 
     // Construcción y envío del token
     var token = new JwtSecurityToken(
             issuer: configuration["Jwt:Issuer"],
             audience: configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(30),
+            expires: generateRefresh ? DateTime.UtcNow.AddDays(7) : DateTime.UtcNow.AddHours(1),
             signingCredentials: credentials
     );
     return new JwtSecurityTokenHandler().WriteToken(token);
   }
 
-  /// <summary>
-  /// Extiende la duración de un token de sesión.
-  /// </summary>
-  /// <param name="sessionId"></param>
-  /// <param name="userId"></param>
-  /// <param name="email"></param>
-  /// <param name="configuration"></param>
-  /// <returns></returns>
-  public static string ExtendSessionToken (string sessionId, string userId, string email, IConfiguration configuration){
-    // Claims del token o información que se quiere guardar en el token
-    var claims = new []
-      {
-        new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-        new Claim(ClaimTypes.SerialNumber, sessionId),
-        new Claim(ClaimTypes.Email, email)
-      };
 
-      // Clave de seguridad para firmar el token y el algoritmo con que se firma
-      var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]!));
-      var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+  public static ClaimsPrincipal ExtractRefreshTokenInfo(string refreshToken, IConfiguration configuration, out SecurityToken securityToken)
+  {
+    var handler = new JwtSecurityTokenHandler();
+    var key = Encoding.UTF8.GetBytes(configuration["Jwt:RefreshKey"] ?? throw new BadRequestException("Key not found"));
 
-      // Construcción y envío del token de sesión refrescado
-      var token = new JwtSecurityToken(
-          issuer: configuration["Jwt:Issuer"],
-              audience: configuration["Jwt:Audience"],
-              claims: claims,
-              expires: DateTime.UtcNow.AddDays(5),
-              signingCredentials: credentials
-      );
+    var validationParameters = new TokenValidationParameters()
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ClockSkew = TimeSpan.Zero
 
-    return new JwtSecurityTokenHandler().WriteToken(token);
-
-  }
-
-
-  /// <summary>
-  /// Genera un token de sesión para un usuario cuando se logue por primera vez. Además, crea la sesión en la base de datos
-  /// </summary>
-  /// <param name="userId"></param>
-  /// <param name="email"></param>
-  /// <param name="configuration"></param>
-  /// <param name="dbContext"></param>
-  /// <returns></returns>
-  public static async Task<string> GenerateRefreshToken(string userId, string email, IConfiguration configuration, PurpuraDbContext dbContext){
+    };
 
     try
     {
-      // Genera un ID de sesión único
-      var sessionId = Guid.NewGuid().ToString();
-      // Claims del token o información que se quiere guardar en el token
-      var claims = new []
-      {
-        new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-        new Claim(ClaimTypes.SerialNumber, sessionId),
-        new Claim(ClaimTypes.Email, email)
-      };
+      var result = handler.ValidateToken(refreshToken, validationParameters , out securityToken);
 
-      // Clave de seguridad para firmar el token y el algoritmo con que se firma
-      var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]!));
-      var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+      return result;
 
-      // Construcción y envío del token de sesión
-      var token = new JwtSecurityToken(
-          issuer: configuration["Jwt:Issuer"],
-              audience: configuration["Jwt:Audience"],
-              claims: claims,
-              expires: DateTime.UtcNow.AddDays(5),
-              signingCredentials: credentials
-      );
-
-      // Guarda la sesión en la base de datos para verificarla en futuras peticiones
-      await dbContext.Sessions!.AddAsync(new Session{
-        Id = sessionId,
-        UserId = userId,
-        CreatedAt = DateTime.UtcNow,
-        ExpiresdAt = DateTime.UtcNow.AddDays(5)
-      });
-      await dbContext.SaveChangesAsync();
-
-      return new JwtSecurityTokenHandler().WriteToken(token);
-      }
-
-    catch (System.Exception)
+    }catch(SecurityTokenMalformedException)
     {
-      
-      throw;
+      throw new BadRequestException("Invalid token type");
+    }
+    catch(SecurityTokenExpiredException)
+    {
+      throw new UnauthorizedException("Expired session");
+    }
+    catch(SecurityTokenException)
+    {
+      throw new UnauthorizedException("Token not allowed");
     }
   }
 }

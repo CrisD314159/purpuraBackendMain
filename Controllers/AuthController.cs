@@ -40,16 +40,11 @@ public class AuthController(IAuthService authService) : ControllerBase
 
     /// Renueva el token de autenticación si el refresh token es válido.
     /// <returns>Nuevo token de acceso y refresh token.</returns>
-    [HttpPut("refresh/token")]
-    [Authorize]
-    public async Task<IActionResult> RefreshToken()
+    [HttpPut("/refreshToken")]
+    public async Task<IActionResult> RefreshToken(RefreshTokenDTO refreshTokenDTO)
     {
 
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-        var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-        var email = User.FindFirst(ClaimTypes.Email)?.Value ?? throw new UnauthorizedException(" You're not authorized to perform this action");
-
-        var token = await _authService.RefreshTokenRequest(userId, sessionId, email);
+        var token = await _authService.RefreshTokenRequest(refreshTokenDTO);
         return Ok(new { success = true, token = token.Token, refreshToken = token.RefreshToken });
 
     }
@@ -58,17 +53,11 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// Cierra la sesión del usuario actual, invalidando el token de sesión.
     /// <returns>Mensaje confirmando el cierre de sesión.</returns>
     [HttpDelete("logout")]
-    [Authorize]
-    public async Task<IActionResult> Logout()
+  
+    public async Task<IActionResult> Logout(RefreshTokenDTO refreshTokenDTO)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-        var sessionId = User.FindFirst(ClaimTypes.SerialNumber)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
-
-        await _authService.LogoutRequest(userId, sessionId);
-
-
+        await _authService.LogoutRequest(refreshTokenDTO);
         return Ok("Logged out successfully");
-
     }
 
 

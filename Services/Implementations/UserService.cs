@@ -69,7 +69,8 @@ public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> 
             State = UserState.UNVERIFIED,
             CreatedAt = DateTime.UtcNow,
             ProfilePicture = $"https://api.dicebear.com/9.x/glass/svg?seed={userDTO.Name.Trim()}",
-            VerificationCode = code.ToString()
+            VerificationCode = code.ToString(),
+            Role = UserRole.USER
         };
 
         var result = await _userManager.CreateAsync(newUser, userDTO.Password);

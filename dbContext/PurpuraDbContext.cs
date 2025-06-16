@@ -25,16 +25,22 @@ public class PurpuraDbContext : IdentityDbContext<User>
   public DbSet<Song> Songs { get; set; }
   public DbSet<Playlist> Playlists { get; set; }
   public DbSet<Album> Albums { get; set; }
-
   public DbSet<PlayHistory> PlayHistories { get; set; }
   public DbSet<Session> Sessions { get; set; }
-  public DbSet<Admin> Admins { get; set; }
   public DbSet<AdminSessions> AdminSessions { get; set; }
 
 
   protected override void OnModelCreating(ModelBuilder builder)
   {
     base.OnModelCreating(builder);
+
+    // When an album deletes, its songs also are deleted
+    builder.Entity<Album>()
+    .HasMany(a => a.Songs)
+    .WithOne(s => s.Album)
+    .HasForeignKey(s => s.AlbumId)
+    .OnDelete(DeleteBehavior.Cascade);
+
   }
 
 }

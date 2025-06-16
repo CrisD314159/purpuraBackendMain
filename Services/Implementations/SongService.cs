@@ -8,14 +8,21 @@ using purpuraMain.Services.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Identity;
+using purpuraMain.Dto.InputDto;
+using FluentValidation;
 
-public class SongService(PurpuraDbContext dbContext, IMapper mapper, ILibraryService libraryService, UserManager<User> userManager) : ISongService
+public class SongService(PurpuraDbContext dbContext, IMapper mapper, ILibraryService libraryService, UserManager<User> userManager,
+IValidator<CreateSingleSongDTO> createSongValidator, IValidator<UpdateSingleSongDTO> updateSongValidator, IValidator<AddSongToAlbumDTO> addSongToAlbumValidator
+) : ISongService
 {
 
     private readonly PurpuraDbContext _dbContext = dbContext;
     private readonly IMapper _mapper = mapper;
     private readonly ILibraryService _libraryService = libraryService;
     private readonly UserManager<User> _userManager = userManager;
+    private readonly IValidator<CreateSingleSongDTO> _createSongValidator= createSongValidator;
+    private readonly IValidator<UpdateSingleSongDTO> _updateSingleSongDTO= updateSongValidator;
+    private readonly IValidator<AddSongToAlbumDTO> _addSongToAlbumValidator= addSongToAlbumValidator;
 
     /// <summary>
     /// Obtiene una canción por su ID.
@@ -24,13 +31,13 @@ public class SongService(PurpuraDbContext dbContext, IMapper mapper, ILibrarySer
     /// <param name="id"></param>
     /// <param name="dbContext"></param>
     /// <returns></returns>
-    public async Task<GetSongDTO> GetSongById(string userId, string id)
+    public async Task<GetSongDTO> GetSongById(string userId, Guid songId)
     {
 
         var isOnLibrary = await _dbContext.Libraries.Where(l => l.UserId == userId && l.User.State == UserState.ACTIVE)
-        .AnyAsync(l => l.Songs.Any(s=> s.Id == id));
+        .AnyAsync(l => l.Songs.Any(s=> s.Id == songId));
 
-        var song = await _dbContext.Songs!.Where(s => s.Id == id)
+        var song = await _dbContext.Songs!.Where(s => s.Id == songId)
         .ProjectTo<GetSongDTO>(_mapper.ConfigurationProvider)
         .FirstAsync() ?? throw new EntityNotFoundException("Song not found");
 
@@ -94,7 +101,7 @@ public class SongService(PurpuraDbContext dbContext, IMapper mapper, ILibrarySer
         {
 
             Song = s,
-            Plays = _dbContext.PlayHistories.Count(ph => ph.SongId == ph.Id)
+            Plays = _dbContext.PlayHistories.Count(ph => ph.SongId == s.Id)
         })
         .OrderByDescending(x => x.Plays)
         .Take(10)
@@ -114,12 +121,7 @@ public class SongService(PurpuraDbContext dbContext, IMapper mapper, ILibrarySer
                 AlbumName = s.Song.Album.Name,
                 ImageUrl = s.Song.ImageUrl ?? "",
                 AudioUrl = s.Song.AudioUrl ?? "",
-                Genres = [.. s.Song.Genres.Select(g => new GetGenreDTO
-                {
-                    Id = g.Id,
-                    Name = g.Name,
-                    Description = g.Description ?? ""
-                })],
+                Genre = s.Song.Genre,
                 IsOnLibrary = false,
                 Lyrics = s.Song.Lyrics ?? "",
                 Plays = s.Plays
@@ -138,7 +140,7 @@ public class SongService(PurpuraDbContext dbContext, IMapper mapper, ILibrarySer
     /// <param name="songId"></param>
     /// <param name="_dbContext"></param>
     /// <returns></returns>
-    public async Task<bool> AddSongPlay(string userId, string songId )
+    public async Task<bool> AddSongPlay(string userId, Guid songId )
     {
 
         var user = await _dbContext.Users.FindAsync(userId)
@@ -161,5 +163,181 @@ public class SongService(PurpuraDbContext dbContext, IMapper mapper, ILibrarySer
         return true;
      
     }
- 
+
+    /// <summary>
+    /// Creates a song using a data transfer object
+    /// </summary>
+    /// <param name="createSingleSongDTO"></param>
+    /// <returns></returns>
+    /// <exception cref="EntityNotFoundException"></exception>
+    public async Task CreateSong(CreateSingleSongDTO createSingleSongDTO)
+    {
+        _createSongValidator.ValidateAndThrow(createSingleSongDTO);
+
+        var artists = await _dbContext.Artists
+        .Where(a => createSingleSongDTO.Artists.Contains(a.Id))
+        .ToListAsync();
+
+        if (artists.Count == 0) throw new EntityNotFoundException("No artists were found");
+
+
+        var genre = await _dbContext.Genres.FindAsync(createSingleSongDTO.GenreId)
+        ?? throw new EntityNotFoundException("Genre not found");
+
+        var albumDTO = new CreateSingleSongAlbumDTO
+        {
+            Name = createSingleSongDTO.Name,
+            ImageUrl = createSingleSongDTO.ImageUrl,
+            Disclaimer = createSingleSongDTO.Disclaimer,
+            Artist = artists[0],
+            Genre = genre
+        };
+
+        var album = await CreateAlbumForSingleSong(albumDTO);
+
+        var song = new Song
+        {
+            Name = createSingleSongDTO.Name,
+            AlbumId = album.Id,
+            Album = album,
+            AudioUrl = createSingleSongDTO.AudioUrl,
+            ImageUrl = createSingleSongDTO.ImageUrl,
+            DateAdded = DateTime.UtcNow,
+            Artists = artists,
+            Disclaimer = createSingleSongDTO.Disclaimer,
+            Genre = genre,
+            GenreId = genre.Id,
+            Lyrics = createSingleSongDTO.Lyrics
+        };
+
+        await _dbContext.Songs.AddAsync(song);
+        await _dbContext.SaveChangesAsync();
+
+    }
+
+    /// <summary>
+    /// Creates an album to contain a single song release
+    /// </summary>
+    /// <param name="createSingleSongAlbumDTO"></param>
+    /// <returns></returns>
+    private async Task<Album> CreateAlbumForSingleSong(CreateSingleSongAlbumDTO createSingleSongAlbumDTO)
+    {
+        var album = new Album
+        {
+            Name = createSingleSongAlbumDTO.Name,
+            PictureUrl = createSingleSongAlbumDTO.ImageUrl,
+            Artist = createSingleSongAlbumDTO.Artist,
+            ArtistId = createSingleSongAlbumDTO.Artist.Id,
+            DateAdded = DateTime.UtcNow,
+            Genre = createSingleSongAlbumDTO.Genre,
+            GenreId = createSingleSongAlbumDTO.Genre.Id,
+            AlbumType = AlbumType.SINGLE,
+            Disclaimer = createSingleSongAlbumDTO.Disclaimer
+        };
+
+        await _dbContext.Albums.AddAsync(album);
+        await _dbContext.SaveChangesAsync();
+
+        return album;
+        
+    }
+
+    /// <summary>
+    /// Updates a song using a data transfer protocol
+    /// </summary>
+    /// <param name="updateSingleSongDTO"></param>
+    /// <returns></returns>
+    /// <exception cref="EntityNotFoundException"></exception>
+    public async Task UpdateSong(UpdateSingleSongDTO updateSingleSongDTO)
+    {
+        _updateSingleSongDTO.ValidateAndThrow(updateSingleSongDTO);
+
+        var artists = await _dbContext.Artists
+       .Where(a => updateSingleSongDTO.Artists.Contains(a.Id))
+       .ToListAsync();
+
+        if (artists.Count == 0) throw new EntityNotFoundException("No artists were found");
+
+        var genre = await _dbContext.Genres.FindAsync(updateSingleSongDTO.GenreId)
+        ?? throw new EntityNotFoundException("Genre not found");
+
+        var song = await _dbContext.Songs.FindAsync(updateSingleSongDTO.Id)
+        ?? throw new EntityNotFoundException("Song not found");
+
+        song.Album.Artist = artists[0];
+        song.Album.ArtistId = artists[0].Id;
+        song.Album.Disclaimer = updateSingleSongDTO.Disclaimer;
+        song.Album.Genre = genre;
+        song.Album.GenreId = genre.Id;
+        song.Album.Name = updateSingleSongDTO.Name;
+        song.Album.PictureUrl = updateSingleSongDTO.ImageUrl;
+
+        song.Artists = artists;
+        song.Disclaimer = updateSingleSongDTO.Disclaimer;
+        song.Genre = genre;
+        song.GenreId = genre.Id;
+        song.Name = updateSingleSongDTO.Name;
+        song.ImageUrl = updateSingleSongDTO.ImageUrl;
+        song.AudioUrl = updateSingleSongDTO.AudioUrl;
+        song.Lyrics = updateSingleSongDTO.Lyrics;
+
+        await _dbContext.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Deletes a song using its provided id
+    /// </summary>
+    /// <param name="songId"></param>
+    /// <returns></returns>
+    /// <exception cref="EntityNotFoundException"></exception>
+    public async Task DeleteSong(Guid songId)
+    {
+        var song = await _dbContext.Songs.FindAsync(songId)
+        ?? throw new EntityNotFoundException("Song Not found");
+
+        _dbContext.Albums.Remove(song.Album);
+    }
+
+    /// <summary>
+    /// Adds a song to an existing album
+    /// </summary>
+    /// <param name="addSongToAlbumDTO"></param>
+    /// <returns></returns>
+    /// <exception cref="EntityNotFoundException"></exception>
+    public async Task AddSongToAlbum(AddSongToAlbumDTO addSongToAlbumDTO)
+    {
+        _addSongToAlbumValidator.ValidateAndThrow(addSongToAlbumDTO);
+
+        var artists = await _dbContext.Artists
+       .Where(a => addSongToAlbumDTO.Artists.Contains(a.Id))
+       .ToListAsync();
+
+        if (artists.Count == 0) throw new EntityNotFoundException("No artists were found");
+
+        var genre = await _dbContext.Genres.FindAsync(addSongToAlbumDTO.GenreId)
+        ?? throw new EntityNotFoundException("Genre not found");
+
+        var album = await _dbContext.Albums.FindAsync(addSongToAlbumDTO.AlbumId)
+        ?? throw new EntityNotFoundException("Album not found");
+
+        var song = new Song
+        {
+            Name = addSongToAlbumDTO.Name,
+            AlbumId = album.Id,
+            Album = album,
+            AudioUrl = addSongToAlbumDTO.AudioUrl,
+            ImageUrl = addSongToAlbumDTO.ImageUrl,
+            DateAdded = DateTime.UtcNow,
+            Artists = artists,
+            Disclaimer = addSongToAlbumDTO.Disclaimer,
+            Genre = genre,
+            GenreId = genre.Id,
+            Lyrics = addSongToAlbumDTO.Lyrics
+        };
+
+        album.Songs.Add(song);
+        await _dbContext.Songs.AddAsync(song);
+
+        await _dbContext.SaveChangesAsync();
+    }
 }

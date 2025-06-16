@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
+using purpuraMain.Dto.InputDto;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services.Interfaces;
@@ -18,12 +19,54 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
 {
     private readonly IAlbumService _albumService = albumService;
 
+    /// <summary>
+    /// Creates an album with a provided create album dto 
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="createAlbumDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN")]
+    [HttpPost]
+    public async Task<IActionResult> CreateAlbum(CreateAlbumDTO createAlbumDTO)
+    {
+        await _albumService.CreateAlbum(createAlbumDTO);
+        return Created();
+    }
+    
+    /// <summary>
+    /// Updates an album with the provided update album dto
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="updateAlbumDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles = "ADMIN")]
+    [HttpPut]
+    public async Task<IActionResult> UpdateAlbum(UpdateAlbumDTO updateAlbumDTO)
+    {
+        await _albumService.UpdateAlbum(updateAlbumDTO);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Deletes an album with the provided album Id
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [Authorize(Roles = "ADMIN")]
+    [HttpDelete("/{id}")]
+    public async Task<IActionResult> DeleteAlbum(Guid id)
+    {
+        await _albumService.DeleteAlbum(id);
+        return Ok();
+    }
+
   /// Obtiene un álbum por su identificador único.
   /// <param name="id">Identificador del álbum.</param>
   /// <returns>Un objeto GetAlbumDTO con los detalles del álbum.</returns>
-  [HttpGet("getAlbum/{id}")]
+    [HttpGet("getAlbum/{id}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetAlbumById(string id)
+    public async Task<IActionResult> GetAlbumById(Guid id)
     {
         var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if(string.IsNullOrEmpty(userId)) userId = "0";

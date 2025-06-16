@@ -24,8 +24,8 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("AlbumLibrary", b =>
                 {
-                    b.Property<string>("AlbumsId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("AlbumsId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("LibrariesId")
                         .HasColumnType("uuid");
@@ -39,32 +39,17 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("ArtistSong", b =>
                 {
-                    b.Property<string>("ArtistsId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("ArtistsId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("SongsId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("SongsId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("ArtistsId", "SongsId");
 
                     b.HasIndex("SongsId");
 
                     b.ToTable("ArtistSong");
-                });
-
-            modelBuilder.Entity("GenreSong", b =>
-                {
-                    b.Property<string>("GenresId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SongsId")
-                        .HasColumnType("text");
-
-                    b.HasKey("GenresId", "SongsId");
-
-                    b.HasIndex("SongsId");
-
-                    b.ToTable("GenreSong");
                 });
 
             modelBuilder.Entity("LibraryPlaylist", b =>
@@ -87,8 +72,8 @@ namespace purpuraMain.Migrations
                     b.Property<Guid>("LibrariesId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("SongsId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("SongsId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("LibrariesId", "SongsId");
 
@@ -234,36 +219,14 @@ namespace purpuraMain.Migrations
                     b.Property<Guid>("PlaylistsId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("SongsId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("SongsId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("PlaylistsId", "SongsId");
 
                     b.HasIndex("SongsId");
 
                     b.ToTable("PlaylistSong");
-                });
-
-            modelBuilder.Entity("purpuraMain.Model.Admin", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Admins");
                 });
 
             modelBuilder.Entity("purpuraMain.Model.AdminSessions", b =>
@@ -289,23 +252,27 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("purpuraMain.Model.Album", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<int>("AlbumType")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ArtistId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("ArtistId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("GenreId")
-                        .IsRequired()
+                    b.Property<string>("Disclaimer")
                         .HasColumnType("text");
+
+                    b.Property<Guid>("GenreId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -338,8 +305,9 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("purpuraMain.Model.Artist", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -360,15 +328,15 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("purpuraMain.Model.Genre", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Color")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -411,8 +379,8 @@ namespace purpuraMain.Migrations
                     b.Property<DateTime>("PlayedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("SongId")
-                        .HasColumnType("text");
+                    b.Property<Guid?>("SongId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UserId")
                         .HasColumnType("text");
@@ -489,23 +457,31 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("purpuraMain.Model.Song", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("AlbumId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("AlbumId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("AudioUrl")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Disclaimer")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("GenreId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Lyrics")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -515,6 +491,8 @@ namespace purpuraMain.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AlbumId");
+
+                    b.HasIndex("GenreId");
 
                     b.ToTable("Songs");
                 });
@@ -571,6 +549,9 @@ namespace purpuraMain.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
@@ -620,21 +601,6 @@ namespace purpuraMain.Migrations
                     b.HasOne("purpuraMain.Model.Artist", null)
                         .WithMany()
                         .HasForeignKey("ArtistsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("purpuraMain.Model.Song", null)
-                        .WithMany()
-                        .HasForeignKey("SongsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("GenreSong", b =>
-                {
-                    b.HasOne("purpuraMain.Model.Genre", null)
-                        .WithMany()
-                        .HasForeignKey("GenresId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -805,7 +771,15 @@ namespace purpuraMain.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("purpuraMain.Model.Genre", "Genre")
+                        .WithMany("Songs")
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Album");
+
+                    b.Navigation("Genre");
                 });
 
             modelBuilder.Entity("purpuraMain.Model.Album", b =>
@@ -816,6 +790,11 @@ namespace purpuraMain.Migrations
             modelBuilder.Entity("purpuraMain.Model.Artist", b =>
                 {
                     b.Navigation("Albums");
+                });
+
+            modelBuilder.Entity("purpuraMain.Model.Genre", b =>
+                {
+                    b.Navigation("Songs");
                 });
 #pragma warning restore 612, 618
         }

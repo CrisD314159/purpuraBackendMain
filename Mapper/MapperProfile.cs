@@ -17,7 +17,7 @@ public class MapperProfile : Profile
     CreateMap<Song, GetSongDTO>()
     .ForMember(dest => dest.AlbumName, opt => opt.MapFrom(src => src.Album.Name))
     .ForMember(dest => dest.Artists, opt => opt.MapFrom(src => src.Artists))
-    .ForMember(dest => dest.Genres, opt => opt.MapFrom(src => src.Genres));
+    .ForMember(dest => dest.Genre, opt => opt.MapFrom(src => src.Genre));
 
     CreateMap<Genre, GetGenreDTO>()
     .ForMember(dest => dest.Songs, opt => opt.Ignore());

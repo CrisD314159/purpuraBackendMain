@@ -8,23 +8,121 @@ using purpuraMain.Services.Interfaces;
 using AutoMapper.QueryableExtensions;
 using AutoMapper;
 using System.Threading.Tasks;
+using purpuraMain.Dto.InputDto;
+using FluentValidation;
 
-public class AlbumService(PurpuraDbContext dbContext, IMapper mapper, ILibraryService libraryService) : IAlbumService
+public class AlbumService(PurpuraDbContext dbContext, IMapper mapper, ILibraryService libraryService,
+IValidator<CreateAlbumDTO> createAlbumValidator, IValidator<UpdateAlbumDTO> updateAlbumValidator
+) : IAlbumService
 {
     private readonly PurpuraDbContext _dbContext = dbContext;
     private readonly IMapper _mapper = mapper;
 
     private readonly ILibraryService _libraryService = libraryService;
-
+    private readonly IValidator<CreateAlbumDTO> _createAlbumValidator = createAlbumValidator;
+    private readonly IValidator<UpdateAlbumDTO> _updateAlbumValidator = updateAlbumValidator;
 
     /// <summary>
-    /// Obtiene un álbum por su ID.
+    /// Creates an album using a data transfer object
     /// </summary>
-    /// <param name="id">ID del álbum.</param>
-    /// <param name="dbContext">Contexto de base de datos.</param>
-    /// <returns>Objeto GetAlbumDTO con la información del álbum.</returns>
-    /// <exception cref="EntityNotFoundException">Se lanza si el álbum no es encontrado.</exception>
-    public async Task<GetAlbumDTO> GetAlbumById(string userId, string albumId)
+    /// <param name="createAlbumDTO"></param>
+    /// <returns></returns>
+    /// <exception cref="EntityNotFoundException"></exception>
+    public async Task CreateAlbum(CreateAlbumDTO createAlbumDTO)
+    {
+        _createAlbumValidator.ValidateAndThrow(createAlbumDTO);
+
+        var artist = await _dbContext.Artists.FindAsync(createAlbumDTO.ArtistId)
+        ?? throw new EntityNotFoundException("Artist not founc");
+        var genre = await _dbContext.Genres.FindAsync(createAlbumDTO.GenreId)
+        ?? throw new EntityNotFoundException("Genre not found");
+
+        var album = new Album
+        {
+            Name = createAlbumDTO.Name,
+            PictureUrl = createAlbumDTO.ImageUrl,
+            Artist = artist,
+            ArtistId = artist.Id,
+            DateAdded = DateTime.UtcNow,
+            Genre = genre,
+            GenreId = genre.Id,
+            AlbumType = AlbumType.ALBUM,
+            Description = createAlbumDTO.Description,
+            Disclaimer = createAlbumDTO.Disclaimer,
+            ProducerName = createAlbumDTO.ProducerName,
+            RecordLabel = createAlbumDTO.RecordLabel,
+            ReleaseDate = createAlbumDTO.ReleaseDate,
+            WriterName = createAlbumDTO.WriterName
+        };
+
+        await _dbContext.Albums.AddAsync(album);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Updates an album using a data transfer object
+    /// </summary>
+    /// <param name="updateAlbumDTO"></param>
+    /// <returns></returns>
+    /// <exception cref="EntityNotFoundException"></exception>
+    public async Task UpdateAlbum(UpdateAlbumDTO updateAlbumDTO)
+    {
+
+        _updateAlbumValidator.ValidateAndThrow(updateAlbumDTO);
+
+        var album = await _dbContext.Albums.FindAsync(updateAlbumDTO.Id)
+        ?? throw new EntityNotFoundException("Album not found");
+
+
+        var artist = await _dbContext.Artists.FindAsync(updateAlbumDTO.ArtistId)
+        ?? throw new EntityNotFoundException("Artist not founc");
+        var genre = await _dbContext.Genres.FindAsync(updateAlbumDTO.GenreId)
+        ?? throw new EntityNotFoundException("Genre not found");
+
+
+        album.Name = updateAlbumDTO.Name;
+        album.PictureUrl = updateAlbumDTO.ImageUrl;
+        album.Artist = artist;
+        album.ArtistId = artist.Id;
+        album.DateAdded = DateTime.UtcNow;
+        album.Genre = genre;
+        album.GenreId = genre.Id;
+        album.AlbumType = AlbumType.ALBUM;
+        album.Description = updateAlbumDTO.Description;
+        album.Disclaimer = updateAlbumDTO.Disclaimer;
+        album.ProducerName = updateAlbumDTO.ProducerName;
+        album.RecordLabel = updateAlbumDTO.RecordLabel;
+        album.ReleaseDate = updateAlbumDTO.ReleaseDate;
+        album.WriterName = updateAlbumDTO.WriterName;
+
+        await _dbContext.SaveChangesAsync();
+
+    }
+
+    /// <summary>
+    /// Deletes an album using its provided id
+    /// </summary>
+    /// <param name="albumId"></param>
+    /// <returns></returns>
+    /// <exception cref="EntityNotFoundException"></exception>
+    public async Task DeleteAlbum(Guid albumId)
+    {
+        var album = await _dbContext.Albums.FindAsync(albumId)
+        ?? throw new EntityNotFoundException("Album not found");
+
+        _dbContext.Albums.Remove(album);
+
+    }
+
+
+  /// <summary>
+  /// Obtiene un álbum por su ID.
+  /// </summary>
+  /// <param name="id">ID del álbum.</param>
+  /// <param name="dbContext">Contexto de base de datos.</param>
+  /// <returns>Objeto GetAlbumDTO con la información del álbum.</returns>
+  /// <exception cref="EntityNotFoundException">Se lanza si el álbum no es encontrado.</exception>
+  public async Task<GetAlbumDTO> GetAlbumById(string userId, Guid albumId)
     {
 
         var album = await _dbContext.Albums.Where(a => a.Id == albumId)
@@ -94,10 +192,11 @@ public class AlbumService(PurpuraDbContext dbContext, IMapper mapper, ILibrarySe
                 Name = a.Name,
                 PictureUrl = a.PictureUrl,
                 Description = a.Description ?? "",
-                TotalPlays = _dbContext.PlayHistories!.Where(s => s.Song!.AlbumId == a.Id).Count()
+                TotalPlays = _dbContext.PlayHistories.Where(s => s.Song!.AlbumId == a.Id).Count()
             }).OrderByDescending(a => a.TotalPlays).Take(10).ToListAsync();
 
             return albums;  
     }
+
 
 }

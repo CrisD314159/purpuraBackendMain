@@ -20,13 +20,70 @@ namespace purpuraMain.Controllers;
 public class SongController(ISongService ISongService) : ControllerBase
 {
     private readonly ISongService _songService = ISongService;
+    
+    /// <summary>
+    /// Creates an song with a provided create song dto 
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="createSingleSongDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles = "ADMIN")]
+    [HttpPost]
+    public async Task<IActionResult> CreateSong(CreateSingleSongDTO createSingleSongDTO)
+    {
+        await _songService.CreateSong(createSingleSongDTO);
+        return Created();
+    }
+
+    /// <summary>
+    /// Creates an adds a new song to an existing album
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="addSongToAlbumDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles = "ADMIN")]
+    [HttpPost("/addToAlbum")]
+    public async Task<IActionResult> AddSongToAlbum(AddSongToAlbumDTO addSongToAlbumDTO)
+    {
+        await _songService.AddSongToAlbum(addSongToAlbumDTO);
+        return Created();
+    }
+    
+    /// <summary>
+    /// Updates a song with the provided update song dto
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="updateGenreDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles = "ADMIN")]
+    [HttpPut]
+    public async Task<IActionResult> UpdateSong(UpdateSingleSongDTO updateSingleSongDTO)
+    {
+        await _songService.UpdateSong(updateSingleSongDTO);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Deletes a song with the provided song Id
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [Authorize(Roles = "ADMIN")]
+    [HttpDelete("/{id}")]
+    public async Task<IActionResult> DeleteGenre(Guid id)
+    {
+        await _songService.DeleteSong(id);
+        return Ok();
+    }
+
 
   /// Obtiene una canción por su identificador.
-  /// <param name="id">Identificador de la canción.</param>
-  /// <returns>Devuelve los detalles de la canción si se encuentra.</returns>
-  [HttpGet("getSong/{id}")]
+    /// <param name="id">Identificador de la canción.</param>
+    /// <returns>Devuelve los detalles de la canción si se encuentra.</returns>
+    [HttpGet("getSong/{id}")]
     [Authorize]
-    public async Task<IActionResult> GetSong(string id)
+    public async Task<IActionResult> GetSong(Guid id)
     {
 
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");

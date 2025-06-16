@@ -58,6 +58,15 @@ builder.Services.AddScoped<IValidator<UpdatePlaylistDTO>,PlayListUpdateValidatio
 builder.Services.AddScoped<IValidator<CreatePlayListDTO>,PlayListValidation>();
 builder.Services.AddScoped<IValidator<UpdateUserDto>,UserUpdateValidator>();
 builder.Services.AddScoped<IValidator<CreateUserDTO>,UserValidator>();
+builder.Services.AddScoped<IValidator<CreateAlbumDTO>, CreateAlbumValidation>();
+builder.Services.AddScoped<IValidator<CreateArtistDTO>, CreateArtistValidation>();
+builder.Services.AddScoped<IValidator<CreateSingleSongDTO>,CreateSongValidation>();
+builder.Services.AddScoped<IValidator<UpdateAlbumDTO>, UpdateAlbumValidation>();
+builder.Services.AddScoped<IValidator<UpdateArtistDTO>, UpdateArtistValidation>();
+builder.Services.AddScoped<IValidator<UpdateSingleSongDTO>, UpdateSongValidation>();
+builder.Services.AddScoped<IValidator<CreateGenreDTO>, CreateGenreValidation>();
+builder.Services.AddScoped<IValidator<UpdateGenreDTO>, UpdateGenreValidation>();
+builder.Services.AddScoped<IValidator<AddSongToAlbumDTO>, AddSongToAlbumValidation>();
 
 
 // Agrega controladores a la aplicación.

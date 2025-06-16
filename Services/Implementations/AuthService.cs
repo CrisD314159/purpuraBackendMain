@@ -8,6 +8,9 @@ using purpuraMain.Utils;
 using purpuraMain.Model;
 using purpuraMain.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using purpuraMain.Dto.InputDto;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 
 public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInManager, UserManager<User> userManager
 , IConfiguration configuration
@@ -42,8 +45,9 @@ public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInM
 
     if (result.Succeeded && user.Email != null)
     {
-      var accessToken = JWTManagement.GenerateAccessToken(user.Id, user.Email, _configuration);
-      var refreshToken = await JWTManagement.GenerateRefreshToken(user.Id, user.Email, _configuration, _dbContext);
+      // genera un token de acceso (1 hora) y un token de refresco (7 días) y los retorna
+      var accessToken = JWTManagement.GenerateAccessToken(user.Id, user.Email, _configuration, user.Role, false, null);
+      var refreshToken = await GenerateSession(user.Id, email);
 
       return new LoginResponseDTO
       {
@@ -54,7 +58,7 @@ public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInM
 
     throw new InternalServerException("Cannot login");
 
-    // genera un token de acceso (30min) y un token de refresco (5 días) y los retorn
+
   }
 
   /// <summary>
@@ -64,32 +68,47 @@ public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInM
   /// <param name="sessionId">ID de la sesión.</param>
   /// <param name="email">Correo electrónico del usuario.</param>
   /// <param name="_dbContext">Contexto de la base de datos.</param>
-  public async Task<LoginResponseDTO> RefreshTokenRequest (string userId, string sessionId, string email)
+  public async Task<LoginResponseDTO> RefreshTokenRequest (RefreshTokenDTO refreshTokenDTO)
   {
 
-      // Verifica si la sesión existe y no ha expirado
-      var session = await _dbContext.Sessions.Where(s => s.UserId == userId && s.Id == sessionId)
-      .FirstOrDefaultAsync()
-      ?? throw new EntityNotFoundException("Session not found");
-      if (session.ExpiresdAt < DateTime.UtcNow)
-      {
-        _dbContext.Sessions!.Remove(session);
+    var refreshTokenClaims = JWTManagement.ExtractRefreshTokenInfo(refreshTokenDTO.RefreshToken, _configuration, out SecurityToken securityToken);
+
+    var sessionId = refreshTokenClaims.FindFirst(ClaimTypes.SerialNumber)?.Value
+    ?? throw new UnauthorizedAccessException("Invalid refresh token");
+
+    var userId = refreshTokenClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value
+    ?? throw new UnauthorizedAccessException("Invalid refresh token");
+
+    var email = refreshTokenClaims.FindFirst(ClaimTypes.Email)?.Value
+    ?? throw new UnauthorizedAccessException("Invalid refresh token");
+
+    var role = refreshTokenClaims.FindFirst(ClaimTypes.Role)?.Value
+    ?? throw new UnauthorizedAccessException("Invalid refresh token");
+
+    // Verifica si la sesión existe y no ha expirado
+    var session = await _dbContext.Sessions.Where(s => s.UserId == userId && s.Id == sessionId)
+    .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Session not found");
+    if (session.ExpiresdAt < DateTime.UtcNow)
+    {
+        _dbContext.Sessions.Remove(session);
         await _dbContext.SaveChangesAsync();
         throw new SessionExpiredException("Session expired");
-      }
+    }
 
-      var token = JWTManagement.GenerateAccessToken(session.UserId, email, _configuration);
+    var userRole = Enum.Parse<UserRole>(role);
+
+    var token = JWTManagement.GenerateAccessToken(session.UserId, email, _configuration, userRole, false, null);
 
      // Renueva la expiración de la sesión si faltan menos de 2 días
     if (DateTime.UtcNow >= session.ExpiresdAt.AddDays(-2))
     {
-        session.ExpiresdAt = DateTime.UtcNow.AddDays(5);
+        session.ExpiresdAt = DateTime.UtcNow.AddDays(7);
         await _dbContext.SaveChangesAsync();
-        var newSessionId = JWTManagement.ExtendSessionToken(sessionId, userId, email, _configuration);
+        var newSessionToken = JWTManagement.GenerateAccessToken(session.UserId, email, _configuration, userRole, false, sessionId);  
 
         return new LoginResponseDTO
         {
-            RefreshToken = newSessionId,
+            RefreshToken = newSessionToken,
             Token = token
         };
     }
@@ -107,14 +126,46 @@ public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInM
   /// <param name="userId">ID del usuario.</param>
   /// <param name="sessionId">ID de la sesión.</param>
   /// <param name="_dbContext">Contexto de la base de datos.</param>
-  public async Task LogoutRequest (string userId, string sessionId)
+  public async Task LogoutRequest (RefreshTokenDTO refreshTokenDTO)
   {
 
+    var refreshTokenClaims = JWTManagement.ExtractRefreshTokenInfo(refreshTokenDTO.RefreshToken, _configuration, out SecurityToken securityToken);
+
+    var sessionId = refreshTokenClaims.FindFirst(ClaimTypes.SerialNumber)?.Value
+    ?? throw new UnauthorizedAccessException("Invalid refresh token");
     // Verifica si la sesión existe y no ha expirado, en caso de que exista, la limpia
-    var session = await _dbContext.Sessions.Where(s => s.UserId == userId && s.Id == sessionId)
-    .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Invalid email or password");
-    _dbContext.Sessions!.Remove(session);
+    var session = await _dbContext.Sessions.FindAsync(sessionId)
+    ?? throw new EntityNotFoundException("Invalid email or password");
+
+    _dbContext.Sessions.Remove(session);
     await _dbContext.SaveChangesAsync();
   }
 
+  public async Task<string> GenerateSession(string userId, string email)
+  {
+    var user = await _userManager.FindByIdAsync(userId)
+    ?? throw new EntityNotFoundException("User does no exists");
+
+    var oldSessions = await _dbContext.Sessions.Where(s => s.UserId == userId && s.ExpiresdAt <= DateTime.UtcNow.AddDays(-7))
+    .ToListAsync();
+
+    if (oldSessions.Count > 0)
+    {
+      _dbContext.Sessions.RemoveRange(oldSessions);
+    }
+
+    var newSession = new Session
+    {
+      UserId = userId,
+      CreatedAt = DateTime.UtcNow,
+      ExpiresdAt = DateTime.UtcNow.AddDays(7)
+    };
+
+    var refreshToken = JWTManagement.GenerateAccessToken(userId, email, _configuration, user.Role, true, newSession.Id);
+
+    await _dbContext.Sessions.AddAsync(newSession);
+    await _dbContext.SaveChangesAsync();
+
+    return refreshToken;  
+  }
 }

@@ -2,7 +2,7 @@ namespace purpuraMain.Dto.InputDto;
 
 public class AddPlayDTO
 {
-  public required string SongId { get; set; }
+  public required Guid SongId { get; set; }
 
 }
 

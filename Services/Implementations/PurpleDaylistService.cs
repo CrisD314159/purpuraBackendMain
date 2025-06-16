@@ -79,14 +79,14 @@ public class PurpleDaylistService(PurpuraDbContext dbContext, IMapper mapper, IL
     .Where(p => p.UserId == userId)
     .OrderByDescending(p => p.PlayedAt)
     .Take(10)
-    .SelectMany(p => p.Song!.Genres!)  // Aplanamos la lista
+    .Select(p => p.Song!.Genre)  // Aplanamos la lista
     .Select(g => g.Id) // Tomamos solo los IDs de los géneros
     .Distinct()
     .ToListAsync();
 
   // Buscar canciones que tengan al menos un género en la lista obtenida
   var recomendations = await _dbContext.Songs
-    .Where(s => s.Genres!.Any(g => recentListenGenres.Contains(g.Id))) // Comparamos con IDs
+    .Where(s => recentListenGenres.Contains(s.GenreId)) // Comparamos con IDs
     .OrderByDescending(s => s.Name)
     .Take(10)
     .ToListAsync();
