@@ -51,7 +51,7 @@ IValidator<CreateAlbumDTO> createAlbumValidator, IValidator<UpdateAlbumDTO> upda
             Disclaimer = createAlbumDTO.Disclaimer,
             ProducerName = createAlbumDTO.ProducerName,
             RecordLabel = createAlbumDTO.RecordLabel,
-            ReleaseDate = createAlbumDTO.ReleaseDate,
+            ReleaseDate = DateTime.SpecifyKind(createAlbumDTO.ReleaseDate, DateTimeKind.Utc),
             WriterName = createAlbumDTO.WriterName
         };
 

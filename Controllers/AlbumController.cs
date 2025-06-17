@@ -1,6 +1,7 @@
 namespace purpuraMain.Controllers;
 
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -25,7 +26,7 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
     /// </summary>
     /// <param name="createAlbumDTO"></param>
     /// <returns></returns>
-    [Authorize(Roles ="ADMIN")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpPost]
     public async Task<IActionResult> CreateAlbum(CreateAlbumDTO createAlbumDTO)
     {
@@ -39,7 +40,7 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
     /// </summary>
     /// <param name="updateAlbumDTO"></param>
     /// <returns></returns>
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpPut]
     public async Task<IActionResult> UpdateAlbum(UpdateAlbumDTO updateAlbumDTO)
     {
@@ -53,7 +54,7 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpDelete("/{id}")]
     public async Task<IActionResult> DeleteAlbum(Guid id)
     {

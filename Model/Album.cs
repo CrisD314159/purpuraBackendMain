@@ -6,7 +6,7 @@ public class Album
   public required string Name { get; set; }
   public string? Description { get; set; } = "";
   public string? Disclaimer { get; set; } = "";
-  public required string PictureUrl { get; set; }
+  public string? PictureUrl { get; set; } = "https://res.cloudinary.com/dw43hgf5p/image/upload/v1735662671/y9fte0emwkkrkgqwlahj.jpg";
   public required Guid ArtistId { get; set; }
   public required Artist Artist { get; set; }
   public DateTime ReleaseDate { get; set; }

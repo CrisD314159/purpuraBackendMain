@@ -107,7 +107,7 @@ IValidator<CreateGenreDTO> createGenreValidator, IValidator<UpdateGenreDTO> upda
         _createGenreValidator.ValidateAndThrow(createGenreDTO);
 
         if (await _dbContext.Genres.AnyAsync(g => g.Name == createGenreDTO.Name))
-            throw new BadHttpRequestException("Genre already exists");
+            throw new BadRequestException("Genre already exists");
 
         var genre = new Genre
         {

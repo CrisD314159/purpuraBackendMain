@@ -193,5 +193,6 @@ public class ArtistService(PurpuraDbContext dbContext, IMapper mapper, ILibraryS
         ?? throw new EntityNotFoundException("Artist not found");
 
         _dbContext.Artists.Remove(artistToRemove);
+        await _dbContext.SaveChangesAsync();
     }
 }

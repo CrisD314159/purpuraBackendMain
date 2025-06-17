@@ -13,14 +13,15 @@ using purpuraMain.Dto.InputDto;
 using purpuraMain.Model;
 using Microsoft.AspNetCore.Identity;
 using purpuraMain.Mapper;
+using purpuraMain.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 // Carga variables de entorno desde un archivo .env.
 DotNetEnv.Env.Load();
 
-/// <summary>
-/// Configuración de los servicios de la aplicación.
-/// </summary>
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+
 
 // Configuración de la base de datos PostgreSQL usando inyección de dependencias.
 builder.Services.AddDbContextPool<PurpuraDbContext>(opt => 
@@ -37,7 +38,7 @@ builder.Services.AddIdentity<User, IdentityRole<string>>(options =>
 .AddEntityFrameworkStores<PurpuraDbContext>()
 .AddDefaultTokenProviders();
 
-builder.Services.AddAutoMapper(typeof(MapperProfile));
+builder.Services.AddAutoMapper(typeof(MapperProfile).Assembly);
 
 //Injección de los servicios de la aplicación
 builder.Services.AddScoped<IAlbumService, AlbumService>();
@@ -50,6 +51,7 @@ builder.Services.AddScoped<IPurpleDaylistService, PurpleDaylistService>();
 builder.Services.AddScoped<ISongService, SongService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<IMediaUploadService, MediaUploadService>();
 
 
 //Inyección de las validaciones de entidades

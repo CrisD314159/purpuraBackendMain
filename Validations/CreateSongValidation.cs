@@ -7,7 +7,11 @@ public class CreateSongValidation : AbstractValidator<CreateSingleSongDTO>
 {
   public CreateSongValidation()
   {
-    RuleFor(song => song.Disclaimer).MinimumLength(5).MaximumLength(100);
-    RuleFor(song => song.Name).MinimumLength(2).MaximumLength(80);
+    RuleFor(album => album.Name).MinimumLength(2).MaximumLength(80);
+    RuleFor(album => album.Disclaimer).MinimumLength(5).MaximumLength(200);
+    RuleFor(song => song.ImageUrl).NotEmpty().NotNull();
+    RuleFor(song => song.Artists).NotEmpty();
+    RuleFor(song => song.AudioUrl).NotEmpty().NotNull();
+    RuleFor(song => song.GenreId).NotEmpty().NotNull();
   }
 }

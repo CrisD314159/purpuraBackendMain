@@ -1,6 +1,7 @@
 namespace purpuraMain.Controllers;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -27,7 +28,7 @@ public class GenreController(IGenreService genreService) : ControllerBase
     /// </summary>
     /// <param name="createArtistDTO"></param>
     /// <returns></returns>
-    [Authorize(Roles ="ADMIN")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpPost]
     public async Task<IActionResult> CreateGenre(CreateGenreDTO createGenreDTO)
     {
@@ -41,7 +42,7 @@ public class GenreController(IGenreService genreService) : ControllerBase
     /// </summary>
     /// <param name="updateGenreDTO"></param>
     /// <returns></returns>
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpPut]
     public async Task<IActionResult> UpdateGenre(UpdateGenreDTO updateGenreDTO)
     {
@@ -55,7 +56,7 @@ public class GenreController(IGenreService genreService) : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpDelete("/{id}")]
     public async Task<IActionResult> DeleteGenre(Guid id)
     {
@@ -81,6 +82,7 @@ public class GenreController(IGenreService genreService) : ControllerBase
     /// Obtiene todos los géneros disponibles en la plataforma.
     /// <returns>Lista de géneros musicales.</returns>
     [HttpGet("getAll")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllGenres()
     {
 

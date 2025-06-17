@@ -6,13 +6,13 @@ namespace purpuraMain.Mapper;
 
 public class MapperProfile : Profile
 {
-  MapperProfile()
+  public MapperProfile()
   {
     CreateMap<Album, GetAlbumDTO>()
     .ForMember(dest => dest.ArtistName, opt => opt.MapFrom(src => src.Artist.Name))
     .ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genre.Name))
     .ForMember(dest => dest.Producer, opt => opt.MapFrom(src => src.ProducerName))
-    .ForMember(dest => dest.Songs, opt => opt.MapFrom(src => src.Songs));
+    .ForMember(dest => dest.Songs, opt => opt.MapFrom(src => src.Songs.OrderBy(s => s.AlbumTrack)));
 
     CreateMap<Song, GetSongDTO>()
     .ForMember(dest => dest.AlbumName, opt => opt.MapFrom(src => src.Album.Name))

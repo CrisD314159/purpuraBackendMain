@@ -19,6 +19,7 @@ public class GetSongDTO
   public bool IsOnLibrary { get; set; } = false;
 
   public string WriterName { get; set; } = "";
+  public string Disclaimer { get; set; } = "";
   public string ProducerName { get; set; } = "";
   public string RecordLabel { get; set; } = "";
 }

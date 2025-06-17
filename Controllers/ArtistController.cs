@@ -1,6 +1,7 @@
 namespace purpuraMain.Controllers;
 
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.Dto.InputDto;
@@ -27,7 +28,7 @@ public class ArtistController(IArtistService artistService) : ControllerBase
     /// </summary>
     /// <param name="createArtistDTO"></param>
     /// <returns></returns>
-    [Authorize(Roles ="ADMIN")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpPost]
     public async Task<IActionResult> CreateArtist(CreateArtistDTO createArtistDTO)
     {
@@ -41,7 +42,7 @@ public class ArtistController(IArtistService artistService) : ControllerBase
     /// </summary>
     /// <param name="updateArtistDTO"></param>
     /// <returns></returns>
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpPut]
     public async Task<IActionResult> UpdateAlbum(UpdateArtistDTO updateArtistDTO)
     {
@@ -55,9 +56,9 @@ public class ArtistController(IArtistService artistService) : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [Authorize(Roles = "ADMIN")]
-    [HttpDelete("/{id}")]
-    public async Task<IActionResult> DeleteAlbum(Guid id)
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteArtist(Guid id)
     {
         await _artistService.DeleteArtist(id);
         return Ok();
@@ -126,18 +127,19 @@ public class ArtistController(IArtistService artistService) : ControllerBase
 
     }
 
-   
+
     /// Obtiene una lista de artistas con paginación.
     /// <param name="offset">Número de elementos a omitir.</param>
     /// <param name="limit">Cantidad de artistas a recuperar.</param>
     /// <returns>Lista de artistas.</returns>
     [HttpGet("getArtists")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetArtists(int offset, int limit)
     {
 
         if (offset < 0 || limit < 1)
         {
-        return BadRequest("Invalid offset or limit");
+            return BadRequest("Invalid offset or limit");
         }
         var artists = await _artistService.GetMostListenArtists(offset, limit);
         return Ok(artists);

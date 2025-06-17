@@ -7,7 +7,7 @@ public class UpdateGenreValidation : AbstractValidator<UpdateGenreDTO>
 {
   public UpdateGenreValidation()
   {
-    RuleFor(genre => genre.Description).MinimumLength(5).MaximumLength(100);
+    RuleFor(genre => genre.Description).MinimumLength(5).MaximumLength(200);
     RuleFor(genre => genre.Name).MinimumLength(2).MaximumLength(80);
     RuleFor(genre => genre.Color).MinimumLength(2).MaximumLength(10);
   }

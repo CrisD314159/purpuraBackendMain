@@ -207,7 +207,8 @@ IValidator<CreateSingleSongDTO> createSongValidator, IValidator<UpdateSingleSong
             Disclaimer = createSingleSongDTO.Disclaimer,
             Genre = genre,
             GenreId = genre.Id,
-            Lyrics = createSingleSongDTO.Lyrics
+            Lyrics = createSingleSongDTO.Lyrics,
+            AlbumTrack = 1
         };
 
         await _dbContext.Songs.AddAsync(song);
@@ -314,9 +315,6 @@ IValidator<CreateSingleSongDTO> createSongValidator, IValidator<UpdateSingleSong
 
         if (artists.Count == 0) throw new EntityNotFoundException("No artists were found");
 
-        var genre = await _dbContext.Genres.FindAsync(addSongToAlbumDTO.GenreId)
-        ?? throw new EntityNotFoundException("Genre not found");
-
         var album = await _dbContext.Albums.FindAsync(addSongToAlbumDTO.AlbumId)
         ?? throw new EntityNotFoundException("Album not found");
 
@@ -326,13 +324,14 @@ IValidator<CreateSingleSongDTO> createSongValidator, IValidator<UpdateSingleSong
             AlbumId = album.Id,
             Album = album,
             AudioUrl = addSongToAlbumDTO.AudioUrl,
-            ImageUrl = addSongToAlbumDTO.ImageUrl,
+            ImageUrl = album.PictureUrl,
             DateAdded = DateTime.UtcNow,
             Artists = artists,
             Disclaimer = addSongToAlbumDTO.Disclaimer,
-            Genre = genre,
-            GenreId = genre.Id,
-            Lyrics = addSongToAlbumDTO.Lyrics
+            Genre = album.Genre,
+            GenreId = album.GenreId,
+            Lyrics = addSongToAlbumDTO.Lyrics,
+            AlbumTrack = addSongToAlbumDTO.AlbumTrack
         };
 
         album.Songs.Add(song);

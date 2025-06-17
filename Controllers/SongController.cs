@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -27,7 +28,7 @@ public class SongController(ISongService ISongService) : ControllerBase
     /// </summary>
     /// <param name="createSingleSongDTO"></param>
     /// <returns></returns>
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpPost]
     public async Task<IActionResult> CreateSong(CreateSingleSongDTO createSingleSongDTO)
     {
@@ -41,8 +42,8 @@ public class SongController(ISongService ISongService) : ControllerBase
     /// </summary>
     /// <param name="addSongToAlbumDTO"></param>
     /// <returns></returns>
-    [Authorize(Roles = "ADMIN")]
-    [HttpPost("/addToAlbum")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpPost("addToAlbum")]
     public async Task<IActionResult> AddSongToAlbum(AddSongToAlbumDTO addSongToAlbumDTO)
     {
         await _songService.AddSongToAlbum(addSongToAlbumDTO);
@@ -55,7 +56,7 @@ public class SongController(ISongService ISongService) : ControllerBase
     /// </summary>
     /// <param name="updateGenreDTO"></param>
     /// <returns></returns>
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpPut]
     public async Task<IActionResult> UpdateSong(UpdateSingleSongDTO updateSingleSongDTO)
     {
@@ -69,7 +70,7 @@ public class SongController(ISongService ISongService) : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpDelete("/{id}")]
     public async Task<IActionResult> DeleteGenre(Guid id)
     {

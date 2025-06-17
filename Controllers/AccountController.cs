@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -16,8 +17,8 @@ namespace purpuraMain.Controllers;
 /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
 /// <param name="configuration">Configuración de la aplicación.</param>
 [ApiController]
-[Route("api/[controller]")]
-public class AuthController(IAuthService authService) : ControllerBase
+[Route("[controller]")]
+public class AccountController(IAuthService authService) : ControllerBase
 {
     private readonly IAuthService _authService = authService;
 
@@ -40,7 +41,7 @@ public class AuthController(IAuthService authService) : ControllerBase
 
     /// Renueva el token de autenticación si el refresh token es válido.
     /// <returns>Nuevo token de acceso y refresh token.</returns>
-    [HttpPut("/refreshToken")]
+    [HttpPut("refreshToken")]
     public async Task<IActionResult> RefreshToken(RefreshTokenDTO refreshTokenDTO)
     {
 
@@ -53,7 +54,6 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// Cierra la sesión del usuario actual, invalidando el token de sesión.
     /// <returns>Mensaje confirmando el cierre de sesión.</returns>
     [HttpDelete("logout")]
-  
     public async Task<IActionResult> Logout(RefreshTokenDTO refreshTokenDTO)
     {
         await _authService.LogoutRequest(refreshTokenDTO);
@@ -63,9 +63,9 @@ public class AuthController(IAuthService authService) : ControllerBase
 
     /// Verifica si el token del usuario es válido.
     /// <returns>Un mensaje confirmando si el token es válido o no.</returns>
+    [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     [HttpPut("checkToken")]
-    [Authorize]
-    public ActionResult<object> CheckToken()
+    public IActionResult CheckToken()
     {
 
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
