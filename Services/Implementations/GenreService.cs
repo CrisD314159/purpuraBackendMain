@@ -38,7 +38,7 @@ IValidator<CreateGenreDTO> createGenreValidator, IValidator<UpdateGenreDTO> upda
             .GroupBy(ph => ph.SongId)
             .OrderByDescending(g => g.Count())
             .Select(g => g.Key)
-            .Take(10)
+            .Take(15)
             .ToListAsync();
 
         //Traer los datos completos de esas canciones

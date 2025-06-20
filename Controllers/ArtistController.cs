@@ -1,6 +1,7 @@
 namespace purpuraMain.Controllers;
 
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -71,8 +72,14 @@ public class ArtistController(IArtistService artistService) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetArtistProfile(Guid id)
     {
-        var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if(string.IsNullOrEmpty(userId)) userId = "0";
+
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
+        {
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
+        }
         var artist = await _artistService.GetArtistById(userId, id);
         return Ok(artist);
 
@@ -120,8 +127,14 @@ public class ArtistController(IArtistService artistService) : ControllerBase
     public async Task<IActionResult> GetArtistSongs(Guid id)
     {
 
-        var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if(string.IsNullOrEmpty(userId)) userId = "0";
+
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
+        {
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
+        }
         var artist = await _artistService.GetArtistById(userId, id);
         return Ok(artist);
 

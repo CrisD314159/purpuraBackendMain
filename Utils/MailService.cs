@@ -37,7 +37,8 @@ public static class MailService
     public static async Task<bool> SendPasswordRecoveryCodeEmail(string email, string verificationCode, string name)
     { 
         var messageMail = new MimeMessage();
-        var linkCode = $"https://purpura-music.vercel.app/changePassword?token={verificationCode}";
+        var encodedCode = Uri.EscapeDataString(verificationCode);
+        var linkCode = $"https://purpura-music.vercel.app/changePassword?token={encodedCode}";
         var html = File.ReadAllText("./templates/paswordChangeCodeTemplate.html");
         html = html.Replace("{{Name}}", name);
         html = html.Replace("{{VerificationCode}}", linkCode);

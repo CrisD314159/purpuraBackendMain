@@ -1,6 +1,7 @@
 namespace purpuraMain.Controllers;
 
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -69,8 +70,14 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetAlbumById(Guid id)
     {
-        var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if(string.IsNullOrEmpty(userId)) userId = "0";
+
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
+        {
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
+        }
         var album = await _albumService.GetAlbumById(userId, id);
         return Ok(album);
     }
@@ -85,7 +92,7 @@ public class AlbumController(IAlbumService albumService) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetAlbumByInput(string input, int offset, int limit)
     {
- 
+
         var albums = await _albumService.GetAlbumByInput(input, offset, limit);
         return Ok(albums);
    

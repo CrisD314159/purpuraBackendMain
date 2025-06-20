@@ -57,6 +57,8 @@ public class LibraryService(PurpuraDbContext dbContext, IMapper mapper) : ILibra
         .ProjectTo<GetSongDTO>(_mapper.ConfigurationProvider)
         .ToListAsync();
 
+        await CheckSongsOnLibraryWithUser(userSongs, userId);
+        
         userLibrary.Songs = userSongs;
 
         return userLibrary;

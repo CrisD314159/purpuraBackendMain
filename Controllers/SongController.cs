@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -83,7 +84,7 @@ public class SongController(ISongService ISongService) : ControllerBase
     /// <param name="id">Identificador de la canción.</param>
     /// <returns>Devuelve los detalles de la canción si se encuentra.</returns>
     [HttpGet("getSong/{id}")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> GetSong(Guid id)
     {
 
@@ -99,7 +100,7 @@ public class SongController(ISongService ISongService) : ControllerBase
     /// <param name="limit">Número máximo de registros a devolver.</param>
     /// <returns>Lista de canciones coincidentes.</returns>
     [HttpGet("search/songs")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> GetSongByInput(string input, int offset, int limit)
     {
 
@@ -127,7 +128,7 @@ public class SongController(ISongService ISongService) : ControllerBase
         {
             return BadRequest("Invalid offset or limit");
         }
-
+        
         var songs = await _songService.GetAllSongs(offset, limit);
         return Ok(songs);
     }
@@ -142,8 +143,14 @@ public class SongController(ISongService ISongService) : ControllerBase
     public async Task<IActionResult> GetTopSongs()
     {
 
-        var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if(string.IsNullOrEmpty(userId)) userId = "0";
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
+        {
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
+        }
+
         var songs = await _songService.GetTopSongs(userId);
         return Ok(songs);
         
@@ -155,13 +162,18 @@ public class SongController(ISongService ISongService) : ControllerBase
     /// <param name="addPlayDTO"></param>
     /// <returns></returns>
     [HttpPost("addPlay")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<IActionResult> AddPlay(AddPlayDTO addPlayDTO)
     {
 
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
+        {
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
+        }
         var songs = await _songService.AddSongPlay(userId, addPlayDTO.SongId);
         return Ok(songs);
-
     }
 }

@@ -135,7 +135,7 @@ public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> 
 
         if (!result.Succeeded)
         {
-            throw new InternalServerException("Cannot update user");
+            throw new InternalServerException(string.Join(";", result.Errors.Select(e => e.Description)));
         }
 
    
@@ -258,7 +258,7 @@ public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> 
 
         if (userToVerify.State == UserState.INACTIVE) throw new EntityNotFoundException("User not found");
 
-        if (userToVerify.EmailConfirmed || userToVerify.State == UserState.UNVERIFIED)
+        if (!userToVerify.EmailConfirmed || userToVerify.State == UserState.UNVERIFIED)
         {
             throw new UnauthorizedException("User not verified, check your email for code verification");
         }

@@ -50,13 +50,13 @@ public class ArtistService(PurpuraDbContext dbContext, IMapper mapper, ILibraryS
     public async Task<List<GetArtistDTO>> GetArtistByName(string name, int offset, int limit)
     {
        
-        var artists = await _dbContext.Artists.Where(a => a.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+        var artists = await _dbContext.Artists.Where(a => EF.Functions.ILike(a.Name, $"%{name}%"))
             .Select(a => new GetArtistDTO
             {
                 Id = a.Id,
                 Name = a.Name,
                 Description = a.Description,
-                PictureUrl = a.PictureUrl
+                ImageUrl = a.PictureUrl
             }).OrderByDescending(a => a.Name)
             .Skip(offset)
             .Take(limit)

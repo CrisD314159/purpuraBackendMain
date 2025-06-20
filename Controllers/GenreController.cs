@@ -1,6 +1,7 @@
 namespace purpuraMain.Controllers;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -72,16 +73,22 @@ public class GenreController(IGenreService genreService) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetTopSongs(Guid id)
     {
-        var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if(string.IsNullOrEmpty(userId)) userId = "0";
-            var topSongs = await _genreService.GetTopSongsByGenre(id, userId);
-            return Ok(topSongs);
+  
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
+        {
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
+        }
+        var topSongs = await _genreService.GetTopSongsByGenre(id, userId);
+        return Ok(topSongs);
 
     }
 
     /// Obtiene todos los géneros disponibles en la plataforma.
     /// <returns>Lista de géneros musicales.</returns>
-    [HttpGet("getAll")]
+    [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetAllGenres()
     {

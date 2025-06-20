@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace purpuraMain.Model;
 
@@ -17,7 +18,9 @@ public class Song
   public ICollection<Playlist> Playlists { get; set; } = [];
   public ICollection<Artist> Artists { get; set; } = [];
   public required Guid GenreId { get; set; }
-  public required Genre Genre { get; set; }
+
+  [JsonIgnore]
+  public  Genre? Genre { get; set; }
   public ICollection<Library> Libraries { get; set; } = [];
   public int AlbumTrack { get; set; }
 

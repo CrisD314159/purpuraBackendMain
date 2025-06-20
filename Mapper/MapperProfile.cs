@@ -17,7 +17,8 @@ public class MapperProfile : Profile
     CreateMap<Song, GetSongDTO>()
     .ForMember(dest => dest.AlbumName, opt => opt.MapFrom(src => src.Album.Name))
     .ForMember(dest => dest.Artists, opt => opt.MapFrom(src => src.Artists))
-    .ForMember(dest => dest.Genre, opt => opt.MapFrom(src => src.Genre));
+    .ForMember(dest => dest.Disclaimer, opt => opt.MapFrom(src => src.Disclaimer))
+    .ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genre!.Name));
 
     CreateMap<Genre, GetGenreDTO>()
     .ForMember(dest => dest.Songs, opt => opt.Ignore());
@@ -26,6 +27,7 @@ public class MapperProfile : Profile
 
     CreateMap<Artist, GetArtistDTO>()
     .ForMember(dest => dest.Albums, opt => opt.MapFrom(src => src.Albums))
+    .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.PictureUrl))
     .ForMember(dest => dest.TopSongs, opt => opt.Ignore());
 
     CreateMap<Library, GetLibraryDTO>()
@@ -36,6 +38,9 @@ public class MapperProfile : Profile
     CreateMap<Playlist, GetLibraryPlaylistDTO>()
     .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
 
+    CreateMap<Album, GetLibraryAlbumDTO>()
+    .ForMember(dest => dest.ArtistName, opt => opt.MapFrom(src => src.Artist.Name));
+
     CreateMap<Playlist, GetPlayListDTO>()
     .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
 
@@ -43,7 +48,8 @@ public class MapperProfile : Profile
     .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
 
     CreateMap<User, GetUserDto>()
-    .ForMember(dest => dest.IsVerified, opt => opt.MapFrom(src => src.State == UserState.ACTIVE));
+    .ForMember(dest => dest.IsVerified, opt => opt.MapFrom(src => src.State == UserState.ACTIVE))
+    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.UserName));
 
 
   }

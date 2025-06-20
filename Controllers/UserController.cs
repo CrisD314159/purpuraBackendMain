@@ -8,6 +8,7 @@ using purpuraMain.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using purpuraMain.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace purpuraMain.Controllers;
 
@@ -22,8 +23,8 @@ public class UserController(IUserService userService) : ControllerBase
 
 
   /// Obtiene la información del usuario autenticado.
-  [HttpGet("getProfile")]
-    [Authorize]
+    [HttpGet]
+    [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> GetUser()
     {
 
@@ -48,7 +49,7 @@ public class UserController(IUserService userService) : ControllerBase
 
     /// Actualiza la información del usuario autenticado.
     [HttpPut]
-    [Authorize]
+    [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> UpdateUser(UpdateUserDto user)
     {
 
@@ -62,7 +63,7 @@ public class UserController(IUserService userService) : ControllerBase
 
     /// Elimina la cuenta del usuario autenticado.
     [HttpDelete]
-    [Authorize]
+    [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> DeleteUser()
     {
 

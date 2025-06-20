@@ -60,9 +60,10 @@ IValidator<CreateSingleSongDTO> createSongValidator, IValidator<UpdateSingleSong
     public async Task<List<GetSongDTO>> GetSongByInput(string userId, string input, int offset, int limit)
     {
 
-        var songs = await _dbContext.Songs.Where(s => s.Name.Contains(input, StringComparison.OrdinalIgnoreCase)
-        || s.Artists.Any(a => a.Name.Contains(input, StringComparison.OrdinalIgnoreCase))
-        || s.Album.Name.Contains(input, StringComparison.OrdinalIgnoreCase))
+        var songs = await _dbContext.Songs.Where(s =>
+        EF.Functions.ILike(s.Name, $"%{input}%")
+        || s.Artists.Any(a => EF.Functions.ILike(a.Name, $"%{input}%"))
+        || EF.Functions.ILike(s.Album.Name, $"%{input}%"))
         .ProjectTo<GetSongDTO>(_mapper.ConfigurationProvider)
         .Skip(offset).Take(limit).ToListAsync();
 
@@ -97,37 +98,41 @@ IValidator<CreateSingleSongDTO> createSongValidator, IValidator<UpdateSingleSong
     public async Task<List<GetSongDTO>> GetTopSongs(string userId)
     {
 
-        var songsPlays = await _dbContext.Songs.Select(s => new
+        var songsPlays = await _dbContext.Songs
+        .Include(s => s.Album)
+        .Include(s => s.Artists)
+        .Select(s => new
         {
-
             Song = s,
             Plays = _dbContext.PlayHistories.Count(ph => ph.SongId == s.Id)
         })
+   
         .OrderByDescending(x => x.Plays)
         .Take(10)
         .ToListAsync();
-
         var songs = songsPlays.Select(s => new GetSongDTO
-            {
-                Id = s.Song.Id,
-                Name = s.Song.Name,
-                Artists = [.. s.Song.Artists.Select(a => new GetPlaylistArtistDTO
+        {
+            Id = s.Song.Id,
+            Name = s.Song.Name,
+            Artists = [.. s.Song.Artists.Select(a => new GetPlaylistArtistDTO
                 {
                     Id = a.Id,
                     Name = a.Name,
                     Description = a.Description ?? ""
                 })],
-                AlbumId = s.Song.AlbumId,
-                AlbumName = s.Song.Album.Name,
-                ImageUrl = s.Song.ImageUrl ?? "",
-                AudioUrl = s.Song.AudioUrl ?? "",
-                Genre = s.Song.Genre,
-                IsOnLibrary = false,
-                Lyrics = s.Song.Lyrics ?? "",
-                Plays = s.Plays
-            }).OrderByDescending(s => s.Plays).Take(10).ToList();
+            AlbumId = s.Song.AlbumId,
+            AlbumName = s.Song.Album != null ? s.Song.Album.Name : "",
+            ImageUrl = s.Song.ImageUrl ?? "",
+            AudioUrl = s.Song.AudioUrl ?? "",
+            GenreId = s.Song.GenreId,
+            IsOnLibrary = false,
+            Lyrics = s.Song.Lyrics ?? "",
+            Plays = s.Plays,
+            Disclaimer = s.Song.Disclaimer 
+                
+            }).ToList();
 
-        await _libraryService.CheckSongsOnLibraryWithUser(songs, userId);
+       if(userId != "0") await _libraryService.CheckSongsOnLibraryWithUser(songs, userId);
 
         return songs;
      

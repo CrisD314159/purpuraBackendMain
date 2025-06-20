@@ -14,6 +14,7 @@ using purpuraMain.Model;
 using Microsoft.AspNetCore.Identity;
 using purpuraMain.Mapper;
 using purpuraMain.Utils;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 // Carga variables de entorno desde un archivo .env.
@@ -82,6 +83,7 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<GlobalExceptionFilter>();
 
 });
+
 
 
 

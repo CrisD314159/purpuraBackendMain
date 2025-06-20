@@ -13,13 +13,14 @@ public class GetSongDTO
   public required string AudioUrl { get; set; }
   public DateTime? ReleaseDate { get; set; }
 
-  public required Genre Genre { get; set; }
+  public required Guid GenreId { get; set; }
+  public string? GenreName { get; set; }
   public string Lyrics { get; set; } = "";
   public int Plays {get; set;}
   public bool IsOnLibrary { get; set; } = false;
 
   public string WriterName { get; set; } = "";
-  public string Disclaimer { get; set; } = "";
+  public string? Disclaimer { get; set; } = "";
   public string ProducerName { get; set; } = "";
   public string RecordLabel { get; set; } = "";
 }

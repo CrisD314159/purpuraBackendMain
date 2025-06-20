@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -16,7 +17,7 @@ namespace purpuraMain.Controllers;
 /// <param name="dbcontext">Contexto de la base de datos.</param>
 [ApiController]
 [Route("[controller]")]
-[Authorize]
+[Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
 public class LibraryController(ILibraryService libraryService) : ControllerBase
 {
     private readonly ILibraryService _libraryService = libraryService;
@@ -46,7 +47,8 @@ public class LibraryController(ILibraryService libraryService) : ControllerBase
             return BadRequest("Invalid offset or limit");
         }
 
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? throw new UnauthorizedException("You're not authorized to perform this action");
         var songs = await _libraryService.GetUserSongs(userId, offset, limit);
         return Ok(songs);
 

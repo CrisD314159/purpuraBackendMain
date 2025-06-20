@@ -12,7 +12,7 @@ public class MediaUploadController(IMediaUploadService mediaUploadService) : Con
 {
     private readonly IMediaUploadService _mediaUploadService = mediaUploadService;
 
-  [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+  [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
   [HttpPost("image")]
     public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
     {

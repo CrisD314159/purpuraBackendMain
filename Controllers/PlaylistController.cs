@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -16,15 +17,15 @@ namespace purpuraMain.Controllers;
 /// Permite crear, modificar, eliminar y gestionar canciones en playlists.
 [ApiController]
 [Route("[controller]")]
-[Authorize]
+[Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
 public class PlaylistController(IPlaylistService playlistService) : ControllerBase
 {
     private readonly IPlaylistService _playlistService = playlistService;
 
-  /// Obtiene una playlist por su ID.
-  /// <param name="id">ID de la playlist.</param>
-  /// <returns>Datos de la playlist.</returns>
-  [HttpGet("{id}")]
+    /// Obtiene una playlist por su ID.
+    /// <param name="id">ID de la playlist.</param>
+    /// <returns>Datos de la playlist.</returns>
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetPlaylist(Guid id)
     {
 
@@ -32,7 +33,7 @@ public class PlaylistController(IPlaylistService playlistService) : ControllerBa
         ?? throw new UnauthorizedException(" You're not authorized to perform this action");
         var playList = await _playlistService.GetPlaylist(userId, id);
         return Ok(playList);
-        
+
     }
 
     /// Busca playlists por nombre con paginación.
@@ -59,7 +60,7 @@ public class PlaylistController(IPlaylistService playlistService) : ControllerBa
         ?? throw new UnauthorizedException(" You're not authorized to perform this action");
         await _playlistService.AddSong(userId, addSongDTO);
         return Ok(new { message = "Song added to playlist", success = true });
- 
+
     }
 
     /// Elimina una canción de una playlist.

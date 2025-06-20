@@ -19,6 +19,7 @@ public class GlobalExceptionFilter(ILogger<GlobalExceptionFilter> logger) : IExc
       {typeof(NullFieldException), StatusCodes.Status400BadRequest},
       {typeof(SessionExpiredException), StatusCodes.Status401Unauthorized},
       {typeof(UnauthorizedException), StatusCodes.Status401Unauthorized},
+      {typeof(UnauthorizedAccessException), StatusCodes.Status401Unauthorized},
       {typeof(InternalServerException), StatusCodes.Status500InternalServerError},
       {typeof(ValidationException), StatusCodes.Status400BadRequest}
     };
