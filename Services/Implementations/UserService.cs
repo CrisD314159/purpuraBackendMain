@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Identity;
 using Sprache;
 
 public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> createuserValidator, IValidator<UpdateUserDto> updateUserValidator,
- IMapper mapper, UserManager<User> userManager, IValidator<PasswordChangeDTO> passwordChangeValidator
+ IMapper mapper, UserManager<User> userManager, IValidator<PasswordChangeDTO> passwordChangeValidator, IMailService mailService
 ) : IUserService
 {
 
@@ -29,6 +29,8 @@ public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> 
     private readonly IValidator<PasswordChangeDTO> _passwordChangeValidator = passwordChangeValidator;
     private readonly IMapper _mapper = mapper;
     private readonly UserManager<User> _userManager = userManager;
+
+    private readonly IMailService _mailService = mailService;
     /// <summary>
     /// Obtiene un usuario por su ID.
     /// </summary>
@@ -106,7 +108,7 @@ public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> 
 
             await transaction.CommitAsync();
 
-            await MailService.SendVerificationEmail(newUser.Email, code.ToString(), newUser.UserName);
+            await _mailService.SendVerificationEmail(newUser.Email, code.ToString(), newUser.UserName);
         }
         catch
         {
@@ -186,7 +188,7 @@ public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> 
             throw new InternalServerException("An error occurred while updating user's password");
         }
 
-        await MailService.SendPasswordChangeMail(passwordDTO.Email, user.UserName ?? "User");
+        await _mailService.SendPasswordChangeMail(passwordDTO.Email, user.UserName ?? "User");
 
      
     }
@@ -217,7 +219,7 @@ public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> 
         {
             throw new InternalServerException("An error occurred while updating user's password");
         }
-        await MailService.SendVerifiedAccountMail(verifyAccountDTO.Email, user.UserName ?? "User");
+        await _mailService.SendVerifiedAccountMail(verifyAccountDTO.Email, user.UserName ?? "User");
 
         
     }
@@ -240,7 +242,7 @@ public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> 
 
         var recoveryCode = await _userManager.GeneratePasswordResetTokenAsync(user);
             
-        await MailService.SendPasswordRecoveryCodeEmail(email, recoveryCode, user.UserName ?? "User");
+        await _mailService.SendPasswordRecoveryCodeEmail(email, recoveryCode, user.UserName ?? "User");
      
     }
 

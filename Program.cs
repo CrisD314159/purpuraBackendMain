@@ -53,6 +53,7 @@ builder.Services.AddScoped<ISongService, SongService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IMediaUploadService, MediaUploadService>();
+builder.Services.AddScoped<IMailService, MailService>();
 
 
 //Inyección de las validaciones de entidades
