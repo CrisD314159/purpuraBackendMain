@@ -17,6 +17,8 @@ public class User : IdentityUser
   [Url]
   public required string ProfilePicture { get; set; }
   public required string VerificationCode { get; set; }
-    public required UserRole Role { get; set; }
+  public required UserRole Role { get; set; }
+
+  public required bool IsThirdPartyUser { get; set; }
 
 }

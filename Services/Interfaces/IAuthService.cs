@@ -13,4 +13,6 @@ public interface IAuthService
   Task LogoutRequest(RefreshTokenDTO refreshTokenDTO);
 
   Task<string> GenerateSession(string userId, string email);
+
+  Task<LoginResponseDTO> SignInUsingGoogle(string email, string name);
 }

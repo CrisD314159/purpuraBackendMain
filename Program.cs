@@ -14,6 +14,7 @@ using purpuraMain.Model;
 using Microsoft.AspNetCore.Identity;
 using purpuraMain.Mapper;
 using purpuraMain.Utils;
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,6 +55,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IMediaUploadService, MediaUploadService>();
 builder.Services.AddScoped<IMailService, MailService>();
+builder.Services.AddScoped<IThirdPartyUserService, ThirdPartyUserService>();
 
 
 //Inyección de las validaciones de entidades
@@ -85,11 +87,31 @@ builder.Services.AddControllers(options =>
 
 });
 
+// CONFIGURACIÓN ESPECÍFICA PARA GOOGLE CLOUD RUN
+// Configurar ForwardedHeaders para Cloud Run
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+    
+    // Cloud Run usa proxies de Google, por seguridad podrías agregar rangos conocidos
+    // pero para Cloud Run generalmente es seguro dejarlo así
+    options.RequireHeaderSymmetry = false;
+});
 
 
 
 // Configuración de autenticación JWT.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddCookie()
+.AddGoogle(googleOptions =>
+{
+    googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
+    googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
+    googleOptions.CallbackPath = "/signin-google";
+    
+})
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -114,6 +136,8 @@ var app = builder.Build();
 /// </summary>
 
 
+
+app.UseForwardedHeaders();
 
 // Fuerza el uso de HTTPS.
 app.UseHttpsRedirection();

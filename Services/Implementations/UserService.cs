@@ -72,7 +72,8 @@ public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> 
             CreatedAt = DateTime.UtcNow,
             ProfilePicture = $"https://api.dicebear.com/9.x/glass/svg?seed={userDTO.Name.Trim()}",
             VerificationCode = code.ToString(),
-            Role = UserRole.USER
+            Role = UserRole.USER,
+            IsThirdPartyUser = false
         };
 
         var result = await _userManager.CreateAsync(newUser, userDTO.Password);
@@ -237,6 +238,8 @@ public class UserService (PurpuraDbContext dbContext, IValidator<CreateUserDTO> 
    
         var user = await _userManager.FindByEmailAsync(email)
         ?? throw new EntityNotFoundException("User not found");
+
+        if (user.IsThirdPartyUser) throw new BadRequestException("Use your Google account to log in");
 
         if (user.State == UserState.INACTIVE) throw new EntityNotFoundException("User not found");
 

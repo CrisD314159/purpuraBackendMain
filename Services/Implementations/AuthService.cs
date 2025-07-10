@@ -13,13 +13,14 @@ using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
 public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInManager, UserManager<User> userManager
-, IConfiguration configuration
+, IConfiguration configuration, IThirdPartyUserService thirdPartyUserService
 ) : IAuthService
 {
 
   private readonly PurpuraDbContext _dbContext = dbContext;
   private readonly SignInManager<User> _signInManager = signInManager;
   private readonly UserManager<User> _userManager = userManager;
+  private readonly IThirdPartyUserService _thirdPartyUserService = thirdPartyUserService;
 
   private readonly IConfiguration _configuration = configuration;
   /// <summary>
@@ -36,6 +37,8 @@ public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInM
     ?? throw new EntityNotFoundException("Invalid email or password");
 
     if (user.State == UserState.UNVERIFIED) throw new NotVerifiedException("Invalid email or password");
+
+    if (user.IsThirdPartyUser) throw new BadRequestException("Use your Google account to log in");
 
     var result = await _signInManager.CheckPasswordSignInAsync(user, password, false);
     if (!result.Succeeded)
@@ -68,7 +71,7 @@ public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInM
   /// <param name="sessionId">ID de la sesión.</param>
   /// <param name="email">Correo electrónico del usuario.</param>
   /// <param name="_dbContext">Contexto de la base de datos.</param>
-  public async Task<LoginResponseDTO> RefreshTokenRequest (RefreshTokenDTO refreshTokenDTO)
+  public async Task<LoginResponseDTO> RefreshTokenRequest(RefreshTokenDTO refreshTokenDTO)
   {
 
     var refreshTokenClaims = JWTManagement.ExtractRefreshTokenInfo(refreshTokenDTO.RefreshToken, _configuration, out SecurityToken securityToken);
@@ -90,32 +93,33 @@ public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInM
     .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Session not found");
     if (session.ExpiresdAt < DateTime.UtcNow)
     {
-        _dbContext.Sessions.Remove(session);
-        await _dbContext.SaveChangesAsync();
-        throw new SessionExpiredException("Session expired");
+      _dbContext.Sessions.Remove(session);
+      await _dbContext.SaveChangesAsync();
+      throw new SessionExpiredException("Session expired");
     }
 
     var userRole = Enum.Parse<UserRole>(role);
 
     var token = JWTManagement.GenerateAccessToken(session.UserId, email, _configuration, userRole, false, null);
 
-     // Renueva la expiración de la sesión si faltan menos de 2 días
+    // Renueva la expiración de la sesión si faltan menos de 2 días
     if (DateTime.UtcNow >= session.ExpiresdAt.AddDays(-2))
     {
-        session.ExpiresdAt = DateTime.UtcNow.AddDays(7);
-        await _dbContext.SaveChangesAsync();
-        var newSessionToken = JWTManagement.GenerateAccessToken(session.UserId, email, _configuration, userRole, false, sessionId);  
+      session.ExpiresdAt = DateTime.UtcNow.AddDays(7);
+      await _dbContext.SaveChangesAsync();
+      var newSessionToken = JWTManagement.GenerateAccessToken(session.UserId, email, _configuration, userRole, false, sessionId);
 
-        return new LoginResponseDTO
-        {
-            RefreshToken = newSessionToken,
-            Token = token
-        };
-    }
-      return new LoginResponseDTO{
+      return new LoginResponseDTO
+      {
+        RefreshToken = newSessionToken,
         Token = token
       };
-   
+    }
+    return new LoginResponseDTO
+    {
+      Token = token
+    };
+
 
   }
 
@@ -126,7 +130,7 @@ public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInM
   /// <param name="userId">ID del usuario.</param>
   /// <param name="sessionId">ID de la sesión.</param>
   /// <param name="_dbContext">Contexto de la base de datos.</param>
-  public async Task LogoutRequest (RefreshTokenDTO refreshTokenDTO)
+  public async Task LogoutRequest(RefreshTokenDTO refreshTokenDTO)
   {
 
     var refreshTokenClaims = JWTManagement.ExtractRefreshTokenInfo(refreshTokenDTO.RefreshToken, _configuration, out SecurityToken securityToken);
@@ -166,6 +170,33 @@ public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInM
     await _dbContext.Sessions.AddAsync(newSession);
     await _dbContext.SaveChangesAsync();
 
-    return refreshToken;  
+    return refreshToken;
+  }
+
+  public async Task<LoginResponseDTO> SignInUsingGoogle(string email, string name)
+  {
+    var user = await _userManager.FindByEmailAsync(email);
+
+    if (user == null)
+    {
+      var newUser = await _thirdPartyUserService.CreateThirdPartyUser(email, name);
+      return await GenerateThirdPartyTokenAndSession(newUser.Id, newUser.Email!, newUser.Role);
+    }
+
+    return await GenerateThirdPartyTokenAndSession(user.Id, user.Email!, user.Role);
+  }
+  
+  private async Task<LoginResponseDTO> GenerateThirdPartyTokenAndSession(string id, string email, UserRole userRole)
+  {
+    if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(email)) throw new BadRequestException("id or email not provided");
+
+    var token = JWTManagement.GenerateAccessToken(id, email, _configuration, userRole, false, null);
+    var refreshToken = await GenerateSession(id, email);
+
+    return new LoginResponseDTO()
+    {
+      Token = token,
+      RefreshToken = refreshToken
+    };
   }
 }
