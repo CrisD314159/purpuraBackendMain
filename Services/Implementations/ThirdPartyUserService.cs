@@ -9,6 +9,15 @@ public class ThirdPartyUserService (UserManager<User> userManager) : IThirdParty
 {
 
   private readonly UserManager<User> _userManager = userManager;
+
+  /// <summary>
+  /// Creates a new user from third party auth services like Google or Facebook
+  /// </summary>
+  /// <param name="email"></param>
+  /// <param name="name"></param>
+  /// <returns></returns>
+  /// <exception cref="BadRequestException"></exception>
+  /// <exception cref="InternalServerException"></exception>
   public async Task<User> CreateThirdPartyUser(string email, string name)
   {
     if (await _userManager.FindByEmailAsync(email) != null)

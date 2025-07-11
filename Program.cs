@@ -87,16 +87,14 @@ builder.Services.AddControllers(options =>
 
 });
 
-// CONFIGURACIÓN ESPECÍFICA PARA GOOGLE CLOUD RUN
-// Configurar ForwardedHeaders para Cloud Run
+
+// Configurar ForwardedHeaders para proxies como GClod run o koyeb
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
     
-    // Cloud Run usa proxies de Google, por seguridad podrías agregar rangos conocidos
-    // pero para Cloud Run generalmente es seguro dejarlo así
     options.RequireHeaderSymmetry = false;
 });
 

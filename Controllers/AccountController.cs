@@ -79,7 +79,12 @@ public class AccountController(IAuthService authService, SignInManager<User> sig
 
     }
     
-
+    /// <summary>
+    /// This is the endpoint where the client shoul call.
+    /// This mehod triggers or redirects the user to google auth service
+    /// </summary>
+    /// <param name="returnUrl"></param>
+    /// <returns></returns>
     [HttpGet("api/login/google")]
     public IActionResult GoogleSignIn([FromQuery] string returnUrl="/")
     {
@@ -89,6 +94,13 @@ public class AccountController(IAuthService authService, SignInManager<User> sig
         return Challenge(properties, "Google");
     }
 
+    /// <summary>
+    /// After a success login, google redirects to this method
+    /// Here we extract the user data to return a JWT for user access
+    /// This method calls SignInUsingGoogle who handles the jwt creation
+    /// </summary>
+    /// <param name="returnUrl"></param>
+    /// <returns></returns>
     [HttpGet("api/login/google/callback")]
     public async Task<IActionResult> ExternalLoginCallback(string returnUrl = "/")
     {

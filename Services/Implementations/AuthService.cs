@@ -173,6 +173,13 @@ public class AuthService(PurpuraDbContext dbContext, SignInManager<User> signInM
     return refreshToken;
   }
 
+  /// <summary>
+  /// Logs in a user using google Oauth provider
+  /// If the user is already on the database, jus returns JWT for access and session 
+  /// </summary>
+  /// <param name="email"></param>
+  /// <param name="name"></param>
+  /// <returns></returns>
   public async Task<LoginResponseDTO> SignInUsingGoogle(string email, string name)
   {
     var user = await _userManager.FindByEmailAsync(email);
