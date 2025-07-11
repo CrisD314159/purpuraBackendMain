@@ -17,18 +17,18 @@ namespace purpuraMain.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("AlbumLibrary", b =>
                 {
-                    b.Property<string>("AlbumsId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("AlbumsId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("LibrariesId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("LibrariesId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("AlbumsId", "LibrariesId");
 
@@ -39,11 +39,11 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("ArtistSong", b =>
                 {
-                    b.Property<string>("ArtistsId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("ArtistsId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("SongsId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("SongsId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("ArtistsId", "SongsId");
 
@@ -52,28 +52,13 @@ namespace purpuraMain.Migrations
                     b.ToTable("ArtistSong");
                 });
 
-            modelBuilder.Entity("GenreSong", b =>
-                {
-                    b.Property<string>("GenresId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SongsId")
-                        .HasColumnType("text");
-
-                    b.HasKey("GenresId", "SongsId");
-
-                    b.HasIndex("SongsId");
-
-                    b.ToTable("GenreSong");
-                });
-
             modelBuilder.Entity("LibraryPlaylist", b =>
                 {
-                    b.Property<string>("LibrariesId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("LibrariesId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("PlaylistsId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("PlaylistsId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("LibrariesId", "PlaylistsId");
 
@@ -84,11 +69,11 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("LibrarySong", b =>
                 {
-                    b.Property<string>("LibrariesId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("LibrariesId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("SongsId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("SongsId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("LibrariesId", "SongsId");
 
@@ -97,41 +82,151 @@ namespace purpuraMain.Migrations
                     b.ToTable("LibrarySong");
                 });
 
-            modelBuilder.Entity("PlaylistSong", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
-                    b.Property<string>("PlaylistsId")
+                    b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("SongsId")
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
                         .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("PlaylistSong", b =>
+                {
+                    b.Property<Guid>("PlaylistsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SongsId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("PlaylistsId", "SongsId");
 
                     b.HasIndex("SongsId");
 
                     b.ToTable("PlaylistSong");
-                });
-
-            modelBuilder.Entity("purpuraMain.Model.Admin", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Admins");
                 });
 
             modelBuilder.Entity("purpuraMain.Model.AdminSessions", b =>
@@ -157,29 +252,33 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("purpuraMain.Model.Album", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<int>("AlbumType")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ArtistId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("ArtistId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<string>("GenreId")
-                        .IsRequired()
+                    b.Property<string>("Disclaimer")
                         .HasColumnType("text");
+
+                    b.Property<Guid>("GenreId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("PictureUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ProducerName")
@@ -205,10 +304,12 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("purpuraMain.Model.Artist", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -216,6 +317,7 @@ namespace purpuraMain.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("PictureUrl")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -223,29 +325,14 @@ namespace purpuraMain.Migrations
                     b.ToTable("Artists");
                 });
 
-            modelBuilder.Entity("purpuraMain.Model.Country", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Countries");
-                });
-
             modelBuilder.Entity("purpuraMain.Model.Genre", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Color")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Description")
@@ -265,10 +352,12 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("purpuraMain.Model.Library", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -289,8 +378,8 @@ namespace purpuraMain.Migrations
                     b.Property<DateTime>("PlayedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("SongId")
-                        .HasColumnType("text");
+                    b.Property<Guid?>("SongId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UserId")
                         .HasColumnType("text");
@@ -306,13 +395,15 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("purpuraMain.Model.Playlist", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("Editable")
@@ -333,6 +424,7 @@ namespace purpuraMain.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -364,21 +456,30 @@ namespace purpuraMain.Migrations
 
             modelBuilder.Entity("purpuraMain.Model.Song", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("AlbumId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("AlbumId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AlbumTrack")
+                        .HasColumnType("integer");
 
                     b.Property<string>("AudioUrl")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<double>("Duration")
-                        .HasColumnType("double precision");
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Disclaimer")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("GenreId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ImageUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Lyrics")
@@ -392,12 +493,21 @@ namespace purpuraMain.Migrations
 
                     b.HasIndex("AlbumId");
 
+                    b.HasIndex("GenreId");
+
                     b.ToTable("Songs");
                 });
 
             modelBuilder.Entity("purpuraMain.Model.User", b =>
                 {
                     b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
                         .HasColumnType("text");
 
                     b.Property<int>("CountryId")
@@ -407,38 +517,72 @@ namespace purpuraMain.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
-                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsThirdPartyUser")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("PasswordHash")
                         .HasColumnType("text");
 
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
+                    b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("ProfilePicture")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
                     b.Property<int>("State")
                         .HasColumnType("integer");
 
-                    b.Property<string>("SurName")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
 
-                    b.Property<int>("VerifyCode")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("VerificationCode")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CountryId");
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("Users");
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("AlbumLibrary", b =>
@@ -471,21 +615,6 @@ namespace purpuraMain.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("GenreSong", b =>
-                {
-                    b.HasOne("purpuraMain.Model.Genre", null)
-                        .WithMany()
-                        .HasForeignKey("GenresId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("purpuraMain.Model.Song", null)
-                        .WithMany()
-                        .HasForeignKey("SongsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("LibraryPlaylist", b =>
                 {
                     b.HasOne("purpuraMain.Model.Library", null)
@@ -516,6 +645,57 @@ namespace purpuraMain.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("purpuraMain.Model.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("purpuraMain.Model.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("purpuraMain.Model.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("purpuraMain.Model.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("PlaylistSong", b =>
                 {
                     b.HasOne("purpuraMain.Model.Playlist", null)
@@ -534,7 +714,7 @@ namespace purpuraMain.Migrations
             modelBuilder.Entity("purpuraMain.Model.Album", b =>
                 {
                     b.HasOne("purpuraMain.Model.Artist", "Artist")
-                        .WithMany()
+                        .WithMany("Albums")
                         .HasForeignKey("ArtistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -554,7 +734,9 @@ namespace purpuraMain.Migrations
                 {
                     b.HasOne("purpuraMain.Model.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -578,7 +760,9 @@ namespace purpuraMain.Migrations
                 {
                     b.HasOne("purpuraMain.Model.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -586,21 +770,35 @@ namespace purpuraMain.Migrations
             modelBuilder.Entity("purpuraMain.Model.Song", b =>
                 {
                     b.HasOne("purpuraMain.Model.Album", "Album")
-                        .WithMany()
-                        .HasForeignKey("AlbumId");
-
-                    b.Navigation("Album");
-                });
-
-            modelBuilder.Entity("purpuraMain.Model.User", b =>
-                {
-                    b.HasOne("purpuraMain.Model.Country", "Country")
-                        .WithMany()
-                        .HasForeignKey("CountryId")
+                        .WithMany("Songs")
+                        .HasForeignKey("AlbumId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Country");
+                    b.HasOne("purpuraMain.Model.Genre", "Genre")
+                        .WithMany("Songs")
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Album");
+
+                    b.Navigation("Genre");
+                });
+
+            modelBuilder.Entity("purpuraMain.Model.Album", b =>
+                {
+                    b.Navigation("Songs");
+                });
+
+            modelBuilder.Entity("purpuraMain.Model.Artist", b =>
+                {
+                    b.Navigation("Albums");
+                });
+
+            modelBuilder.Entity("purpuraMain.Model.Genre", b =>
+                {
+                    b.Navigation("Songs");
                 });
 #pragma warning restore 612, 618
         }

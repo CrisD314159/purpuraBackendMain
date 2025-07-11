@@ -1,8 +1,8 @@
 namespace purpuraMain.Exceptions;
 
-public class BadRequestException : Exception
+public class BadRequestException (string message) : Exception
 {
-    public BadRequestException(string message) : base(message)
-    {
-    }
+
+    public override string Message{get ;} = message;
+    public int StatusCode {get;} = 400;
 }

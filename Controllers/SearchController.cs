@@ -1,62 +1,35 @@
 namespace purpuraMain.Controllers;
 
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
+using purpuraMain.Exceptions;
 using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 [ApiController]
 [Route("[controller]")]
-public class SearchController : ControllerBase
+public class SearchController(ISearchService searchService) : ControllerBase
 {
 
-  private readonly PurpuraDbContext _dbcontext;
-  public SearchController(PurpuraDbContext dbContext)
-  {
-    _dbcontext = dbContext;
-  }
+  private readonly ISearchService _searchService = searchService;
 
   [HttpGet("input")]
-  [Authorize]
+  [AllowAnonymous]
   public async Task<ActionResult<GetSearchDTO>> SearchInput (string search)
   {
-    try
-    {
-      if(string.IsNullOrEmpty(search)) throw new Exception("Search is required");
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-      var results = await SearchServices.GetSearch(userId, search, _dbcontext);
-      return Ok(results);
-    }
-    catch(UnauthorizedAccessException e){
-      return Unauthorized(new {message = e.Message, success = false});
-    }
-    catch (System.Exception)
-    {
-      
-      return BadRequest(new {message ="An error occured while searching the data", success = false});
-    }
+    var result = await HttpContext.AuthenticateAsync("Bearer");
 
+    string userId = "0";
+    if (result.Succeeded && result.Principal != null)
+    {
+        userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
+    }
+    var results = await _searchService.GetSearch(userId, search);
+    return Ok(results);
   }
-  [HttpGet("input/public")]
-  public async Task<ActionResult<GetSearchDTO>> SearchInputPublic (string search)
-  {
-    try
-    {
-      if(string.IsNullOrEmpty(search)) throw new Exception("Search is required");
-      var results = await SearchServices.GetSearch("0", search, _dbcontext);
-      return Ok(results);
-    }
-    catch(UnauthorizedAccessException e){
-      return Unauthorized(new {message = e.Message, success = false});
-    }
-    catch (System.Exception)
-    {
-      
-      return BadRequest(new {message ="An error occured while searching the data", success = false});
-    }
-
-  }
-
 }

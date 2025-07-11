@@ -1,8 +1,7 @@
 namespace purpuraMain.Exceptions;
 
-public class SessionExpiredException : Exception
+public class SessionExpiredException (string message) : Exception
 {
-    public SessionExpiredException(string message) : base(message)
-    {
-    }
+    public override string Message{get ;} = message;
+     public int StatusCode {get;} = 401;
 }

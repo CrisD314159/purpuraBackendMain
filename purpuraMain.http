@@ -280,15 +280,25 @@ Content-Type: application/json
 PUT {{purpuraMain_HostAddress}}/api/auth/refresh/token
 Authorization: Bearer 
 Content-Type: application/json
-### refreshToken
 
-
-GET {{purpuraMain_HostAddress}}/country/getAll
+###
+POST {{purpuraMain_HostAddress}}/mediaUpload/image
+Authorization: Bearer 
 Content-Type: application/json
 
 ###
-PUT {{purpuraMain_HostAddress}}/api/auth/checkToken
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjlkMjhiNzgxLWY0NDItNDNjMC1iYzBlLWRlYmYwYTA2YjlhMiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InZhcmdhc2xvYWl6YWNyaXN0aWFuQGdtYWlsLmNvbSIsImV4cCI6MTczNzg1NTkwNCwiaXNzIjoiUHVycHVyYU11c2ljIiwiYXVkIjoiUHVycHVyYU11c2ljIn0.I_jH72MghAAiU2bdvgwz_Hig9Tqe7PzUe00TlxHd3YU
+POST {{purpuraMain_HostAddress}}/song
+Authorization: Bearer 
+Content-Type: application/json
+### refreshToken
+
+
+GET {{purpuraMain_HostAddress}}/genre/getAll
+Content-Type: application/json
+
+###
+PUT {{purpuraMain_HostAddress}}/account/checkToken
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjkxOTliNzJhLTg0ZmYtNGVjNy04ZTg2LWFiNTVjYWQ0NGIxMyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InZhcmdhc2xvYWl6YWNyaXN0aWFuQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFETUlOIiwiZXhwIjoxNzUwMTY4OTM2LCJpc3MiOiJQdXJwdXJhTXVzaWMiLCJhdWQiOiJQdXJwdXJhTXVzaWMifQ.Rly5nJuoZRDNQo92tzL-CbmdowplVcpuUzfmUQNCmKA
 Content-Type: application/json
 ### refreshToken
 
@@ -312,3 +322,7 @@ GET {{purpuraMain_HostAddress}}/search/input?search=daft
 GET {{purpuraMain_HostAddress}}/search/input/public?search=daft
 ### refreshToken
 
+
+### refreshToken
+GET {{purpuraMain_HostAddress}}/user/errorh
+### refreshToken

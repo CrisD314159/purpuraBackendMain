@@ -1,50 +1,85 @@
 namespace purpuraMain.Controllers;
 
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
+using purpuraMain.Dto.InputDto;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
-using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 
 /// Controlador para gestionar las operaciones relacionadas con los álbumes.
+/// Constructor del controlador AlbumController.
+/// <param name="dbContext">Contexto de base de datos para acceder a la información de los álbumes.</param>
 [ApiController]
 [Route("[controller]")]
-public class AlbumController : ControllerBase
+public class AlbumController(IAlbumService albumService) : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
+    private readonly IAlbumService _albumService = albumService;
 
-    /// Constructor del controlador AlbumController.
-    /// <param name="dbContext">Contexto de base de datos para acceder a la información de los álbumes.</param>
-    public AlbumController(PurpuraDbContext dbContext)
+    /// <summary>
+    /// Creates an album with a provided create album dto 
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="createAlbumDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpPost]
+    public async Task<IActionResult> CreateAlbum(CreateAlbumDTO createAlbumDTO)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        await _albumService.CreateAlbum(createAlbumDTO);
+        return Created();
+    }
+    
+    /// <summary>
+    /// Updates an album with the provided update album dto
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="updateAlbumDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpPut]
+    public async Task<IActionResult> UpdateAlbum(UpdateAlbumDTO updateAlbumDTO)
+    {
+        await _albumService.UpdateAlbum(updateAlbumDTO);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Deletes an album with the provided album Id
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpDelete("/{id}")]
+    public async Task<IActionResult> DeleteAlbum(Guid id)
+    {
+        await _albumService.DeleteAlbum(id);
+        return Ok();
     }
 
-    /// Obtiene un álbum por su identificador único.
-    /// <param name="id">Identificador del álbum.</param>
-    /// <returns>Un objeto GetAlbumDTO con los detalles del álbum.</returns>
+  /// Obtiene un álbum por su identificador único.
+  /// <param name="id">Identificador del álbum.</param>
+  /// <returns>Un objeto GetAlbumDTO con los detalles del álbum.</returns>
     [HttpGet("getAlbum/{id}")]
     [AllowAnonymous]
-    public async Task<ActionResult<GetAlbumDTO>> GetAlbumById(string id)
+    public async Task<IActionResult> GetAlbumById(Guid id)
     {
-        try
+
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
         {
-            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(string.IsNullOrEmpty(userId)) userId = "0";
-            var album = await AlbumService.GetAlbumById(userId, id, _dbContext);
-            return Ok(album);
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Album Not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+        var album = await _albumService.GetAlbumById(userId, id);
+        return Ok(album);
     }
 
 
@@ -55,21 +90,12 @@ public class AlbumController : ControllerBase
     /// <returns>Una lista de objetos GetAlbumDTO con los álbumes encontrados.</returns>
     [HttpGet("getAlbumByInput/{input}")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<GetAlbumDTO>>> GetAlbumByInput(string input, int offset, int limit)
+    public async Task<IActionResult> GetAlbumByInput(string input, int offset, int limit)
     {
-        try
-        {
-            var albums = await AlbumService.GetAlbumByInput(input, offset, limit, _dbContext);
-            return Ok(albums);
-        }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Album Not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+
+        var albums = await _albumService.GetAlbumByInput(input, offset, limit);
+        return Ok(albums);
+   
     }
 
     /// Obtiene una lista de álbumes con paginación.
@@ -78,22 +104,13 @@ public class AlbumController : ControllerBase
     /// <returns>Una lista de objetos GetAlbumDTO con los álbumes disponibles.</returns>
     [HttpGet("getAlbums")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<GetAlbumDTO>>> GetAlbums(int offset, int limit)
+    public async Task<IActionResult> GetAlbums(int offset, int limit)
     {
-        try
-        {
-            if (offset < 0 || limit < 1) return BadRequest("Invalid offset or amount");
-            var albums = await AlbumService.GetAllAlbums(offset, limit, _dbContext);
-            return Ok(albums);
-        }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Albums Not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+
+        if (offset < 0 || limit < 1) return BadRequest("Invalid offset or amount");
+        var albums = await _albumService.GetAllAlbums(offset, limit);
+        return Ok(albums);
+
     }
 
     /// <summary>
@@ -102,20 +119,11 @@ public class AlbumController : ControllerBase
     /// <returns></returns>
     [HttpGet("getTopAlbums")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<GetAlbumDTO>>> GetTopAlbums()
+    public async Task<IActionResult> GetTopAlbums()
     {
-        try
-        {
-            var albums = await AlbumService.GetTopAlbums(_dbContext);
-            return Ok(albums);
-        }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Albums Not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+
+        var albums = await _albumService.GetTopAlbums();
+        return Ok(albums);
+
     }
 }

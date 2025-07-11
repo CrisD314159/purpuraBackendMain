@@ -1,5 +1,8 @@
 namespace purpuraMain.Controllers;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -7,82 +10,103 @@ using purpuraMain.Dto.InputDto;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 
 /// Controlador para gestionar géneros musicales.
+/// Constructor del controlador de géneros.
+/// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
 [ApiController]
 [Route("[controller]")]
 [Authorize]
-public class GenreController : ControllerBase
+public class GenreController(IGenreService genreService) : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
-
-    /// Constructor del controlador de géneros.
-    /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
-    public GenreController(PurpuraDbContext dbContext)
+    private readonly IGenreService _genreService = genreService;
+    
+     /// <summary>
+    /// Creates an genre with a provided create genre dto 
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="createArtistDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpPost]
+    public async Task<IActionResult> CreateGenre(CreateGenreDTO createGenreDTO)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        await _genreService.CreateGenre(createGenreDTO);
+        return Created();
     }
+    
+    /// <summary>
+    /// Updates an genre with the provided update genre dto
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="updateGenreDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpPut]
+    public async Task<IActionResult> UpdateGenre(UpdateGenreDTO updateGenreDTO)
+    {
+        await _genreService.UpdateGenre(updateGenreDTO);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Deletes an artist with the provided artist Id
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpDelete("/{id}")]
+    public async Task<IActionResult> DeleteGenre(Guid id)
+    {
+        await _genreService.DeleteGenre(id);
+        return Ok();
+    }
+
 
     /// Obtiene las canciones más populares de un género específico.
     /// <param name="id">ID del género.</param>
     /// <returns>Lista de canciones más populares dentro del género especificado.</returns>
     [HttpGet("getTopSongs/{id}")]
-    public async Task<ActionResult<GetGenreDTO>> GetTopSongs(string id)
+    [AllowAnonymous]
+    public async Task<IActionResult> GetTopSongs(Guid id)
     {
-        try
+  
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
         {
-            var topSongs = await GenreService.GetTopSongsByGenre(id, _dbContext);
-            return Ok(topSongs);
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Genre not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+        var topSongs = await _genreService.GetTopSongsByGenre(id, userId);
+        return Ok(topSongs);
+
     }
 
     /// Obtiene todos los géneros disponibles en la plataforma.
     /// <returns>Lista de géneros musicales.</returns>
-    [HttpGet("getAll")]
-    public async Task<ActionResult<List<GetGenreDTO>>> GetAllGenres()
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAllGenres()
     {
-        try
-        {
-            var genres = await GenreService.GetAllGenres(_dbContext);
-            return Ok(genres);
-        }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Genres not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+
+        var genres = await _genreService.GetAllGenres();
+        return Ok(genres);
+
     }
 
     /// Obtiene la información de un género específico por su ID.
     /// <param name="id">ID del género.</param>
     /// <returns>Datos del género especificado.</returns>
     [HttpGet("getGenre/{id}")]
-    public async Task<ActionResult<GetGenreDTO>> GetGenreById(string id)
+    public async Task<IActionResult> GetGenreById(Guid id)
     {
-        try
-        {
-            var genre = await GenreService.GetGenreById(id, _dbContext);
-            return Ok(genre);
-        }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Genre not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+
+        var genre = await _genreService.GetGenreById(id);
+        return Ok(genre);
+
     }
 }

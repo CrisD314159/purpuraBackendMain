@@ -4,62 +4,112 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using purpuraMain.Exceptions.ExceptionFilter;
+using purpuraMain.Services.Interfaces;
+using purpuraMain.Services.Implementations;
+using FluentValidation;
+using purpuraMain.Validations;
+using purpuraMain.Dto.InputDto;
+using purpuraMain.Model;
+using Microsoft.AspNetCore.Identity;
+using purpuraMain.Mapper;
+using purpuraMain.Utils;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+// Carga variables de entorno desde un archivo .env.
+DotNetEnv.Env.Load();
 
-/// <summary>
-/// Configuración de los servicios de la aplicación.
-/// </summary>
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+
 
 // Configuración de la base de datos PostgreSQL usando inyección de dependencias.
 builder.Services.AddDbContextPool<PurpuraDbContext>(opt => 
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Inyección de Identity Framework
+builder.Services.AddIdentity<User, IdentityRole<string>>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireUppercase = true;
+}
+)
+.AddEntityFrameworkStores<PurpuraDbContext>()
+.AddDefaultTokenProviders();
+
+builder.Services.AddAutoMapper(typeof(MapperProfile).Assembly);
+
+//Injección de los servicios de la aplicación
+builder.Services.AddScoped<IAlbumService, AlbumService>();
+builder.Services.AddScoped<IArtistService, ArtistService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IGenreService, GenreService>();
+builder.Services.AddScoped<ILibraryService, LibraryService>();
+builder.Services.AddScoped<IPlaylistService, PlaylistService>();
+builder.Services.AddScoped<IPurpleDaylistService, PurpleDaylistService>();
+builder.Services.AddScoped<ISongService, SongService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<IMediaUploadService, MediaUploadService>();
+builder.Services.AddScoped<IMailService, MailService>();
+builder.Services.AddScoped<IThirdPartyUserService, ThirdPartyUserService>();
+
+
+//Inyección de las validaciones de entidades
+builder.Services.AddScoped<IValidator<PasswordChangeDTO>,PasswordValidation>();
+builder.Services.AddScoped<IValidator<UpdatePlaylistDTO>,PlayListUpdateValidation>();
+builder.Services.AddScoped<IValidator<CreatePlayListDTO>,PlayListValidation>();
+builder.Services.AddScoped<IValidator<UpdateUserDto>,UserUpdateValidator>();
+builder.Services.AddScoped<IValidator<CreateUserDTO>,UserValidator>();
+builder.Services.AddScoped<IValidator<CreateAlbumDTO>, CreateAlbumValidation>();
+builder.Services.AddScoped<IValidator<CreateArtistDTO>, CreateArtistValidation>();
+builder.Services.AddScoped<IValidator<CreateSingleSongDTO>,CreateSongValidation>();
+builder.Services.AddScoped<IValidator<UpdateAlbumDTO>, UpdateAlbumValidation>();
+builder.Services.AddScoped<IValidator<UpdateArtistDTO>, UpdateArtistValidation>();
+builder.Services.AddScoped<IValidator<UpdateSingleSongDTO>, UpdateSongValidation>();
+builder.Services.AddScoped<IValidator<CreateGenreDTO>, CreateGenreValidation>();
+builder.Services.AddScoped<IValidator<UpdateGenreDTO>, UpdateGenreValidation>();
+builder.Services.AddScoped<IValidator<AddSongToAlbumDTO>, AddSongToAlbumValidation>();
+
+
 // Agrega controladores a la aplicación.
 builder.Services.AddControllers();
 
-// Agregar OpenAPI (Swagger)
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+
+// Filtro de excepciones, esto evita usar try catch para todo
+// Y captura una excepcion que retorna en una respuesta json
+builder.Services.AddControllers(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Púrpura Music API",
-        Version = "v1",
-        Description = "API para la aplicación de streaming de música Púrpura Music.",
-        Contact = new OpenApiContact
-        {
-            Name = "Cristian David Vargas Loaiza",
-            Url = new Uri("https://crisdev-pi.vercel.app")
-        }
-    });
+    options.Filters.Add<GlobalExceptionFilter>();
 
-    // Configurar autenticación en Swagger (opcional, si usas JWT)
-    var securityScheme = new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Description = "Introduce el token en formato 'Bearer {token}'",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        Reference = new OpenApiReference
-        {
-            Type = ReferenceType.SecurityScheme,
-            Id = "Bearer"
-        }
-    };
-
-    options.AddSecurityDefinition("Bearer", securityScheme);
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { securityScheme, new List<string>() }
-    });
 });
 
-// ⚠️ **Mueve esto arriba, antes de `builder.Build();`**
+
+// Configurar ForwardedHeaders para proxies como GClod run o koyeb
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+    
+    options.RequireHeaderSymmetry = false;
+});
+
+
+
 // Configuración de autenticación JWT.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddCookie()
+.AddGoogle(googleOptions =>
+{
+    googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
+    googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
+    googleOptions.CallbackPath = "/signin-google";
+    
+})
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -83,26 +133,19 @@ var app = builder.Build();
 /// Configuración del pipeline de manejo de solicitudes HTTP.
 /// </summary>
 
-// Configurar Swagger en desarrollo
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Púrpura Music API v1");
-        options.RoutePrefix = "api-docs"; // Acceder desde /api-docs
-    });
-}
+
+
+app.UseForwardedHeaders();
 
 // Fuerza el uso de HTTPS.
 app.UseHttpsRedirection();
+
 
 // Habilita autenticación y autorización.
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Carga variables de entorno desde un archivo .env.
-DotNetEnv.Env.Load();
+
 
 // Mapea controladores a las rutas definidas.
 app.MapControllers();

@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.DbContext;
@@ -6,51 +8,90 @@ using purpuraMain.Dto.InputDto;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 namespace purpuraMain.Controllers;
 
 
 /// Controlador para gestionar las operaciones relacionadas con las canciones.
+/// Constructor del controlador de canciones.
+/// <param name="dbContext">Contexto de base de datos de la aplicación.</param>
+/// <exception cref="ArgumentNullException">Se lanza si el contexto de la base de datos es nulo.</exception>
 [ApiController]
 [Route("[controller]")]
-public class SongController : ControllerBase
+public class SongController(ISongService ISongService) : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
-
-    /// Constructor del controlador de canciones.
-    /// <param name="dbContext">Contexto de base de datos de la aplicación.</param>
-    /// <exception cref="ArgumentNullException">Se lanza si el contexto de la base de datos es nulo.</exception>
-    public SongController(PurpuraDbContext dbContext)
+    private readonly ISongService _songService = ISongService;
+    
+    /// <summary>
+    /// Creates an song with a provided create song dto 
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="createSingleSongDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpPost]
+    public async Task<IActionResult> CreateSong(CreateSingleSongDTO createSingleSongDTO)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        await _songService.CreateSong(createSingleSongDTO);
+        return Created();
     }
 
-    /// Obtiene una canción por su identificador.
+    /// <summary>
+    /// Creates an adds a new song to an existing album
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="addSongToAlbumDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpPost("addToAlbum")]
+    public async Task<IActionResult> AddSongToAlbum(AddSongToAlbumDTO addSongToAlbumDTO)
+    {
+        await _songService.AddSongToAlbum(addSongToAlbumDTO);
+        return Created();
+    }
+    
+    /// <summary>
+    /// Updates a song with the provided update song dto
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="updateGenreDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpPut]
+    public async Task<IActionResult> UpdateSong(UpdateSingleSongDTO updateSingleSongDTO)
+    {
+        await _songService.UpdateSong(updateSingleSongDTO);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Deletes a song with the provided song Id
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpDelete("/{id}")]
+    public async Task<IActionResult> DeleteGenre(Guid id)
+    {
+        await _songService.DeleteSong(id);
+        return Ok();
+    }
+
+
+  /// Obtiene una canción por su identificador.
     /// <param name="id">Identificador de la canción.</param>
     /// <returns>Devuelve los detalles de la canción si se encuentra.</returns>
     [HttpGet("getSong/{id}")]
-    [Authorize]
-    public async Task<ActionResult<GetSongDTO>> GetSong(string id)
+    [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<IActionResult> GetSong(Guid id)
     {
-        try
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-            GetSongDTO song = await SongService.GetSongById(userId, id, _dbContext) 
-                ?? throw new EntityNotFoundException("Song not found");
-            return Ok(song);
-        }
-        catch(UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message, success = false });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
-        }
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("You're not authorized to perform this action");
+        GetSongDTO song = await _songService.GetSongById(userId, id);
+        return Ok(song);
+
     }
 
     /// Busca canciones según un criterio de entrada.
@@ -59,28 +100,19 @@ public class SongController : ControllerBase
     /// <param name="limit">Número máximo de registros a devolver.</param>
     /// <returns>Lista de canciones coincidentes.</returns>
     [HttpGet("search/songs")]
-    [Authorize]
-    public async Task<ActionResult<List<GetSongDTO>>> GetSongByInput(string input, int offset, int limit)
+    [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<IActionResult> GetSongByInput(string input, int offset, int limit)
     {
-        try
+
+        if (offset < 0 || limit < 1)
         {
-            if (offset < 0 || limit < 1)
-            {
-                return BadRequest("Invalid offset or limit");
-            }
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-            var songs = await SongService.GetSongByInput(userId, input, offset, limit, _dbContext) 
-                ?? throw new EntityNotFoundException("Song not found");
-            return Ok(songs);
+            return BadRequest("Invalid offset or limit");
         }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
-        }
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? 
+        throw new UnauthorizedException("You're not authorized to perform this action");
+        var songs = await _songService.GetSongByInput(userId, input, offset, limit);
+        return Ok(songs);
+
     }
 
     /// Obtiene una lista paginada de canciones.
@@ -89,27 +121,16 @@ public class SongController : ControllerBase
     /// <returns>Lista de canciones disponibles.</returns>
     [HttpGet("getSongs")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<GetSongDTO>>> GetSongs(int offset, int limit)
+    public async Task<IActionResult> GetSongs(int offset, int limit)
     {
-        try
+ 
+        if (offset < 0 || limit < 1)
         {
-            if (offset < 0 || limit < 1)
-            {
-                return BadRequest("Invalid offset or limit");
-            }
-
-            var songs = await SongService.GetAllSongs(offset, limit, _dbContext) 
-                ?? throw new EntityNotFoundException("Song not found");
-            return Ok(songs);
+            return BadRequest("Invalid offset or limit");
         }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
-        }
+        
+        var songs = await _songService.GetAllSongs(offset, limit);
+        return Ok(songs);
     }
     /// <summary>
     /// Obtiene una lista de canciones más populares.
@@ -119,24 +140,20 @@ public class SongController : ControllerBase
     /// <returns></returns>
     [HttpGet("getTopSongs")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<GetSongDTO>>> GetTopSongs()
+    public async Task<IActionResult> GetTopSongs()
     {
-        try
+
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
         {
-            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(string.IsNullOrEmpty(userId)) userId = "0";
-            var songs = await SongService.GetTopSongs(userId, _dbContext) 
-                ?? throw new EntityNotFoundException("No found songs");
-            return Ok(songs);
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
         }
-        catch (EntityNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
-        }
+
+        var songs = await _songService.GetTopSongs(userId);
+        return Ok(songs);
+        
     }
 
     /// <summary>
@@ -145,22 +162,18 @@ public class SongController : ControllerBase
     /// <param name="addPlayDTO"></param>
     /// <returns></returns>
     [HttpPost("addPlay")]
-    [Authorize]
-    public async Task<ActionResult<List<GetSongDTO>>> AddPlay(AddPlayDTO addPlayDTO)
+    [AllowAnonymous]
+    public async Task<IActionResult> AddPlay(AddPlayDTO addPlayDTO)
     {
-        try
+
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User not found");
-            var songs = await SongService.AddSongPlay(userId, addPlayDTO.SongId, _dbContext);
-            return Ok(songs);
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message, success = false });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new { message = e.Message, success = false });
-        }
+        var songs = await _songService.AddSongPlay(userId, addPlayDTO.SongId);
+        return Ok(songs);
     }
 }

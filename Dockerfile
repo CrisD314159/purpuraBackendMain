@@ -29,5 +29,12 @@ COPY --from=build /app/publish .
 # Copiar la carpeta templates manualmente
 COPY --from=build /src/templates /app/templates
 
+# CONFIGURACIÓN CRUCIAL PARA GOOGLE CLOUD RUN
+# Configurar ASP.NET Core para que escuche en el puerto 8080
+ENV ASPNETCORE_URLS=http://+:8080
+
+# Configurar el entorno como Production (opcional pero recomendado)
+ENV ASPNETCORE_ENVIRONMENT=Production
+
 # Comando de inicio de la aplicación
 ENTRYPOINT ["dotnet", "purpuraMain.dll"]

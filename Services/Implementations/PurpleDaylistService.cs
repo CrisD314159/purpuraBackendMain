@@ -1,0 +1,114 @@
+namespace purpuraMain.Services.Implementations;
+
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using CloudinaryDotNet.Actions;
+using Microsoft.EntityFrameworkCore;
+using purpuraMain.DbContext;
+using purpuraMain.Dto.OutputDto;
+using purpuraMain.Exceptions;
+using purpuraMain.Model;
+using purpuraMain.Services.Interfaces;
+
+public class PurpleDaylistService(PurpuraDbContext dbContext, IMapper mapper, ILibraryService libraryService) : IPurpleDaylistService
+{
+
+  private readonly PurpuraDbContext _dbContext = dbContext;
+  private readonly IMapper _mapper = mapper;
+
+  private readonly ILibraryService _libraryService = libraryService;
+
+
+/// <summary>
+  /// Obtiene la lista de recomendaciones de un usuario (Purple daylist)
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="dbContext"></param>
+  /// <returns></returns>
+  public async Task<GetPlayListDTO> GetPurpleDaylist(string userId)
+  {
+    await UpdatePurpuraDayList(userId);
+
+    var purpleDaylist = await _dbContext.Playlists.Where(p => p.Name == "Purple Day List" && p.UserId == userId)
+    .ProjectTo<GetPlayListDTO>(_mapper.ConfigurationProvider)
+    .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
+
+    await _libraryService.CheckSongsOnLibraryWithUser(purpleDaylist.Songs, userId);
+
+    return purpleDaylist;
+  }
+
+
+  /// <summary>
+  /// Actualiza la lista de recomendaciones de un usuario (Purple daylist)
+  /// </summary>
+  /// <param name="playlistId"></param>
+  /// <param name="userId"></param>
+  /// <param name="_dbContext"></param>
+  /// <returns></returns>
+  public async Task UpdatePurpuraDayList(string userId)
+  {
+    var playlistInfo = await _dbContext.Playlists
+        .Where(p => p.Name == "Purple Day List" && p.UserId == userId)
+        .Include(s => s.Songs)
+        .FirstOrDefaultAsync() ?? throw new EntityNotFoundException("Playlist not found");
+
+    if ((DateTime.UtcNow.Date - playlistInfo.LastUpdated.Date) >= TimeSpan.FromDays(3) || playlistInfo.Songs.Count == 0)
+    {
+      var recomendations = await GetUserRecomendations(userId);
+
+      using var transaction = await _dbContext.Database.BeginTransactionAsync();
+      try
+      {
+        playlistInfo.Songs.Clear();
+        _dbContext.SaveChanges();
+
+        playlistInfo.Songs = recomendations;
+        await _dbContext.SaveChangesAsync();
+
+        await transaction.CommitAsync();
+      }
+      catch
+      {
+        await transaction.RollbackAsync();
+        throw;
+      }
+    }
+  }
+
+
+
+  /// <summary>
+  /// Método de apoyo para obtener las canciones recomendadas de un usuario según su historial de reproducciones.
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <param name="_dbContext"></param>
+  /// <returns></returns>
+  public async Task<List<Song>> GetUserRecomendations(string userId)
+  {
+
+    // Obtener las canciones reproducidas recientemente y sus géneros
+    var recentListenGenres = await _dbContext.PlayHistories
+      .Where(p => p.UserId == userId)
+      .OrderByDescending(p => p.PlayedAt)
+      .Take(15)
+      .Select(p => p.Song!.Genre)  // Aplanamos la lista
+      .Select(g => g!.Id) // Tomamos solo los IDs de los géneros
+      .Distinct()
+      .ToListAsync();
+
+    Console.WriteLine(recentListenGenres.Count);
+
+    // Buscar canciones que tengan al menos un género en la lista obtenida
+    var recomendations = await _dbContext.Songs
+    .Where(s => recentListenGenres.Contains(s.GenreId)) // Comparamos con IDs
+    .OrderByDescending(s => s.Name)
+    .Take(10)
+    .ToListAsync();
+
+    Console.WriteLine(recomendations.Count);
+
+    return recomendations;
+  }
+
+}

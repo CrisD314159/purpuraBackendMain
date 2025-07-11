@@ -7,7 +7,7 @@ public class PlayHistory
   public string? UserId { get; set; }
   public User? User { get; set; }
 
-  public string? SongId { get; set; }
+  public Guid? SongId { get; set; }
   public Song? Song { get; set; }
   
   public DateTime PlayedAt { get; set; }

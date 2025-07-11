@@ -1,53 +1,88 @@
 namespace purpuraMain.Controllers;
 
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using purpuraMain.DbContext;
+using purpuraMain.Dto.InputDto;
 using purpuraMain.Dto.OutputDto;
 using purpuraMain.Exceptions;
-using purpuraMain.Services;
+using purpuraMain.Services.Interfaces;
 
 /// Controlador para la gestión de artistas en la plataforma.
 /// Proporciona endpoints para obtener información sobre artistas, buscar artistas y recuperar sus álbumes y canciones.
+/// Constructor del controlador de artistas.
+/// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
+/// <exception cref="ArgumentNullException">Se lanza si el contexto es nulo.</exception>
 [ApiController]
 [Route("[controller]")]
-public class ArtistController : ControllerBase
+public class ArtistController(IArtistService artistService) : ControllerBase
 {
-    private readonly PurpuraDbContext _dbContext;
+    private readonly IArtistService _artistService = artistService;
 
-   
-    /// Constructor del controlador de artistas.
-    /// <param name="dbContext">Contexto de la base de datos de la aplicación.</param>
-    /// <exception cref="ArgumentNullException">Se lanza si el contexto es nulo.</exception>
-    public ArtistController(PurpuraDbContext dbContext)
+
+
+    /// <summary>
+    /// Creates an artist with a provided create artist dto 
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="createArtistDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpPost]
+    public async Task<IActionResult> CreateArtist(CreateArtistDTO createArtistDTO)
     {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        await _artistService.CreateArtist(createArtistDTO);
+        return Created();
+    }
+    
+    /// <summary>
+    /// Updates an artist with the provided update artist dto
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="updateArtistDTO"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpPut]
+    public async Task<IActionResult> UpdateAlbum(UpdateArtistDTO updateArtistDTO)
+    {
+        await _artistService.UpdateArtist(updateArtistDTO);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Deletes an artist with the provided artist Id
+    /// This Endpint is only accessible for admins
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [Authorize(Roles ="ADMIN", AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteArtist(Guid id)
+    {
+        await _artistService.DeleteArtist(id);
+        return Ok();
     }
 
-   
     /// Obtiene el perfil de un artista por su ID.
     /// <param name="id">ID del artista.</param>
     /// <returns>El perfil del artista.</returns>
     [HttpGet("getArtistProfile/{id}")]
     [AllowAnonymous]
-    public async Task<ActionResult<GetArtistDTO>> GetArtistProfile(string id)
+    public async Task<IActionResult> GetArtistProfile(Guid id)
     {
-        try
+
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
         {
-            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(string.IsNullOrEmpty(userId)) userId = "0";
-            var artist = await ArtistService.GetArtistById(userId, id, _dbContext);
-            return Ok(artist);
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Artist Not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+        var artist = await _artistService.GetArtistById(userId, id);
+        return Ok(artist);
+
     }
 
    
@@ -57,26 +92,17 @@ public class ArtistController : ControllerBase
     /// <param name="limit">Cantidad de artistas a recuperar.</param>
     /// <returns>Lista de artistas coincidentes.</returns>
     [HttpGet("searchArtists")]
-    public async Task<ActionResult<List<GetArtistDTO>>> GetArtistByName(string name, int offset, int limit)
+    public async Task<IActionResult> GetArtistByName(string name, int offset, int limit)
     {
-        try
-        {
-            if (offset < 0 || limit < 1)
-            {
-                return BadRequest("Invalid offset or limit");
-            }
 
-            var artist = await ArtistService.GetArtistByName(name, offset, limit, _dbContext);
-            return Ok(artist);
-        }
-        catch (EntityNotFoundException)
+        if (offset < 0 || limit < 1)
         {
-            return NotFound(new { message = "Artists Not found", success = false });
+        return BadRequest("Invalid offset or limit");
         }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+
+        var artist = await _artistService.GetArtistByName(name, offset, limit);
+        return Ok(artist);
+
     }
 
    
@@ -84,73 +110,53 @@ public class ArtistController : ControllerBase
     /// <param name="id">ID del artista.</param>
     /// <returns>Lista de álbumes del artista.</returns>
     [HttpGet("getArtistAlbums/{id}")]
-    public async Task<ActionResult<GetArtistDTO>> GetArtistAlbums(string id)
+    public async Task<IActionResult> GetArtistAlbums(Guid id)
     {
-        try
-        {
-            var artist = await ArtistService.GetArtistAlbums(id, _dbContext);
-            return Ok(artist);
-        }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Artist Not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+
+        var artist = await _artistService.GetArtistAlbums(id);
+        return Ok(artist);
+
     }
 
-   
+
     /// Obtiene las canciones de un artista por su ID.
     /// <param name="id">ID del artista.</param>
     /// <returns>Lista de canciones del artista.</returns>
     [HttpGet("getArtistSongs/{id}")]
     [AllowAnonymous]
-    public async Task<ActionResult<GetArtistDTO>> GetArtistSongs(string id)
+    public async Task<IActionResult> GetArtistSongs(Guid id)
     {
-        try
+
+
+        var result = await HttpContext.AuthenticateAsync("Bearer");
+
+        string userId = "0";
+        if (result.Succeeded && result.Principal != null)
         {
-            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(string.IsNullOrEmpty(userId)) userId = "0";
-            var artist = await ArtistService.GetArtistById(userId, id, _dbContext);
-            return Ok(artist);
+            userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Artist Not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+        var artist = await _artistService.GetArtistById(userId, id);
+        return Ok(artist);
+
     }
 
-   
+
     /// Obtiene una lista de artistas con paginación.
     /// <param name="offset">Número de elementos a omitir.</param>
     /// <param name="limit">Cantidad de artistas a recuperar.</param>
     /// <returns>Lista de artistas.</returns>
     [HttpGet("getArtists")]
-    public async Task<ActionResult<List<GetArtistDTO>>> GetArtists(int offset, int limit)
+    [AllowAnonymous]
+    public async Task<IActionResult> GetArtists(int offset, int limit)
     {
-        try
+
+        if (offset < 0 || limit < 1)
         {
-            if (offset < 0 || limit < 1)
-            {
-                return BadRequest("Invalid offset or limit");
-            }
-            var artists = await ArtistService.GetMostListenArtists(offset, limit, _dbContext);
-            return Ok(artists);
+            return BadRequest("Invalid offset or limit");
         }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Artists Not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+        var artists = await _artistService.GetMostListenArtists(offset, limit);
+        return Ok(artists);
+
     }
 
    
@@ -159,25 +165,16 @@ public class ArtistController : ControllerBase
     /// <param name="limit">Cantidad de artistas a recuperar.</param>
     /// <returns>Lista de los artistas más escuchados.</returns>
     [HttpGet("getMostListenArtists")]
-    public async Task<ActionResult<List<GetArtistPlaysDTO>>> GetMostListenArtists(int offset, int limit)
+    public async Task<IActionResult> GetMostListenArtists(int offset, int limit)
     {
-        try
-        {
+
             if (offset < 0 || limit < 1)
             {
                 return BadRequest("Invalid offset or limit");
             }
 
-            var artists = await ArtistService.GetMostListenArtists(offset, limit, _dbContext);
+            var artists = await _artistService.GetMostListenArtists(offset, limit);
             return Ok(artists);
-        }
-        catch (EntityNotFoundException)
-        {
-            return NotFound(new { message = "Artists Not found", success = false });
-        }
-        catch (System.Exception)
-        {
-            return BadRequest(new { message = "An unexpected error occurred", success = false });
-        }
+
     }
 }

@@ -1,34 +1,24 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 
 namespace purpuraMain.Model;
 
-[Index(nameof(Email), IsUnique = true)]
-public class User
+public class User : IdentityUser
 {
-  public required string Id { get; set; }
-  [EmailAddress]
-  public required string Email { get; set; }
-
-  [MinLength(8)]
-  public required string Password { get; set; }
-
-  [MinLength(2)]
-  [MaxLength(30)]
-  public required string FirstName { get; set; }
-
-  [MinLength(2)]
-  [MaxLength(30)]
-  public required string SurName { get; set; }
 
   public DateTime CreatedAt { get; set; }
 
-
   public int CountryId { get; set; }
-  public  Country? Country { get; set; }
+
   public UserState State { get; set; }
-  public string? ProfilePicture { get; set; }
-  public int VerifyCode { get; set; }
+
+  [Url]
+  public required string ProfilePicture { get; set; }
+  public required string VerificationCode { get; set; }
+  public required UserRole Role { get; set; }
+
+  public required bool IsThirdPartyUser { get; set; }
 
 }
