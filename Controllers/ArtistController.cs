@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using purpuraMain.Dto.InputDto;
-using purpuraMain.Dto.OutputDto;
-using purpuraMain.Exceptions;
 using purpuraMain.Services.Interfaces;
 
 /// Controlador para la gestión de artistas en la plataforma.

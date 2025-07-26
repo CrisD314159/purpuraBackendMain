@@ -5,10 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using purpuraMain.DbContext;
 using purpuraMain.Dto.OutputDto;
-using purpuraMain.Exceptions;
-using purpuraMain.Services;
 using purpuraMain.Services.Interfaces;
 
 [ApiController]
