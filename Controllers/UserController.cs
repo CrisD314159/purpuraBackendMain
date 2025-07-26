@@ -1,10 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
-using purpuraMain.DbContext;
 using purpuraMain.Dto.InputDto;
-using purpuraMain.Dto.OutputDto;
-using purpuraMain.Exceptions;
-using purpuraMain.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using purpuraMain.Services.Interfaces;

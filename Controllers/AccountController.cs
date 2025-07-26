@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using purpuraMain.DbContext;
-using purpuraMain.Dto;
 using purpuraMain.Dto.InputDto;
 using purpuraMain.Exceptions;
 using purpuraMain.Model;
@@ -78,7 +76,7 @@ public class AccountController(IAuthService authService, SignInManager<User> sig
         return Ok(new { success = true, message = "Token is valid" });
 
     }
-    
+
     /// <summary>
     /// This is the endpoint where the client shoul call.
     /// This mehod triggers or redirects the user to google auth service
@@ -86,7 +84,7 @@ public class AccountController(IAuthService authService, SignInManager<User> sig
     /// <param name="returnUrl"></param>
     /// <returns></returns>
     [HttpGet("api/login/google")]
-    public IActionResult GoogleSignIn([FromQuery] string returnUrl="/")
+    public IActionResult GoogleSignIn([FromQuery] string returnUrl = "/")
     {
         var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google",
         Url.Action("ExternalLoginCallback", "Account", new { returnUrl }));
@@ -124,4 +122,5 @@ public class AccountController(IAuthService authService, SignInManager<User> sig
 
         return Redirect($"{frontUrl}/api/auth/google?token={tokenSession.Token}&refresh={tokenSession.RefreshToken}");
     }
+
 }
